@@ -38,7 +38,7 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 
 | 키워드           | 의미                                  | 경험 가치                            |
 | ---------------- | ------------------------------------- | ------------------------------------ |
-| 🔍 **탐색**      | 지역 이벤트를 감성 기반으로 추천       | 여행의 이유를 발견하는 즐거움         |
+| 🔍 **탐색**      | 지역 이벤트를 간편하게 서칭       | 여행의 이유를 발견하는 즐거움         |
 | 🤝 **연결**      | 파티원 모집 / 관심사 매칭 / 커뮤니티  | 낯선 곳에서 만나는 인연이라는 설렘    |
 | 📝 **기록**      | 나만의 여행 일지                      | 추억을 기억으로 남기는 확장성         |
 
@@ -52,6 +52,8 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 
 ## 🚀 기술 스택
 
+## 🚀 기술 스택
+
 ### Frontend
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
@@ -59,11 +61,16 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![Shadcn/ui](https://img.shields.io/badge/Shadcn/ui-000000?style=for-the-badge&logo=shadcnui&logoColor=white)
 
-### Backend
-![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![Auth.js](https://img.shields.io/badge/Auth.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+### Backend & Authentication
+![Next.js](https://img.shields.io/badge/Next.js_API-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![NextAuth.js](https://img.shields.io/badge/NextAuth.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
 ![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+
+### OAuth Providers
+![Kakao](https://img.shields.io/badge/Kakao-FFCD00?style=for-the-badge&logo=kakao&logoColor=black)
+![Naver](https://img.shields.io/badge/Naver-03C75A?style=for-the-badge&logo=naver&logoColor=white)
+![Google](https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white)
 
 ### Database
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
