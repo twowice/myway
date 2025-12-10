@@ -12,6 +12,25 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 
+/**
+ * @typedef {object} ConfirmationPopupProps
+ * @property {ReactNode} dialogTrigger - 팝업창을 열기 위한 트리거 컴포넌트입니다. (예: <Button>확인</Button>)
+ * @property {string} title - 팝업창의 제목입니다.
+ * @property {ReactNode} body - 팝업창의 본문 내용입니다. ReactNode 타입으로 다양한 컴포넌트를 전달할 수 있습니다.
+ * @property {string} [cancelTitle='아니오'] - 취소 버튼의 텍스트입니다. (선택 사항, 기본값: '아니오')
+ * @property {string} [confirmTitle='네'] - 확인 버튼의 텍스트입니다. (선택 사항, 기본값: '네')
+ * @property {() => void} [cancelCallback] - 취소 버튼 클릭 시 실행될 콜백 함수입니다.
+ * @property {() => void} [confirmCallback] - 확인 버튼 클릭 시 실행될 콜백 함수입니다.
+ */
+
+/**
+ * 사용자에게 어떤 행동에 대한 확인을 받거나 취소를 결정하게 하는 공용 팝업 컴포넌트입니다.
+ * 이 팝업은 DialogTrigger로 팝업을 열고, DialogFooter에 확인/취소 버튼을 포함합니다.
+ *
+ * @param {ConfirmationPopupProps} props - 팝업에 전달될 속성들.
+ * @returns {JSX.Element} Confirmation 팝업 컴포넌트.
+ */
+
 export const ConfirmationPopup = ({
   dialogTrigger,
   title,
