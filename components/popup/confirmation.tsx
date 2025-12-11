@@ -66,7 +66,8 @@ export const ConfirmationPopup = ({
         <DialogFooter className="flex flex-row gap-x-10px ">
           <DialogClose asChild>
             <Button
-              className="flex-1 sm:flex-1 bg"
+              className="flex-1 sm:flex-1"
+              variant={"secondary"}
               type="button"
               onClick={cancelCallback}
             >
