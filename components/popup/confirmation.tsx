@@ -28,7 +28,7 @@ import { Button } from "../ui/button";
  * 이 팝업은 DialogTrigger로 팝업을 열고, DialogFooter에 확인/취소 버튼을 포함합니다.
  *
  * @param {ConfirmationPopupProps} props - 팝업에 전달될 속성들.
- * @returns {JSX.Element} Confirmation 팝업 컴포넌트.
+ * @returns {React.ReactElement} Confirmation 팝업 컴포넌트.
  */
 
 export const ConfirmationPopup = ({
@@ -47,7 +47,7 @@ export const ConfirmationPopup = ({
   confirmTitle?: string; //수락 버튼 이름
   cancelCallback?: () => void; //취소 동작 콜백 함수
   confirmCallback?: () => void; //수락 동작 콜백 함수
-}) => {
+}): React.ReactElement => {
   return (
     <Dialog>
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>

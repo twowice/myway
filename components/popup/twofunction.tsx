@@ -29,7 +29,7 @@ import { Button } from "../ui/button";
  * 기본 동작은 ConfirmationPopup과 동일합니다. 다른 점은 DialogFooter의 색상 뿐입니다.
  *
  * @param {ConfirmationPopupProps} props - 팝업에 전달될 속성들.
- * @returns {JSX.Element} Confirmation 팝업 컴포넌트.
+ * @returns {React.ReactElement} Confirmation 팝업 컴포넌트.
  */
 
 export const TwoFunctionPopup = ({
@@ -48,7 +48,7 @@ export const TwoFunctionPopup = ({
   rightTitle?: string; //기능2 버튼 이름
   leftCallback?: () => void; //기능1 동작 콜백 함수
   rightCallback?: () => void; //기능2 동작 콜백 함수
-}) => {
+}): React.ReactElement => {
   return (
     <Dialog>
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>

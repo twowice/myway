@@ -59,7 +59,7 @@ export const EllipsisPagination = ({
   currentPage: number;
   totalPages: number;
   handlePageChange: (changedPage: number) => void;
-}) => {
+}): React.ReactElement => {
   const pageNumbersToDisplay = useMemo(() => {
     if (totalPages === 0) return [];
 
