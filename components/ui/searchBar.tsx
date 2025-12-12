@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Icon, Search, X } from 'lucide-react';
 import { Icon24 } from '../icons/icon24';
 
 interface SearchBarProps {
