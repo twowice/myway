@@ -111,13 +111,9 @@ export default function page() {
             xl:px-[200px]    /* wide monitor */
         ">
             <div className="flex flex-col space-y-[22px]">
-                <div >
-                    <EventTitle count={124} />
-                </div>
 
-                <div >
-                    <FilterHeader onSearch={onSearch} />
-                </div>
+                <EventTitle count={124} />
+                <FilterHeader onSearch={onSearch} />
 
                 <div className="
                         grid 
@@ -143,6 +139,5 @@ export default function page() {
                 </div>
             </div>
         </div>
-
     )
 }

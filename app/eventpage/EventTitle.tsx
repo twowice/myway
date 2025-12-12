@@ -5,7 +5,7 @@ export function EventTitle({ count }: { count: number }) {
                 전국 이벤트 콘텐츠
             </p>
 
-            <span className="text-[32px] front-normal text-[var(--primary-color)]">
+            <span className="text-[32px] front-normal text-[var(--primary)]">
                 {count}
             </span>
         </div>
