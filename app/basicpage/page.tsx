@@ -1,4 +1,5 @@
 import { CheckboxComponent } from '@/components/basic/checkbox';
+import { ComboboxComponent } from '@/components/basic/combo';
 import { RadioComponent } from '@/components/basic/radio';
 
 export default function Basic() {
@@ -15,6 +16,14 @@ export default function Basic() {
          />
          {/* checkbox */}
          <CheckboxComponent
+            options={[
+               { value: 'default', label: 'Default' },
+               { value: 'comfortable', label: 'Comfortable' },
+               { value: 'compact', label: 'Compact' },
+            ]}
+         />
+         {/* combo */}
+         <ComboboxComponent
             options={[
                { value: 'default', label: 'Default' },
                { value: 'comfortable', label: 'Comfortable' },
