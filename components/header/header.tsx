@@ -35,8 +35,14 @@ export default function Header() {
   }, [pathname]);
 
   const handleMenuClick = (href: string, name: string) => {
-    router.push(href);
-    setOpenPanel(name);
+    // 이미 해당 페이지에 있으면 패널만 토글
+    if (pathname === href) {
+      setOpenPanel(openPanel === name ? null : name);
+    } 
+    // 다른 페이지로 이동 (useEffect가 자동으로 패널 열어줌)
+    else {
+      router.push(href);
+    }
   };
 
   const closePanel = () => {
@@ -112,8 +118,8 @@ export default function Header() {
       {/* ==================== 슬라이드 패널 (메인 위에 살짝 떠서 나옴) ==================== */}
       <div
         className={clsx(
-          'fixed inset-y-0 left-16 lg:left-20 z-20', // z-20으로 낮춰서 main 위에만 살짝 뜸
-          'w-full max-w-96',
+          'fixed inset-y-0 left-16 lg:left-20 z-20',
+          'w-full max-w-88 md:max-w-96', // 모바일: 288px, 데스크탑: 384px
           'bg-white shadow-2xl',
           'transition-transform duration-300 ease-in-out',
           openPanel ? 'translate-x-0' : '-translate-x-full'
