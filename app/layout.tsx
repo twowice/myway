@@ -1,3 +1,4 @@
+import Header from '@/components/header/header';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -19,15 +20,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="ko" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="antialiased bg-gray-50">
+        {/* 여기만 추가! */}
+        <Header />
+        {/* lg:pl-20 값을 변경하면 header와 main영역 사이의 여백을 조절 가능 */}
+        <main className="pl-16 lg:pl-20 min-h-screen">
+          {children}
+        </main>
       </body>
     </html>
   );
