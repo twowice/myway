@@ -53,7 +53,7 @@ const Map = ({ mapId = 'map', initialCenter = INITIAL_CENTER, initialZoom = INIT
                console.error('Failed to load Naver Maps script:', e);
             }}
          />
-         <div id={mapId} style={{ width: '100%', height: '100%' }} />
+         <div id={mapId} className="w-full h-full" />
       </>
    );
 };

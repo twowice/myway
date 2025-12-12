@@ -51,77 +51,36 @@ const MapSection = () => {
    const pm25Level = airQuality ? getPM25Level(airQuality.pm2_5) : null;
 
    return (
-      <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
+      <div className="w-full h-screen relative">
          <Map onLoad={handleMapLoad} />
          {/*날씨정보 */}
          {weather && (
             <div
                onClick={handleWeatherClick}
-               style={{
-                  position: 'absolute',
-                  bottom: '20px',
-                  left: '20px',
-                  background: '#F1F5FA',
-                  borderRadius: '4px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                  zIndex: 100,
-                  width: '150px',
-                  height: '100px',
-                  display: 'flex',
-                  gap: '8px',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-               }}
+               className="absolute bottom-5 left-5 bg-[#F1F5FA] rounded shadow-[0_2px_8px_rgba(0,0,0,0.15)] z-[100px] w-[150px] h-[100px] flex gap-2 items-center justify-center cursor-pointer"
             >
                {/* 날씨 & 온도 */}
-               <div
-                  style={{
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'center',
-                     flexDirection: 'column',
-                  }}
-               >
-                  <div style={{ width: '48px', height: '48px', border: '1px solid black' }}>
+               <div className="flex items-center justify-center flex-col">
+                  <div className="w-12 h-12 border border-black">
                      {/* <Icon24 weathercode={weather.weathercode} /> */}
                   </div>
-                  <div style={{ fontSize: '16px' }}>{Math.round(weather.temperature)}°C</div>
+                  <div className="text-base">{Math.round(weather.temperature)}°C</div>
                </div>
                {/* // 미세먼지 */}
                {airQuality && pm10Level && pm25Level && (
-                  <div
-                     style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                        width: '60px',
-                     }}
-                  >
+                  <div className="flex flex-col gap-3 w-[60px]">
                      {/* 미세먼지 PM10 */}
                      <div
-                        style={{
-                           width: '100%',
-                           flex: 1,
-                           borderRight: `3px solid ${pm25Level.color}`,
-                           textAlign: 'center',
-                           fontSize: '16px',
-                           borderRadius: '3px',
-                        }}
+                        className="w-full flex-1 text-center text-base rounded-[3px]"
+                        style={{ borderRight: `3px solid ${pm25Level.color}` }}
                      >
                         미세
                      </div>
 
                      {/* 초미세먼지 PM25 */}
                      <div
-                        style={{
-                           width: '100%',
-                           flex: 1,
-                           borderRight: `3px solid ${pm25Level.color}`,
-                           textAlign: 'center',
-                           fontSize: '16px',
-                           borderRadius: '3px',
-                        }}
+                        className="w-full flex-1 text-center text-base rounded-[3px]"
+                        style={{ borderRight: `3px solid ${pm25Level.color}` }}
                      >
                         초미세
                      </div>
