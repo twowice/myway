@@ -1,8 +1,9 @@
 'use client';
+import Link from 'next/link'
 import { useEffect, useState } from 'react';
-import { EventTitle } from './EventTitle';
-import { FilterHeader } from './FilterHeader';
-import { EventCard } from '@/feature/eventCard/eventCard'
+import { EventTitle } from '@/feature/event/EventTitle';
+import { FilterHeader } from '@/feature/event/FilterHeader';
+import { EventCard } from '@/feature/event/EventCard';
 
 interface EventItem {
     id: number;
@@ -13,7 +14,7 @@ interface EventItem {
     imageUrl: string;
 }
 
-export default function page() {
+export default function Page() {
     const [events, setEvents] = useState<EventItem[]>([]);
     const onSearch = (keyword: string) => {
         console.log("INPUT검색 중...", keyword);
@@ -105,10 +106,10 @@ export default function page() {
             w-full 
             justify-center
 
-            px-[16px]        /* mobile */
-            sm:px-[32px]     /* tablet */
-            lg:px-[80px]     /* desktop */
-            xl:px-[200px]    /* wide monitor */
+            px-[16px]
+            sm:px-[32px]
+            lg:px-[80px]
+            xl:px-[100px]
         ">
             <div className="flex flex-col space-y-[22px]">
 
@@ -123,18 +124,21 @@ export default function page() {
                         xl:grid-cols-4
                         gap-x-[16px]
                         gap-y-[16px]
-                        grid-rows-[359px]
                     "
                 >
                     {events.map((item) => (
-                        <EventCard
+                        <Link
                             key={item.id}
-                            title={item.title}
-                            startDate={item.startDate}
-                            endDate={item.endDate}
-                            region={item.region}
-                            imageUrl={item.imageUrl}
-                        />
+                            href={`/eventpage/${item.id}`}
+                            className="block cursor-pointer">
+                            <EventCard
+                                title={item.title}
+                                startDate={item.startDate}
+                                endDate={item.endDate}
+                                region={item.region}
+                                imageUrl={item.imageUrl}
+                            />
+                        </Link>
                     ))}
                 </div>
             </div>

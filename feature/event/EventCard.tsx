@@ -17,8 +17,8 @@ interface FilterCardProps {
 
 export function EventCard({ title, startDate, endDate, region, imageUrl }: FilterCardProps) {
     return (
-        <div className="w-full h-auto overflow-hidden bg-white ">
-            <div className='relative w-full h-[258px]'>
+        <div className="w-full h-auto overflow-hidden ">
+            <div className='relative w-full h-[300px]'>
                 <img
                     src={imageUrl}
                     alt={title}
@@ -29,7 +29,7 @@ export function EventCard({ title, startDate, endDate, region, imageUrl }: Filte
                 </button>
             </div>
 
-            <div className='flex flex-col gap-[8px] mt-[12px]'>
+            <div className='flex flex-col gap-[7px] mt-[12px]'>
                 <span className="text-[24px] font-bold text-[#04152F]">{title}</span>
                 <span className="text-[14px] font-regular text-[#616161]">{startDate} ~ {endDate}</span>
                 <span className="text-[14px] font-regular text-[#848484]">{region}</span>

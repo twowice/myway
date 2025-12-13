@@ -47,9 +47,9 @@ export function ComboboxComponent({
       onValueChange?.(selectedValue);
       setOpen(false);
    };
-
-   const selectedOption = options.find(option => option.value === currentValue);
-
+   // EDIT BY CKH 25.12.13
+   // const selectedOption = options.find(option => option.value === currentValue);
+   const selectedOption = options.find(option=>option.value[0])
    return (
       <Popover open={open} onOpenChange={setOpen}>
          <PopoverTrigger asChild>
@@ -59,7 +59,10 @@ export function ComboboxComponent({
                aria-expanded={open}
                className={cn(width, 'justify-between border-[#04152F]/20', className)}
             >
-               {selectedOption?.label || placeholder}
+
+               {/* {selectedOption?.label || placeholder} */}
+               {/* EDIT BY CKH 25.12.13 */}
+               {selectedOption?.label}
                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
          </PopoverTrigger>
