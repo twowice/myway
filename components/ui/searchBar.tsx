@@ -44,7 +44,7 @@ export const SearchBar = ({
 
    return (
       <form onSubmit={handleSubmit} className={`relative ${className}`}>
-         <div className="relative flex items-center">
+         <div className="relative flex items-center h-10">
             <Icon24 name="search" className="absolute left-4 h-6 w-6" />
 
             <input
@@ -52,7 +52,7 @@ export const SearchBar = ({
                value={value}
                onChange={handleChange}
                placeholder={placeholder}
-               className="w-full py-2 pl-12 bg-primary-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007DE4] focus:border-transparent transition-all"
+               className="w-full py-2 pl-12 text-base bg-primary-foreground rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#007DE4] focus:border-transparent transition-all"
             />
 
             {value && (
