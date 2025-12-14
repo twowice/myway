@@ -20,7 +20,6 @@ export type Icon36Name =
   | 'matching'
   | 'record'
   | 'bigheartdef'
-  | 'bigheartsel'
   | 'user'
   | 'festival';
 
@@ -33,7 +32,7 @@ export const Icon36: React.FC<Icon36Props> = ({ name, className, ...props }) => 
   // 기본 색상은 #04152F, className으로 오버라이드 가능
   const svgClass = clsx(
     "w-9 h-9 flex-shrink-0 transition-colors duration-200",
-    className || "text-[#04152F]"
+    className ||'text-foreground'
   );
 
   return (
@@ -129,13 +128,6 @@ export const Icon36: React.FC<Icon36Props> = ({ name, className, ...props }) => 
           case 'bigheartdef':
             return (
               <path d="M18.0002 10.8722L16.9247 9.76666C14.4001 7.17159 9.77096 8.06711 8.09991 11.3297C7.31538 12.8643 7.13838 15.0798 8.57092 17.9074C9.95096 20.63 12.8221 23.8911 18.0002 27.4432C23.1784 23.8911 26.048 20.63 27.4295 17.9074C28.862 15.0783 28.6865 12.8643 27.9005 11.3297C26.2295 8.06711 21.6003 7.17009 19.0757 9.76516L18.0002 10.8722ZM18.0002 29.2508C-4.99999 14.0523 10.9185 2.18993 17.7362 8.46463C17.8262 8.54763 17.9142 8.63313 18.0002 8.72113C18.0847 8.63258 18.1728 8.5475 18.2642 8.46613C25.0804 2.18693 41.0004 14.0508 18.0002 29.2508Z" />
-            );
-
-          case 'bigheartsel':
-            return (
-              <g clipPath="url(#clip0_288_16165)">
-                <path fillRule="evenodd" clipRule="evenodd" d="M18 8.72113C24.6572 1.87795 41.3016 13.8528 18 29.2507C-5.30163 13.8543 11.3428 1.87795 18 8.72113Z" fill="#007DE4" />
-              </g>
             );
 
           case 'user':
