@@ -14,6 +14,7 @@ import { Button } from "../ui/button";
  * 이미지 목록은 가로 스크롤 가능한 형태로 표시되며, 각 `Photo` 및 `PhotoInput` 컴포넌트는 고정된 크기를 가집니다.
  *
  * @param {object} props - PhotoInputContainer 컴포넌트의 속성입니다.
+ * @param {string[] | null} props.initImages - 해당 컴포넌트에 초기화할 이미지 url 목록입니다
  * @param {function(File): number} props.uploadImage -
  *   선택된 이미지 파일을 인수로 받아 업로드 처리를 수행하는 콜백 함수입니다.
  *   업로드 결과에 따라 HTTP 상태 코드를 반환해 handleUploadError에서 HTTP 상태 코드에 대응하는 에러 대처를 커스텀 가능합니다.
@@ -44,6 +45,7 @@ export const PhotoInputContainer = ({
           return;
         }
 
+        //화면에 이미지를 보이기 위해서 작동
         setImages((prev) => [URL.createObjectURL(file), ...(prev ?? [])]);
 
         //이미지 업로드를 위한 통신 부분으로 추후 통신 status 코드에 따른 구분이 가능하도록 number을 리턴 받습니다.
