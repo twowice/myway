@@ -8,6 +8,9 @@ export default function Home() {
       <h1>아이콘 테스트 페이지</h1>
 
       {/* 기본 사용 */}
+      <Icon24 name="arrow" />
+      <Icon24 name="add" />
+      <Icon36 name="notice36" />
       <Icon24 name="routedef" />
       <Icon24 name="sharedef" />
       <Icon24 name="pinned" />
