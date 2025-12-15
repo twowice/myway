@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useEffect } from 'react';
 import { mainmenu } from './headermenu';
-import { panelstore } from '@/lib/panelstore';
+import { panelstore } from '@/stores/panelstore';
 
 export default function Header() {
   const pathname = usePathname();
@@ -90,7 +90,9 @@ export default function Header() {
           </nav>
 
           <div className="p-2 border-t border-gray-200 shrink-0">
-            <button className="w-full py-3 text-center text-base font-medium text-foreground hover:text-primary transition-colors cursor-pointer">
+            <button
+              onClick={() => router.push('/loginpage')} 
+              className="w-full py-3 text-center text-base font-medium text-foreground hover:text-primary transition-colors cursor-pointer">
               로그인
             </button>
           </div>
