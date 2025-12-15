@@ -1,4 +1,3 @@
-// src/components/header/headermenu.ts
 export const mainmenu = [
   { name: '이벤트',    icon: 'event',     href: '/eventpage',   panelkey: 'event' },
   { name: '길찾기',    icon: 'location',  href: '/locationpage', panelkey: 'location' },
