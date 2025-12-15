@@ -2,13 +2,16 @@
 
 import { Icon24 } from '@/components/icons/icon24';
 import { Icon36 } from '@/components/icons/icon36';
-import Event from '@/feature/event';
+import Event from '@/feature/admin/event';
+import Notice from '@/feature/admin/notice';
+import PartyReport from '@/feature/admin/party-report';
+import UserReport from '@/feature/admin/user-report';
 import { useState } from 'react';
 
-type MenuType = 'event' | 'notice' | 'user-report' | 'party' | null;
+type MenuType = 'event' | 'notice' | 'user-report' | 'party-report' | null;
 
 export default function Admin() {
-   const [selectedMenu, setSelectedMenu] = useState<MenuType>(null);
+   const [selectedMenu, setSelectedMenu] = useState<MenuType>('event');
    return (
       <div className="h-screen flex">
          <div className="flex flex-col w-120 bg-primary/20 h-full p-4 gap-4">
@@ -72,11 +75,11 @@ export default function Admin() {
                         사용자 신고 관리
                      </button>
                      <button
-                        onClick={() => setSelectedMenu('party')}
-                        className={`flex w-full gap-1 text-base items-center p-2 rounded-xl hover:bg-primary/8 transition-colors ${selectedMenu === 'party' && 'text-primary font-semibold'}`}
+                        onClick={() => setSelectedMenu('party-report')}
+                        className={`flex w-full gap-1 text-base items-center p-2 rounded-xl hover:bg-primary/8 transition-colors ${selectedMenu === 'party-report' && 'text-primary font-semibold'}`}
                      >
                         <Icon36 name="party" className="active:text-primary" />
-                        파티 관리
+                        파티 신고 관리
                      </button>
                   </div>
                </div>
@@ -84,9 +87,9 @@ export default function Admin() {
          </div>
          <div className="flex flex-col w-full text-foreground font-semibold text-2xl p-6">
             {selectedMenu === 'event' && <Event />}
-            {selectedMenu === 'notice' && <Event />}
-            {selectedMenu === 'user-report' && <Event />}
-            {selectedMenu === 'party' && <Event />}
+            {selectedMenu === 'notice' && <Notice />}
+            {selectedMenu === 'user-report' && <UserReport />}
+            {selectedMenu === 'party-report' && <PartyReport />}
          </div>
       </div>
    );
