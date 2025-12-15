@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useEffect } from 'react';
 import { mainmenu } from './headermenu';
-import { panelstore } from '@/lib/panelstore';
+import { panelstore } from '@/stores/panelstore';
 
 export default function Header() {
   const pathname = usePathname();

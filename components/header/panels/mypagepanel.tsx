@@ -1,6 +1,6 @@
 'use client';
 
-import { panelstore } from '@/lib/panelstore';
+import { panelstore } from '@/stores/panelstore';
 import SlidePanel from '../slidepanel';
 
 export default function MypagePanel() {
