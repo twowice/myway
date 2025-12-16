@@ -180,3 +180,15 @@
       opacity: 1;
    }
 }
+
+html,
+body,
+#___next { 
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; 
+}
+
+main {
+  height: 100%; }
