@@ -25,7 +25,8 @@ export default function Page() {
             try {
                 // const res = await fetch("/api/events");
                 // const data = await res.json();
-
+                
+                /* 더미 데이터 */
                 const data: EventItem[] = [
                     {
                         id: 1,

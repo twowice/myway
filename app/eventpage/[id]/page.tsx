@@ -3,10 +3,9 @@ import { useParams } from 'next/navigation';
 import { EventDetailTitle } from '@/feature/event/detail/EventDetailTitle';
 import { EventDetailSum } from '@/feature/event/detail/EventDetailSum';
 import { PartyDrawer } from '@/feature/event/detail/PartyDrawer';
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import Image from "next/image";
+import { ImageCarousel } from '@/feature/event/detail/ImageCarousel';
 import { PartyRow } from '@/components/partyrow/PartyRow'
-import { Icon24 } from '@/components/icons/icon24';
+
 
 export default function Page() {
   const { id } = useParams<{ id: string }>();
@@ -62,43 +61,15 @@ export default function Page() {
         imageUrl={imageUrl}
       />
 
-      {/* 사진 여러 개 */}
-      <ScrollArea className="w-full rounded-xl border">
-        <div className="flex gap-3 p-3 md:gap-4 md:p-4">
-          {images.map((src, index) => (
-            <div
-              key={index}
-              className="
-                relative
-                h-[180px] w-[260px]
-                md:h-[220px] md:w-[320px]
-                lg:h-[240px] lg:w-[360px]
-                flex-shrink-0
-                overflow-hidden
-                rounded-lg
-              "
-            >
-              <Image
-                src={src}
-                alt={`event-image-${index}`}
-                fill
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      {/* 커슽첨 이미지 케러쉘 */}
+      <ImageCarousel images={images ?? []} />
 
       {/* 설명 */}
-      <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+      <p className="text-sm md:text-base text-gray-700 leading-relaxed pb-[80px]">
         {description}
       </p>
-      <span className='
-        text-xl
-        md:text-2xl
-        lg:text-[36px]
-        font-semibold'>
+
+      <span className='text-xl md:text-2xl lg:text-[36px] font-semibold'>
         {title}는 이렇게 구성되어 있어요
       </span>
 
@@ -148,7 +119,7 @@ export default function Page() {
       </div>
 
       {/* 파티 리스트 */}
-      <span className='text-[20px] font-semibold text-[#04152F] '>
+      <span className='mt-[80px] text-[20px] font-semibold text-[#04152F] '>
         파티 모집 현황
       </span>
 

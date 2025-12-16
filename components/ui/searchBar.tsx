@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon24 } from '../icons/icon24';
 
 interface SearchBarProps {
@@ -7,6 +7,7 @@ interface SearchBarProps {
    onChange?: (value: string) => void;
    value?: string;
    className?: string;
+   delay?: number; // ADD BY CKH 25.12.15
 }
 
 export const SearchBar = ({
@@ -15,10 +16,22 @@ export const SearchBar = ({
    onChange,
    value: controlledValue,
    className = '',
+   delay = 300 // ADD BY CKH 25.12.15
 }: SearchBarProps) => {
    const [internalValue, setInternalValue] = useState('');
    const isControlled = controlledValue !== undefined;
    const value = isControlled ? controlledValue : internalValue;
+
+   // ADD BY CKH 25.12.15
+   useEffect(() => {
+      if (!onSearch) return;
+
+       const handler = setTimeout(() => {
+         onSearch(value.trim());
+       }, delay);
+   
+       return () => clearTimeout(handler)
+     }, [value, delay, onSearch]);
 
    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
@@ -39,7 +52,7 @@ export const SearchBar = ({
          setInternalValue(newValue);
       }
       onChange?.(newValue);
-      onSearch?.(newValue);
+      // onSearch?.(newValue);
    };
 
    return (

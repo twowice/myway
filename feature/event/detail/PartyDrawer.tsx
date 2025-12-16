@@ -35,8 +35,6 @@ export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
         { roomId: "광복로 겨울빛 트리 축제", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
     ];
 
-
-
     return (
         <>
             {/* 플로팅 버튼 */}
