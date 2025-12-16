@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 import {
-   Dialog,
-   DialogClose,
-   DialogContent,
-   DialogFooter,
-   DialogHeader,
-   DialogTitle,
-   DialogTrigger,
-} from '../ui/dialog';
-import { Button } from '../ui/button/button';
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Button } from "../ui/button/button";
 
 /**
  * @typedef {object} OneFunctionPopupProps
@@ -29,11 +29,11 @@ import { Button } from '../ui/button/button';
  * @returns {React.ReactElement} OneFunction 팝업 컴포넌트.
  */
 export const OneFunctionPopup = ({
-   dialogTrigger,
-   title,
-   body,
-   buttonTitle,
-   callback = () => {},
+  dialogTrigger,
+  title,
+  body,
+  buttonTitle,
+  callback = () => {},
 }: {
   dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
   title: string; //팝업창 제목 (좌상단 가장 큰 글자)
@@ -54,16 +54,19 @@ export const OneFunctionPopup = ({
             </div>
           </DialogTitle>
         </DialogHeader>
-        <div className="flex justify-center sm:justify-center">{body}</div>
-
-            <DialogFooter className="flex flex-row gap-x-10px ">
-               <DialogClose asChild>
-                  <Button className="flex-1 sm:flex-1 bg" type="button" onClick={callback}>
-                     {buttonTitle}
-                  </Button>
-               </DialogClose>
-            </DialogFooter>
-         </DialogContent>
-      </Dialog>
-   );
+        {body}
+        <DialogFooter className="flex flex-row gap-x-10px ">
+          <DialogClose asChild>
+            <Button
+              className="flex-1 sm:flex-1 bg"
+              type="button"
+              onClick={callback}
+            >
+              {buttonTitle}
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 };
