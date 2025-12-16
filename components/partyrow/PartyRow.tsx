@@ -47,25 +47,21 @@ export function PartyRow({
               <Icon24 name="notify" />
             </button>
           }
-          title="사용자 신고 처리"
+          title="파티 신고 처리"
           body={
-            <div className="flex flex-col gap-5 w-[360px] sm:w-[420px] pb-5 pt-2 max-h-[60vh] overflow-y-auto">
-
-              {/* 신고자 */}
-              <div className="flex flex-col gap-1.5">
-                <p className="text-sm font-medium text-[#04152F]">신고자</p>
-                <Input placeholder="신고자 이름 또는 ID" />
-              </div>
+            <div className="flex flex-col gap-5 w-full pb-5 pt-2 max-h-[60vh] overflow-y-auto px-1 pe-3">
 
               {/* 카테고리 */}
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-medium text-[#04152F]">카테고리</p>
                 <RadioComponent
                   options={[
-                    { value: '부정적인 언어', label: '부정적인 언어' },
-                    { value: '도배', label: '도배' },
+                    { value: '사이비 표교 활동', label: '사이비 표교 활동' },
+                    { value: '미허가 영리활동', label: '미허가 영리활동' },
+                    { value: '부적절한 언어', label: '부적절한 언어' },
+                    { value: '사칭 목적 파티', label: '사칭 목적 파티' },
+                    { value: '불법 행위', label: '불법 행위' },
                     { value: '광고', label: '광고' },
-                    { value: '사기', label: '사기' },
                     { value: '기타', label: '기타' },
                   ]}
                   className="flex flex-col gap-3"
@@ -73,16 +69,16 @@ export function PartyRow({
                 />
               </div>
 
+              {/* 이벤트명 */}
+              <div className="flex flex-col gap-1.5">
+                <p className="text-sm font-medium text-[#04152F]">이벤트명</p>
+                <Input />
+              </div>
+
               {/* 신고 내용 */}
               <div className="flex flex-col gap-1.5">
                 <p className="text-sm font-medium text-[#04152F]">신고 내용</p>
                 <Textarea placeholder="신고 사유를 입력해주세요" rows={4} className="resize-none h-[96px]" />
-              </div>
-
-              {/* 채팅 내역 */}
-              <div className="flex flex-col gap-1.5">
-                <p className="text-sm font-medium text-[#04152F]">채팅 내역</p>
-                <Input placeholder="관련 채팅 내용을 입력해주세요" />
               </div>
 
               {/* 발생 일시 */}
@@ -98,10 +94,8 @@ export function PartyRow({
                 </p>
                 <Input placeholder="추가로 전달할 내용이 있다면 입력하세요" />
               </div>
-
             </div>
           }
-
           leftTitle="수정"
           rightTitle="적용"
           leftCallback={() => console.log("수정")}
