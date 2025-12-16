@@ -3,6 +3,7 @@
 import { EllipsisPagination } from "@/components/pagination/pagination";
 import { Segment } from "@/components/tabs/segment/segment";
 import { Button } from "@/components/ui/button";
+import Tab from "@/components/ui/tab";
 import { useCallback, useState } from "react";
 
 export default function MyPage() {
@@ -55,6 +56,20 @@ export default function MyPage() {
                 <p>글글글글그륵륵</p>
               </div>
             ),
+          },
+        ]}
+      />
+      <Tab
+        items={[
+          {
+            value: "테스트1",
+            label: "테스트1",
+            content: <p>테스트1 중입니다.</p>,
+          },
+          {
+            value: "테스트2",
+            label: "테스트2",
+            content: <p>테스트2 중입니다.</p>,
           },
         ]}
       />
