@@ -11,6 +11,46 @@ import {
   PaginationPrevious,
 } from "../ui/pagination";
 
+/**
+ * @typedef {object} EllipsisPaginationProps
+ * @property {number} currentPage - 현재 활성화된 페이지 번호 (1부터 시작).
+ * @property {number} totalPages - 전체 페이지의 총 개수.
+ * @property {(changedPage: number) => void} handlePageChange - 페이지 번호 변경 시 호출될 콜백 함수. 변경된 페이지 번호를 인자로 받습니다.
+ */
+
+/**
+ * `EllipsisPagination` 컴포넌트는 현재 페이지를 중심으로 일정 수의 페이지 링크를 표시하고,
+ * 페이지 수가 많을 경우 생략점(`...`)을 사용하여 전체 페이지 목록을 간결하게 보여주는 페이지네이션 UI를 제공합니다.
+ * shadcn/ui의 Pagination 컴포넌트들을 활용하여 구현되었습니다.
+ *
+ * @param {EllipsisPaginationProps} props - 컴포넌트 프로퍼티.
+ * @returns {React.ReactElement} Ellipsis Pagination UI 컴포넌트.
+ *
+ * @example
+ * ```jsx
+ * // 예시 사용법
+ * function MyPage() {
+ *   const [page, setPage] = React.useState(1);
+ *   const totalPages = 20; // 실제로는 서버에서 받아오거나 계산된 총 페이지 수
+ *
+ *   const handlePageChange = (newPage) => {
+ *     // 페이지 이동 로직 (예: 라우터 변경, API 호출 등)
+ *     setPage(newPage);
+ *     console.log(`페이지가 ${newPage}로 변경되었습니다.`);
+ *   };
+ *
+ *   return (
+ *     <div className="flex justify-center p-4">
+ *       <EllipsisPagination
+ *         currentPage={page}
+ *         totalPages={totalPages}
+ *         handlePageChange={handlePageChange}
+ *       />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export const EllipsisPagination = ({
   currentPage,
   totalPages,
@@ -19,7 +59,7 @@ export const EllipsisPagination = ({
   currentPage: number;
   totalPages: number;
   handlePageChange: (changedPage: number) => void;
-}) => {
+}): React.ReactElement => {
   const pageNumbersToDisplay = useMemo(() => {
     if (totalPages === 0) return [];
 

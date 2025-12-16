@@ -8,13 +8,13 @@ export default function Home() {
       <h1>아이콘 테스트 페이지</h1>
 
       {/* 기본 사용 */}
+      <Icon24 name="arrow" />
+      <Icon24 name="add" />
+      <Icon36 name="notice36" />
       <Icon24 name="routedef" />
-      <Icon24 name="routesel" />
       <Icon24 name="sharedef" />
-      <Icon24 name="sharesel" />
       <Icon24 name="pinned" />
       <Icon24 name="likedef" />
-      <Icon24 name="likesel" />
       <Icon24 name="minus" />
       <Icon24 name="plus" />
       <Icon24 name="drag" />
@@ -51,7 +51,6 @@ export default function Home() {
       <Icon36 name="matching" />
       <Icon36 name="record" />
       <Icon36 name="bigheartdef" />
-      <Icon36 name="bigheartsel" />
       <Icon36 name="user" />
       <Icon36 name="festival" />
 

@@ -28,7 +28,7 @@ import { Button } from '../ui/button/button';
  * 이 팝업은 DialogTrigger로 팝업을 열고, DialogFooter에 확인/취소 버튼을 포함합니다.
  *
  * @param {ConfirmationPopupProps} props - 팝업에 전달될 속성들.
- * @returns {JSX.Element} Confirmation 팝업 컴포넌트.
+ * @returns {React.ReactElement} Confirmation 팝업 컴포넌트.
  */
 
 export const ConfirmationPopup = ({
@@ -40,26 +40,28 @@ export const ConfirmationPopup = ({
    cancelCallback = () => {},
    confirmCallback = () => {},
 }: {
-   dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
-   title: string; //팝업창 제목 (좌상단 가장 큰 글자)
-   body: ReactNode; //팝업창 바디에 들어갈 컴포넌트
-   cancelTitle?: string; //취소 버튼 이름
-   confirmTitle?: string; //수락 버튼 이름
-   cancelCallback?: () => void; //취소 동작 콜백 함수
-   confirmCallback?: () => void; //수락 동작 콜백 함수
-}) => {
-   return (
-      <Dialog>
-         <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
-         <DialogContent className="flex flex-col bg-white w-min-8xl p-[16px] gap-[16px]">
-            <DialogHeader>
-               <DialogTitle>
-                  <div>
-                     <h1 className="flex justify-start text-[20px] font-semibold">{title}</h1>
-                  </div>
-               </DialogTitle>
-            </DialogHeader>
-            <div className="flex justify-center sm:justify-center">{body}</div>
+  dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
+  title: string; //팝업창 제목 (좌상단 가장 큰 글자)
+  body: ReactNode; //팝업창 바디에 들어갈 컴포넌트
+  cancelTitle?: string; //취소 버튼 이름
+  confirmTitle?: string; //수락 버튼 이름
+  cancelCallback?: () => void; //취소 동작 콜백 함수
+  confirmCallback?: () => void; //수락 동작 콜백 함수
+}): React.ReactElement => {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
+      <DialogContent className="flex flex-col bg-white w-min-8xl p-[16px] gap-[16px]">
+        <DialogHeader>
+          <DialogTitle>
+            <div>
+              <h1 className="flex justify-start text-[20px] font-semibold">
+                {title}
+              </h1>
+            </div>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex justify-center sm:justify-center">{body}</div>
 
             <DialogFooter className="flex flex-row gap-x-10px ">
                <DialogClose asChild>
