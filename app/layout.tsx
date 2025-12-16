@@ -33,18 +33,22 @@ export default function RootLayout({
         <Header />
         <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-16 lg:ms-20 h-full">
           {/**지도 필요하시지 않으신 경우 해당 페이지에서 전체 페이지 크기를 w-screen으로 설정해주세요*/}
-          <div
-            className={cn(
-              path.startsWith(mainmenu[0].href) ? "w-full" : "w-100",
-              "relative z-30"
-            )}
-          >
-            {children}
-          </div>
-          <MapCanvas />
-          <div className="ms-100 absolute inset-0 z-10 w-full h-full pointer-events-none">
-            <MapSection />
-          </div>
+          {path !== "/" && (
+            <div
+              className={cn(
+                path.startsWith(mainmenu[0].href) ? "w-full" : "w-100",
+                "relative z-30"
+              )}
+            >
+              {children}
+            </div>
+          )}
+          {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
+          {!path.startsWith(mainmenu[0].href) && (
+            <div className="ms-100 absolute inset-0 z-10 w-full h-full pointer-events-none">
+              <MapSection />
+            </div>
+          )}
         </main>
       </body>
     </html>
