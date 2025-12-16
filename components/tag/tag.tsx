@@ -31,7 +31,7 @@ export default function Tag({ label, removable = false, onRemove, className = ""
                     "text-white text-[16px] font-regular leading-none",
                     "select-none",
                     className,
-                    "bg-[var(--primary-color)]",
+                    "bg-[var(--primary)]",
                 ].join(" ")
             }
         >

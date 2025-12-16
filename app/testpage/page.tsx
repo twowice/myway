@@ -3,7 +3,7 @@
 
 import Tag from "@/components/tag/tag";
 import Toast from "@/components/toast/toast";
-
+import { Calendar29 } from "@/components/ui/calendar29"
 export default function Home() {
     const handleRemove = () => {
         console.log("Tag removed");
@@ -25,7 +25,7 @@ export default function Home() {
                 <div className="h-4 p-3" />
                 <Toast message="새 파티가 등록되었습니다." />
             </div> */}
-
+            <Calendar29 />
             <div className="scrollbar overflow-y-auto h-[200px] w-[300px]">
                 <div className="h-[400px]">
                     스크롤 테스트

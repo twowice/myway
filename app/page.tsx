@@ -35,6 +35,10 @@ export default function Home() {
       <Icon24 name="trash" />
       <Icon24 name="clock" />
       <Icon24 name="calendar" />
+      <Icon24 name="arrow" />
+      <Icon24 name="add" />
+      <Icon24 name="talk" />
+      <Icon24 name="doubleclose" />
 
       <Icon36 name="more" />
       <Icon36 name="profile" />

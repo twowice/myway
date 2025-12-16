@@ -47,9 +47,7 @@ export function ComboboxComponent({
       onValueChange?.(selectedValue);
       setOpen(false);
    };
-
    const selectedOption = options.find(option => option.value === currentValue);
-
    return (
       <Popover open={open} onOpenChange={setOpen}>
          <PopoverTrigger asChild>
