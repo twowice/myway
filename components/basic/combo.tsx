@@ -23,6 +23,7 @@ interface ComboboxProps {
    emptyMessage?: string;
    className?: string;
    width?: string;
+   height?: string;
    fontSize?: string;
 }
 
@@ -34,7 +35,8 @@ export function ComboboxComponent({
    emptyMessage = 'No option found.',
    className = 'flex gap-2',
    width = 'w-[200px]',
-   fontSize = '14px',
+   height = 'h-10',
+   fontSize = '16px',
 }: ComboboxProps) {
    const [open, setOpen] = React.useState(false);
    const [internalValue, setInternalValue] = React.useState(options[0]?.value || '');
@@ -57,6 +59,7 @@ export function ComboboxComponent({
                aria-expanded={open}
                className={cn(
                   width,
+                  height,
                   'justify-between border-[#04152F]/20',
                   className,
                   'focus:outline-none focus:ring-2 focus:ring-[#007DEF] focus:border-transparent transition-all"',

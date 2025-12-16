@@ -30,7 +30,8 @@ export function RadioComponent({
    itemGap = 'gap-1',
    fontSize = '14px',
 }: RadioProps) {
-   const [internalValue, setInternalValue] = useState(defaultValue);
+   const initialValue = defaultValue || options[0]?.value;
+   const [internalValue, setInternalValue] = useState(initialValue);
    const currentValue = value ?? internalValue;
 
    const handleRadio = (newValue: string) => {
@@ -39,7 +40,7 @@ export function RadioComponent({
    };
 
    return (
-      <RadioGroup defaultValue={defaultValue} value={value} onValueChange={handleRadio} className={className}>
+      <RadioGroup defaultValue={initialValue} value={value} onValueChange={handleRadio} className={className}>
          {options.map(option => {
             return (
                <div key={option.value} className={`flex items-center ${itemGap} gap-2`}>
