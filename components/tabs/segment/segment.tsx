@@ -30,7 +30,7 @@ export const Segment = ({
 
   return (
     <Tabs className="flex w-full h-fit p-0" defaultValue={defaultValue}>
-      <TabsList className="flex w-full h-fit bg-primary opacity-80 py-[5px]">
+      <TabsList className="flex w-full h-fit bg-primary opacity-80 p-[5px]">
         {contents.map((element, idx) => (
           <TabsTrigger
             key={idx}
@@ -42,7 +42,9 @@ export const Segment = ({
               "text-primary-foreground",
               "transition-none",
               "data-[state=active]:text-secondary-foreground",
-              "text-base"
+              "text-base",
+              "border-0",
+              "rounded-2"
             )}
           >
             {element.title}
