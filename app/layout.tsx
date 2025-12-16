@@ -1,8 +1,11 @@
+"use client";
+
 import Header from "@/components/header/header";
 import MapSection from "@/components/ui/Map/MapSection";
-import "./globals.css";
 import MapScriptLoader from "@/components/ui/Map/mapScriptLoader";
 import MapCanvas from "@/components/ui/Map/mapCanvars";
+
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -14,13 +17,11 @@ export default function RootLayout({
       <body>
         <MapScriptLoader />
         <Header />
-        <main className="pl-16 lg:pl-20 min-h-screen relative overflow-hidden">
+        <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-20 h-full">
+          <div className="grow relative z-30 p-4">{children}</div>
           <MapCanvas />
-          <div className="relative z-10 w-full h-full">
+          <div className=" absolute inset-0 z-10 w-full h-full pointer-events-none">
             <MapSection />
-            <div className="w-full h-full bg-white bg-opacity-70">
-              {children}
-            </div>
           </div>
         </main>
       </body>
