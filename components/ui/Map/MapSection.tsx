@@ -11,6 +11,7 @@ import { useMapStore } from "@/stores/map/store";
 const MapSection = () => {
   const map = useMapStore((state) => state.map);
   const isMapScriptLoaded = useMapStore((state) => state.isMapScriptLoaded);
+  const isInitialFetchDone = useRef(false);
 
   const { weather, fetchWeather } = useWeather();
   const { airQuality, fetchAirQuality } = useAirQuality();
@@ -33,9 +34,21 @@ const MapSection = () => {
 
   useEffect(() => {
     if (!map || !isMapScriptLoaded) {
-      // ⭐️ isListenerAddedRef.current 체크는 이펙트 내에서만
       console.log("[MapSection UI] 지도 인스턴스 또는 스크립트 로드 대기 중.");
       return;
+    }
+
+    if (!isInitialFetchDone.current) {
+      const initialCenter = map.getCenter();
+      const initialLat = initialCenter.y;
+      const initialLng = initialCenter.x;
+      console.log(
+        "[MapSection UI] 초기 맵 로드 시 fetchMapData 호출:",
+        initialLat,
+        initialLng
+      );
+      fetchMapData(initialLat, initialLng);
+      isInitialFetchDone.current = true;
     }
 
     if (isListenerAddedRef.current) {
@@ -68,7 +81,6 @@ const MapSection = () => {
 
     return () => {
       console.log("[MapSection UI] Cleanup: 리스너 제거 및 플래그 초기화.");
-      // listener가 존재하고 유효한 경우에만 제거 (간혹 null일 수 있는 경우 방어)
       if (listener && naver.maps.Event.removeListener) {
         naver.maps.Event.removeListener(listener);
       }

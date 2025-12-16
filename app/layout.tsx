@@ -37,7 +37,7 @@ export default function RootLayout({
             <div
               className={cn(
                 path.startsWith(mainmenu[0].href) ? "w-full" : "w-100",
-                "relative z-30"
+                "relative z-30 overflow-auto"
               )}
             >
               {children}
