@@ -1,12 +1,12 @@
 'use client';
 
 import { ComboboxComponent } from '@/components/basic/combo';
-import { Icon24 } from '@/components/icons/icon24';
 import { Button } from '@/components/ui/button/button';
 import { SearchBar } from '@/components/ui/searchBar';
 import { TableComponent } from './table';
 import { EllipsisPagination } from '@/components/pagination/pagination';
 import { useMemo, useState } from 'react';
+import { AddEvent } from './addEventDialog';
 
 interface TableData {
    name: string;
@@ -145,16 +145,14 @@ export default function Event() {
    const handlePageChange = (page: number) => {
       setCurrentPage(page);
    };
+
    return (
-      <div className="flex w-full h-full flex-col gap-8">
+      <div className="flex w-full h-full flex-col gap-6">
          <div>이벤트 관리</div>
          <div className="flex flex-col gap-6 h-full">
             <div className="flex flex-col w-full gap-5">
                <div className="flex justify-end">
-                  <Button variant={'add'} size={'lg'}>
-                     <Icon24 name="plus" className="text-primary-foreground" />
-                     신규 등록
-                  </Button>
+                  <AddEvent />
                </div>
                <div className="flex flex-col p-4 gap-4 border rounded-md">
                   <div className="flex gap-4 text-base font-normal items-center">

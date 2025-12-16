@@ -1,12 +1,12 @@
 'use client';
 
 import { ComboboxComponent } from '@/components/basic/combo';
-import { Icon24 } from '@/components/icons/icon24';
 import { Button } from '@/components/ui/button/button';
 import { SearchBar } from '@/components/ui/searchBar';
 import { TableComponent } from './table';
 import { useMemo, useState } from 'react';
 import { EllipsisPagination } from '@/components/pagination/pagination';
+import { AddNotice } from './addNoticeDialog';
 
 interface TableData {
    name: string;
@@ -122,16 +122,13 @@ export default function Notice() {
    };
 
    return (
-      <div className="flex w-full h-full flex-col gap-8">
+      <div className="flex w-full h-full flex-col gap-6">
          <div>공지사항 관리</div>
 
          <div className="flex flex-col gap-6 h-full">
             <div className="flex flex-col w-full gap-5">
                <div className="flex justify-end">
-                  <Button variant={'add'} size={'lg'}>
-                     <Icon24 name="plus" className="text-primary-foreground" />
-                     신규 등록
-                  </Button>
+                  <AddNotice />
                </div>
 
                <div className="flex flex-col p-4 gap-4 border rounded-md">
