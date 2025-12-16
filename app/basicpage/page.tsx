@@ -5,6 +5,7 @@ import { RadioComponent } from '@/components/basic/radio';
 import { Icon24 } from '@/components/icons/icon24';
 import { Button } from '@/components/ui/button/button';
 import { SearchBar } from '@/components/ui/searchBar';
+import Tab from '@/components/ui/tab';
 
 export default function Basic() {
    return (
@@ -34,6 +35,7 @@ export default function Basic() {
                { value: 'compact', label: 'Compact' },
             ]}
          />
+         {/* button */}
          <div className="flex flex-wrap items-center">
             <Button variant={'default'} size={'lg'}>
                버튼
@@ -66,7 +68,16 @@ export default function Basic() {
                버튼
             </Button>
          </div>
+         {/* searchbar */}
          <SearchBar />
+         {/* tab */}
+         <Tab
+            items={[
+               { value: 'default', label: 'Default', content: 'Default 내용' },
+               { value: 'comportable', label: 'Comportable', content: 'Comportable 내용' },
+               { value: 'compact', label: 'Compact', content: 'Compact 내용' },
+            ]}
+         />
       </>
    );
 }
