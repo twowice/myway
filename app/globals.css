@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -192,3 +193,15 @@ body,
 
 main {
   height: 100%; }
+
+@layer utilities { 
+  .input-no-focus-ring:focus,
+  .input-no-focus-ring:focus-visible,
+  .input-no-focus-ring[data-state='checked'] {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+    background-color: inherit !important;
+    --ring: transparent !important;
+  }
+}

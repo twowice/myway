@@ -14,7 +14,7 @@ export default function Location() {
   const search = () => {};
 
   return (
-    <div className="bg-white p-4 flex flex-col gap-6">
+    <div className="bg-white p-4 w-full flex flex-col gap-6">
       <p className="text-[32px]">안녕하세요, 00님</p>
       <div className="flex flex-col gap-2">
         <div className="flex flex-row justify-between">

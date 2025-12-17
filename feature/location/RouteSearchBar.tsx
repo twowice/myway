@@ -24,7 +24,7 @@ export const RouteSearchBar = ({
   return (
     <div className="flex flex-row justify-between align-middle gap-2.5 h-10 bg-secondary">
       <Input
-        className="border-0 bg-none rounded-none shadow-none focus:outline-none focus:ring-2 focus:ring-primary"
+        className="border-0 bg-none rounded-none shadow-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:shadow-none input-no-focus-ring"
         placeholder={placeholder}
       ></Input>
       <div className="flex flex-row">
