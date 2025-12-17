@@ -8,8 +8,6 @@ import { useSearchStore } from "@/stores/map/seachstore";
 import { SelectedPlace } from "@/types/map/place";
 import { useState, useCallback, useEffect, useRef } from "react";
 
-type OnPlaceSelectCallback = (placeInfo: SelectedPlace) => void;
-
 export const RouteSearchBar = ({
   order,
   total,

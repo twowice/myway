@@ -25,8 +25,6 @@ export interface SearchState {
     clearRoutePoints: () => void;
 }
 
-
-
 export const useSearchStore = create<SearchState>((set) => ({
     places: [],
     routePoints: [],
