@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface SelectedPlace {
+export interface SelectedPlace {
     order: number;
     name: string;
     address: string;
@@ -9,25 +9,43 @@ interface SelectedPlace {
     lng: number;
 }
 
-interface MapState {
+export interface RoutePoint extends SelectedPlace {
+}
+
+export interface SearchState {
     places: SelectedPlace[];
+    routePoints: RoutePoint[];
+
     addOrUpdatePlace: (newPlace: SelectedPlace) => void;
     removePlace: (order: number) => void;
     clearPlaces: () => void;
+    setAllPlaces: (newPlaces: SelectedPlace[]) => void;
+
+    setRoutePoints: (points: RoutePoint[]) => void;
+    clearRoutePoints: () => void;
 }
 
-export const useMapStore = create<MapState>((set) => ({
+
+
+export const useSearchStore = create<SearchState>((set) => ({
     places: [],
+    routePoints: [],
 
     addOrUpdatePlace: (newPlace) => set((state) => {
         const existingIndex = state.places.findIndex(p => p.order === newPlace.order);
+        let updatedPlaces: SelectedPlace[];
+
         if (existingIndex !== -1) {
-            const updatedPlaces = [...state.places];
-            updatedPlaces[existingIndex] = newPlace;
-            return { places: updatedPlaces.sort((a, b) => a.order - b.order) };
+            updatedPlaces = [
+                ...state.places.slice(0, existingIndex),
+                newPlace,
+                ...state.places.slice(existingIndex + 1)
+            ];
         } else {
-            return { places: [...state.places, newPlace].sort((a, b) => a.order - b.order) };
+            updatedPlaces = [...state.places, newPlace];
         }
+
+        return { places: updatedPlaces.sort((a, b) => a.order - b.order) };
     }),
 
     removePlace: (orderToRemove) => set((state) => ({
@@ -35,4 +53,9 @@ export const useMapStore = create<MapState>((set) => ({
     })),
 
     clearPlaces: () => set({ places: [] }),
+
+    setAllPlaces: (newPlaces) => set({ places: newPlaces }),
+
+    setRoutePoints: (points) => set({ routePoints: points }),
+    clearRoutePoints: () => set({ routePoints: [] }),
 }));

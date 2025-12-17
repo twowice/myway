@@ -4,6 +4,7 @@ import { Icon24 } from "@/components/icons/icon24";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fetchNaverPlaceSuggestions } from "@/lib/map/search";
+import { useSearchStore } from "@/stores/map/seachstore";
 import { SelectedPlace } from "@/types/map/place";
 import { useState, useCallback, useEffect, useRef } from "react";
 
@@ -12,11 +13,9 @@ type OnPlaceSelectCallback = (placeInfo: SelectedPlace) => void;
 export const RouteSearchBar = ({
   order,
   total,
-  onPlaceSelect,
 }: {
   order: number;
   total: number;
-  onPlaceSelect?: OnPlaceSelectCallback;
 }) => {
   const getPlaceholder = () => {
     if (order === 1) return "출발지";
@@ -31,6 +30,7 @@ export const RouteSearchBar = ({
   const [isPlaceSelected, setIsPlaceSelected] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const addOrUpdatePlace = useSearchStore((state) => state.addOrUpdatePlace);
 
   const debouncedFetchSuggestions = useCallback(async (query: string) => {
     try {
@@ -86,15 +86,15 @@ export const RouteSearchBar = ({
     setSuggestions([]);
     setShowSuggestions(false);
     setIsPlaceSelected(true);
-    if (onPlaceSelect) {
-      onPlaceSelect({
-        order,
-        name: place.name,
-        address: place.address,
-        lat: place.lat,
-        lng: place.lng,
-      });
-    }
+    console.log("[RouteSearchBar] place : ", place);
+    addOrUpdatePlace({
+      order,
+      name: place.name,
+      address: place.address,
+      roadAddress: place.roadAddress,
+      lat: place.lat,
+      lng: place.lng,
+    });
   };
 
   const handleOutsideClick = useCallback(
