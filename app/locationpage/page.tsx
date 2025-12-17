@@ -1,78 +1,114 @@
 "use client";
 
-import { EllipsisPagination } from "@/components/pagination/pagination";
-import { Segment } from "@/components/tabs/segment/segment";
 import { Button } from "@/components/ui/button";
-import Tab from "@/components/ui/tab";
-import { useCallback, useState } from "react";
+import { RouteSearchBar } from "@/feature/location/RouteSearchBar";
+import { RouteSearchHistoryItem } from "@/feature/location/RouteSearchHistory";
+import { SearchState, useSearchStore } from "@/stores/map/seachstore";
+import { useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 
-export default function MyPage() {
-  const [page, setPage] = useState(1);
-  const totalPages = 20; // 실제로는 서버에서 받아오거나 계산된 총 페이지 수
+export default function Location() {
+  const [isDuringSearching, setIsDuringSearching] = useState(false);
+  const { places, setRoutePoints } = useSearchStore(
+    useShallow((state: SearchState) => ({
+      places: state.places,
+      setRoutePoints: state.setRoutePoints,
+    }))
+  );
 
-  // Callback 함수들
-  const handleMainClick = useCallback((id: number) => {
-    console.log(`[메인 클릭] Route ID: ${id}`);
-    alert(`[메인 클릭] Route ID: ${id}`);
-  }, []);
+  console.log(
+    "[Location] - 현재 장소 개수 및 장소 데이터:",
+    places.length,
+    places
+  );
+  const search = async () => {
+    if (places.length < 2) {
+      alert("출발지와 목적지를 모두 선택해주세요.");
+      return;
+    }
 
-  const handleShare = useCallback((id: number) => {
-    console.log(`[공유 버튼 클릭] Route ID: ${id}`);
-    alert(`[공유 버튼 클릭] Route ID: ${id}`);
-    // 실제로는 여기에 공유 로직 (예: URL 복사, 소셜 미디어 공유 모달) 구현
-  }, []);
+    setIsDuringSearching(true);
+    try {
+      const directionsApiUrl = new URL(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/map/direction`,
+        window.location.origin
+      );
 
-  const handleRouteClick = useCallback((id: number) => {
-    console.log(`[경로 버튼 클릭] Route ID: ${id}`);
-    alert(`[경로 버튼 클릭] Route ID: ${id}`);
-    // 실제로는 여기에 경로 상세 페이지로 이동하는 로직 구현
-  }, []);
+      const startPlace = places.find((p) => p.order === 1);
+      const endPlace = places.find((p) => p.order === places.length);
 
-  const uploadImage = (file: File) => {
-    console.log("uploadImage : ", URL.createObjectURL(file));
-    return 400;
+      if (!startPlace || !endPlace) {
+        alert("출발지 또는 목적지 정보가 부족합니다.");
+        return;
+      }
+
+      directionsApiUrl.searchParams.append(
+        "start",
+        `${startPlace.lng},${startPlace.lat}`
+      );
+      directionsApiUrl.searchParams.append(
+        "goal",
+        `${endPlace.lng},${endPlace.lat}`
+      );
+
+      const waypoints = places
+        .filter((p) => p.order > 1 && p.order < places.length)
+        .map((p) => `${p.lng},${p.lat}`)
+        .join("|");
+      if (waypoints) {
+        directionsApiUrl.searchParams.append("waypoints", waypoints);
+      }
+
+      const response = await fetch(directionsApiUrl.toString());
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          `길찾기 API 오류: ${errorData.error || "알 수 없는 오류"}`
+        );
+      }
+      const routeData = await response.json();
+
+      console.log("길찾기 API 결과:", routeData);
+
+      setRoutePoints(places);
+    } catch (error: any) {
+      console.error("길찾기 중 오류 발생:", error.message);
+      alert(`길찾기 실패: ${error.message}`);
+      setRoutePoints([]);
+    } finally {
+      setIsDuringSearching(false);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 bg-gray-50 min-h-screen w-100 gap-4">
-      <EllipsisPagination
-        currentPage={page}
-        totalPages={totalPages}
-        handlePageChange={() => {}}
-      />
-      <Segment
-        contents={[
-          {
-            value: "event",
-            title: "이벤트",
-            content: <Button variant={"ghost"}>이벤트 테스트합니다.</Button>,
-          },
-          {
-            value: "route",
-            title: "경로",
-            content: (
-              <div>
-                <Button variant={"default"}>경로 세그먼트 테스트합니다.</Button>
-                <p>글글글글그륵륵</p>
-              </div>
-            ),
-          },
-        ]}
-      />
-      <Tab
-        items={[
-          {
-            value: "테스트1",
-            label: "테스트1",
-            content: <p>테스트1 중입니다.</p>,
-          },
-          {
-            value: "테스트2",
-            label: "테스트2",
-            content: <p>테스트2 중입니다.</p>,
-          },
-        ]}
-      />
+    <div className="bg-white p-4 w-full flex flex-col gap-6">
+      <p className="text-[32px]">안녕하세요, 00님</p>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row justify-between">
+          <h1 className="text-[24px] font-semibold">길찾기</h1>
+          <Button
+            disabled={isDuringSearching || places.length < 2}
+            onClick={search}
+          >
+            길찾기 {isDuringSearching ? "중..." : ""}
+          </Button>
+        </div>
+        <RouteSearchBar order={1} total={2} />
+        <RouteSearchBar order={2} total={2} />
+      </div>
+
+      <div className="flex gap-0 flex-col">
+        <RouteSearchHistoryItem
+          order={1}
+          departure="해운대 해수욕장"
+          destination="벡스코"
+        />
+        <RouteSearchHistoryItem
+          order={2}
+          departure="해운대 해수욕장"
+          destination="벡스코"
+        />
+      </div>
     </div>
   );
 }

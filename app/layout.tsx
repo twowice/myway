@@ -38,7 +38,7 @@ export default function RootLayout({
               className={cn(
                 path.startsWith(mainmenu[0].href)
                   ? "w-full"
-                  : "w-[400px] ms:w-full",
+                  : "lg:w-[500px] sm:grow min-w-[400px]",
                 "relative z-30 overflow-auto shrink-0"
               )}
             >
@@ -47,7 +47,7 @@ export default function RootLayout({
           )}
           {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
           {!path.startsWith(mainmenu[0].href) && (
-            <div className="ms-100 lg:ms-100 absolute inset-0 z-10 w-full h-full pointer-events-none">
+            <div className="ms-100 lg:ms-125 absolute inset-0 z-10 w-full h-full pointer-events-none">
               <MapSection />
             </div>
           )}
