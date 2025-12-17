@@ -8,13 +8,15 @@ interface TabItem {
 
 interface TabProps {
    items: TabItem[];
+   value?: string;
+   onValueChange?: (value: string) => void;
    defaultValue?: string;
    className?: string;
 }
 
-export default function Tab({ items, className }: TabProps) {
+export default function Tab({ items, className, value, onValueChange }: TabProps) {
    return (
-      <Tabs defaultValue={items[0].value} className={className}>
+      <Tabs defaultValue={items[0].value} className={className} value={value} onValueChange={onValueChange}>
          <TabsList>
             {items.map(item => (
                <TabsTrigger key={item.value} value={item.value}>
