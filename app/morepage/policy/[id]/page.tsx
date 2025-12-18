@@ -19,8 +19,8 @@ export default function PolicyDetail({ params }: { params: Promise<{ id: string 
    if (!policy) {
       return (
          <MoreContent>
-            <div className="flex flex-col h-[calc(100vh-300px)]">
-               <Button onClick={handleBack} variant={'ghost'} className="justify-start w-10 p-0">
+            <div className="flex flex-col h-full">
+               <Button onClick={handleBack} variant={'ghost'} className="justify-start w-10 p-0 shrink-0">
                   <Icon24 name="back" className="text-foreground" />
                </Button>
                <div className="flex justify-center items-center flex-1">
@@ -33,12 +33,12 @@ export default function PolicyDetail({ params }: { params: Promise<{ id: string 
 
    return (
       <MoreContent>
-         <div className="flex flex-col h-[calc(100vh-250px)]">
-            <Button onClick={handleBack} variant={'ghost'} className="justify-between">
+         <div className="flex flex-col h-full">
+            <Button onClick={handleBack} variant={'ghost'} className="justify-start p-0 shrink-0 w-full mb-3">
                <Icon24 name="back" className="text-foreground" />
                {policy.title}
             </Button>
-            <div className="flex-1 overflow-y-auto flex flex-col gap-3">
+            <div className="flex-1 overflow-y-auto min-h-0">
                <div className="whitespace-pre-wrap pb-4">{policy.detail}</div>
             </div>
          </div>
