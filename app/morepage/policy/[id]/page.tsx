@@ -1,10 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import MoreContent, { allPolicys } from '../../page';
+import MoreContent from '../../page';
 import { Button } from '@/components/ui/button';
 import { Icon24 } from '@/components/icons/icon24';
 import { use } from 'react';
+import { allPolicys } from '@/dummy/more';
 
 export default function PolicyDetail({ params }: { params: Promise<{ id: string }> }) {
    const router = useRouter();

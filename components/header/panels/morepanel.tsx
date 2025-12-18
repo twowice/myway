@@ -3,7 +3,7 @@
 import { panelstore } from '@/stores/panelstore';
 import SlidePanel from '../slidepanel';
 
-export default function MorePanel() {
+export default function MorePanel({children} : {children:React.ReactNode}) {
   const { openpanel, setopenpanel } = panelstore();
   
   return (
@@ -13,7 +13,7 @@ export default function MorePanel() {
       title="더보기"
     >
       <div className="space-y-4">
-        <p>더보기 패널 내용</p>
+        {children}
       </div>
     </SlidePanel>
   );

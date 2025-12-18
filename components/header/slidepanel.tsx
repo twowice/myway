@@ -18,7 +18,7 @@ export default function SlidePanel({ isopen, onclose, title, children }: slidepa
       {/* 패널 본체 - 절대 언마운트되지 않음! */}
       <div
         className={clsx(
-          'fixed inset-y-0 left-16 lg:left-20 z-40 w-full max-w-88 md:max-w-96 bg-white shadow-2xl',
+          'fixed inset-y-0 left-16 lg:left-20 z-40 w-full max-w-100 md:max-w-150 bg-white shadow-2xl',
           'transition-all duration-300 ease-out',
           isopen 
             ? 'translate-x-0' 
