@@ -2,6 +2,7 @@
 
 import { Icon36 } from "@/components/icons/icon36";
 import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { mainmenu } from "./headermenu";
@@ -10,6 +11,7 @@ import { panelstore } from "@/stores/panelstore";
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { openpanel, setopenpanel, togglepanel } = panelstore();
 
   // 페이지 이동 시 자동으로 패널 열기
@@ -30,6 +32,10 @@ export default function Header() {
 
   const currenttitle =
     mainmenu.find((m) => m.panelkey === openpanel)?.name || "메뉴";
+
+  const handlelogout = async () => {
+    await signOut({ callbackUrl: '/' });
+  };
 
   return (
     <>
@@ -105,13 +111,41 @@ export default function Header() {
             </div>
           </nav>
 
+          {/* 로그인/로그아웃 영역 */}
           <div className="p-2 border-t border-gray-200 shrink-0">
-            <button
-              onClick={() => router.push("/loginpage")}
-              className="w-full py-3 text-center text-base font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
-            >
-              로그인
-            </button>
+            {status === 'loading' ? (
+              <div className="w-full py-3 text-center text-sm text-gray-400">
+                로딩중...
+              </div>
+            ) : session ? (
+              // 로그인된 상태
+              <div className="flex flex-col items-center gap-2">
+                {session.user.image && (
+                  <img 
+                    src={session.user.image} 
+                    alt="프로필" 
+                    className="w-10 h-10 rounded-full border-2 border-gray-200"
+                  />
+                )}
+                <span className="text-[10px] text-gray-600 truncate w-full text-center px-1">
+                  {session.user.name}
+                </span>
+                <button
+                  onClick={handlelogout}
+                  className="w-full py-2 text-xs font-medium text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+                >
+                  로그아웃
+                </button>
+              </div>
+            ) : (
+              // 로그인 안 된 상태
+              <button
+                onClick={() => router.push("/loginpage")}
+                className="w-full py-3 text-center text-base font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
+              >
+                로그인
+              </button>
+            )}
           </div>
         </div>
       </aside>
