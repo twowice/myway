@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 type DailyWeather = {
@@ -14,6 +17,8 @@ type Props = {
 };
 
 const WeeklyWeatherModal = ({ weeklyWeather, onClose }: Props) => {
+  const path = usePathname()
+
   useEffect(() => {
     // ESC로 닫기
     const handleEsc = (e: KeyboardEvent) => {
