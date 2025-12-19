@@ -1,98 +1,59 @@
+// feature/login/auth.ts - 새 버전
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
-import bcrypt from 'bcryptjs'
-import { signUpSchema, type SignUpFormData } from '@/lib/validations/auth'
-import { z } from 'zod'
+import { signUpSchema } from '@/lib/validations/auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export async function signUp(formData: SignUpFormData) {
-  try {
-    console.log('=== 회원가입 시작 ===')
+export async function signUp(formData: any) {
+  const validation = signUpSchema.safeParse(formData)
+  if (!validation.success) {
+    return { success: false, error: validation.error.issues.map(i => i.message).join(', ') }
+  }
 
-    // ✅ 1. Zod 유효성 검사
-    const validationResult = signUpSchema.safeParse(formData)
-    
-    if (!validationResult.success) {
-      // ✅ 수정: errors → issues
-      const errors = validationResult.error.issues.map((issue) => issue.message).join(', ')
-      return { 
-        success: false, 
-        error: errors 
-      }
-    }
+  const { data: validData } = validation
 
-    const validData = validationResult.data
+  // 이메일 중복 체크 (Supabase Auth에서 자동 처리되지만 안전하게)
+  const { data: existing } = await supabase
+    .from('users')
+    .select('email')
+    .eq('email', validData.email)
+    .maybeSingle()
 
-    // ✅ 2. 이메일 중복 체크
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('email')
-      .eq('email', validData.email)
-      .single()
+  if (existing) {
+    return { success: false, error: '이미 존재하는 이메일입니다.' }
+  }
 
-    if (existingUser) {
-      return { 
-        success: false, 
-        error: '이미 존재하는 이메일입니다.' 
-      }
-    }
-
-    // ✅ 3. 전화번호 중복 체크 (선택사항)
-    const { data: existingPhone } = await supabase
-      .from('users')
-      .select('phone')
-      .eq('phone', validData.phone.replace(/-/g, '')) // 하이픈 제거 후 비교
-      .single()
-
-    if (existingPhone) {
-      return { 
-        success: false, 
-        error: '이미 등록된 전화번호입니다.' 
-      }
-    }
-
-    // ✅ 4. 비밀번호 해싱
-    const hashedPassword = await bcrypt.hash(validData.password, 10)
-
-    // ✅ 5. 사용자 생성
-    const { data: newUser, error } = await supabase
-      .from('users')
-      .insert({
+  const { data, error } = await supabase.auth.signUp({
+    email: validData.email,
+    password: validData.password,
+    options: {
+      data: {
         name: validData.name,
-        email: validData.email,
-        password: hashedPassword,
-        phone: validData.phone.replace(/-/g, ''), // 하이픈 제거 후 저장
+        phone: validData.phone.replace(/-/g, ''),
         gender: validData.gender,
         birth_date: validData.birthDate,
         provider: 'email',
-        is_profile_complete: true,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('❌ 회원가입 실패:', error)
-      return { 
-        success: false, 
-        error: '회원가입에 실패했습니다.' 
       }
     }
+  })
 
-    console.log('✅ 회원가입 성공:', newUser)
-    return { 
-      success: true, 
-      message: '회원가입이 완료되었습니다!' 
-    }
-  } catch (error) {
-    console.error('❌ 예외 발생:', error)
-    return { 
-      success: false, 
-      error: '회원가입 중 오류가 발생했습니다.' 
-    }
+  if (error) {
+    return { success: false, error: error.message }
   }
+
+  // 트리거가 public.users 생성 + meta_data로 일부 값 채워줌
+  // 모든 정보 입력됐으니 프로필 완성으로 업데이트
+  if (data.user) {
+    await supabase
+      .from('users')
+      .update({ is_profile_complete: true })
+      .eq('id', data.user.id)
+  }
+
+  return { success: true, message: '회원가입 성공! 이메일 확인 후 로그인해주세요.' }
 }

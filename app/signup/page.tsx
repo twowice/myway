@@ -23,7 +23,7 @@ export default function SignUpPage() {
       const result = await signUp(data)
 
       if (result.success) {
-        alert('회원가입이 완료되었습니다! 로그인해주세요.')
+        alert('회원가입이 완료되었습니다!\n이메일로 전송된 확인 링크를 클릭한 후 로그인해주세요.')
         router.push('/loginpage')
       } else {
         setError('root', {
