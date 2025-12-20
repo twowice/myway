@@ -11,8 +11,8 @@ interface PlaceResult {
     link?: string;
 }
 
-const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
-const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
+const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_SEARCH_ID;
+const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SEARCH_SECRET;
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -65,8 +65,8 @@ export async function GET(request: Request) {
             const cleanedTitle = item.title.replace(/<[^>]*>?/g, '');
             const cleanedCategory = item.category.replace(/<[^>]*>?/g, '').replace(/>/g, ' > ');
 
-            const lat = Number(item.mapy);
-            const lng = Number(item.mapx);
+            const lat = Number(item.mapy) / 1e7;
+            const lng = Number(item.mapx) / 1e7;
 
             return {
                 name: cleanedTitle,

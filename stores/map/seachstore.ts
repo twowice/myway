@@ -15,6 +15,8 @@ export interface RoutePoint extends SelectedPlace {
 export interface SearchState {
     places: SelectedPlace[];
     routePoints: RoutePoint[];
+    isDuringSearching: boolean;
+    isAfterSearching: boolean;
 
     addOrUpdatePlace: (newPlace: SelectedPlace) => void;
     removePlace: (order: number) => void;
@@ -23,11 +25,16 @@ export interface SearchState {
 
     setRoutePoints: (points: RoutePoint[]) => void;
     clearRoutePoints: () => void;
+
+    setIsDuringSearching: (isDuringSearching: boolean) => void;
+    setIsAfterSearching: (isAfterSearching: boolean) => void;
 }
 
 export const useSearchStore = create<SearchState>((set) => ({
     places: [],
     routePoints: [],
+    isDuringSearching: false,
+    isAfterSearching: false,
 
     addOrUpdatePlace: (newPlace) => set((state) => {
         const existingIndex = state.places.findIndex(p => p.order === newPlace.order);
@@ -56,4 +63,8 @@ export const useSearchStore = create<SearchState>((set) => ({
 
     setRoutePoints: (points) => set({ routePoints: points }),
     clearRoutePoints: () => set({ routePoints: [] }),
+
+    setIsDuringSearching: (isDuringSearching) => set({ isDuringSearching: isDuringSearching }),
+
+    setIsAfterSearching: (isAfterSearching) => set({ isAfterSearching: isAfterSearching }),
 }));
