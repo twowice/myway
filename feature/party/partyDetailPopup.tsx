@@ -105,6 +105,7 @@ export const PartyDetailPopup = ({
       if (!confirmed) return;
 
       onDelete?.(currentParty.id);
+      showToast('파티가 삭제되었습니다.');
    };
 
    const handleCancel = () => {

@@ -15,7 +15,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       setToastMessage(message);
       setTimeout(() => {
          setToastMessage(null);
-      }, 3000);
+      }, 2000);
    }, []);
 
    return (
