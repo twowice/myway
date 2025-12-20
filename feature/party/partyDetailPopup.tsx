@@ -6,10 +6,12 @@ import Tag from '@/components/tag/tag';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/contexts/ToastContext';
 import { useEffect, useState } from 'react';
 
 type PartyDetailPopupProps = {
    party: {
+      id: string;
       partyName: string;
       current_members: number;
       max_members: number;
@@ -27,7 +29,9 @@ type PartyDetailPopupProps = {
    trigger: React.ReactNode;
    currentUserId?: string;
    onEdit?: (updatedParty: any) => void;
-   onApply?: () => void;
+   onDelete?: (partyId: string) => void;
+   onApply?: (updatedParty: any) => void;
+   onWithdraw?: (updatedParty: any) => void;
    onClose?: () => void;
 };
 
@@ -36,13 +40,17 @@ export const PartyDetailPopup = ({
    trigger,
    onEdit,
    onApply,
+   onWithdraw,
    onClose,
+   onDelete,
    currentUserId,
 }: PartyDetailPopupProps) => {
+   const { showToast } = useToast();
    const [isEditMode, setIsEditMode] = useState(false);
    const [currentParty, setCurrentParty] = useState(party);
    const [editedParty, setEditedParty] = useState(party);
    const [tagInput, setTagInput] = useState('');
+   const [isApplied, setIsApplied] = useState(false);
 
    useEffect(() => {
       setCurrentParty(party);
@@ -53,8 +61,29 @@ export const PartyDetailPopup = ({
    const isHost = currentParty.hostId === currentUserId;
 
    const handleApply = () => {
+      if (isFull || isApplied) return;
       console.log('파티 신청:', currentParty);
-      onApply?.();
+      const updatedParty = {
+         ...currentParty,
+         current_members: currentParty.current_members + 1,
+      };
+      setCurrentParty(updatedParty);
+      setIsApplied(true);
+      onApply?.(updatedParty);
+      showToast('파티 신청이 완료되었습니다.');
+      onClose?.();
+   };
+   const handleWithdraw = () => {
+      if (!isApplied) return;
+      console.log('파티 철회:', currentParty);
+      const updatedParty = {
+         ...currentParty,
+         current_members: currentParty.current_members - 1,
+      };
+      setCurrentParty(updatedParty);
+      setIsApplied(false);
+      onWithdraw?.(updatedParty);
+      showToast('파티 철회가 완료되었습니다.');
       onClose?.();
    };
 
@@ -68,11 +97,14 @@ export const PartyDetailPopup = ({
       setCurrentParty(editedParty);
       onEdit?.(editedParty);
       setIsEditMode(false);
+      showToast('파티 정보가 수정되었습니다.');
    };
 
-   const handleCancelEdit = () => {
-      setIsEditMode(false);
-      setEditedParty(currentParty);
+   const handleDeleteEdit = () => {
+      const confirmed = window.confirm('정말 이 파티를 삭제하시겠어요?');
+      if (!confirmed) return;
+
+      onDelete?.(currentParty.id);
    };
 
    const handleCancel = () => {
@@ -317,24 +349,26 @@ export const PartyDetailPopup = ({
          dialogTrigger={trigger}
          title={currentParty.partyName}
          titleButton={
-            <div className="flex gap-2">
-               <button className="cursor-pointer" onClick={e => e.stopPropagation()}>
-                  <Icon24 name="likedef" />
-               </button>
-               <div className="flex items-center gap-2">
-                  <span
-                     className={`px-3 py-1 rounded-full text-sm font-medium ${isFull ? 'bg-gray-200 text-gray-600' : 'bg-primary/10 text-primary'}`}
-                  >
-                     {isFull ? '마감' : '모집중'}
-                  </span>
+            !isEditMode && (
+               <div className="flex gap-2">
+                  <button className="cursor-pointer" onClick={e => e.stopPropagation()}>
+                     <Icon24 name="likedef" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                     <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${isFull ? 'bg-gray-200 text-gray-600' : 'bg-primary/10 text-primary'}`}
+                     >
+                        {isFull ? '마감' : '모집중'}
+                     </span>
+                  </div>
                </div>
-            </div>
+            )
          }
          body={PopupBody}
-         leftTitle={isEditMode ? '취소' : isFull ? '취소' : '파티 철회'}
-         rightTitle={isEditMode ? '저장' : isFull ? '닫기' : '파티 신청'}
-         leftCallback={isEditMode ? handleCancelEdit : handleCancel}
-         rightCallback={isEditMode ? handleSaveEdit : !isFull ? handleApply : handleCancel}
+         leftTitle={isEditMode ? '삭제' : isApplied ? '파티 철회' : '취소'}
+         rightTitle={isEditMode ? '저장' : isApplied || isFull ? '확인' : '파티 신청'}
+         leftCallback={isEditMode ? handleDeleteEdit : isApplied ? handleWithdraw : handleCancel}
+         rightCallback={isEditMode ? handleSaveEdit : isApplied || isFull ? handleCancel : handleApply}
          className="w-150 h-[calc(100vh-40px)]"
          hideOverlay={true}
          position="top-left"
@@ -342,6 +376,7 @@ export const PartyDetailPopup = ({
          closeOnRight={!isEditMode}
          onOpenChange={open => {
             if (!open) {
+               setIsEditMode(false);
                onClose?.();
             }
          }}

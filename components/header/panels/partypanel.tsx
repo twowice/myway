@@ -8,7 +8,7 @@ export default function PartyPanel({ children }: { children: React.ReactNode }) 
 
    return (
       <SlidePanel isopen={openpanel === 'party'} onclose={() => setopenpanel(null)} title="파티 모집">
-         <div className="space-y-4">{children}</div>
+         <div className="h-full">{children}</div>
       </SlidePanel>
    );
 }

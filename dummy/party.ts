@@ -1,5 +1,6 @@
 export const parties = [
    {
+      id: 'party-1',
       partyName: '해운대 일출 등산 파티',
       current_members: 2,
       max_members: 4,
@@ -15,6 +16,7 @@ export const parties = [
       label3: '해운대',
    },
    {
+      id: 'party-2',
       partyName: '광안리 맛집 투어',
       current_members: 3,
       max_members: 5,
@@ -30,6 +32,7 @@ export const parties = [
       label3: '회',
    },
    {
+      id: 'party-3',
       partyName: '감천문화마을 사진 촬영',
       current_members: 4,
       max_members: 5,
@@ -45,6 +48,7 @@ export const parties = [
       label3: '인생샷',
    },
    {
+      id: 'party-4',
       partyName: '벡스코 전시회 관람',
       current_members: 5,
       max_members: 5,
@@ -60,6 +64,7 @@ export const parties = [
       label3: 'IT',
    },
    {
+      id: 'party-5',
       partyName: '태종대 자전거 라이딩',
       current_members: 1,
       max_members: 6,
@@ -75,6 +80,7 @@ export const parties = [
       label3: '운동',
    },
    {
+      id: 'party-6',
       partyName: '서면 보드게임 카페',
       current_members: 3,
       max_members: 4,

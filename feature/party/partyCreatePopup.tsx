@@ -1,6 +1,7 @@
 'use client';
 
 import { TwoFunctionPopup } from '@/components/popup/twofunction';
+import Tag from '@/components/tag/tag';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useEffect, useState } from 'react';
@@ -12,16 +13,19 @@ type PartyCreate = {
    location?: string;
    date?: string;
    time?: string;
+   label1?: string;
+   label2?: string;
+   label3?: string;
+   eventName?: string;
 };
 
 type PartyCreatePopupProps = {
    trigger: React.ReactNode;
    onSave: (data: PartyCreate) => void;
    initialData?: Partial<PartyCreate>;
-   mode?: 'create' | 'edit';
 };
 
-export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create' }: PartyCreatePopupProps) => {
+export const PartyCreatePopup = ({ trigger, onSave, initialData }: PartyCreatePopupProps) => {
    const [create, setCreate] = useState<PartyCreate>({
       partyName: '',
       max_members: '',
@@ -29,7 +33,13 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
       date: '',
       time: '',
       description: '',
+      label1: '',
+      label2: '',
+      label3: '',
+      eventName: '',
    });
+   const [tagInput, setTagInput] = useState('');
+   const [isOpen, setIsOpen] = useState(false);
 
    useEffect(() => {
       if (initialData) {
@@ -40,6 +50,10 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
             date: initialData.date || '',
             time: initialData.time || '',
             description: initialData.description || '',
+            eventName: initialData.eventName || '',
+            label1: initialData.label1 || '',
+            label2: initialData.label2 || '',
+            label3: initialData.label3 || '',
          });
       } else {
          setCreate({
@@ -49,6 +63,10 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
             date: '',
             time: '',
             description: '',
+            label1: '',
+            label2: '',
+            label3: '',
+            eventName: '',
          });
       }
    }, [initialData]);
@@ -58,11 +76,15 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
          alert('파티명을 입력해주세요.');
          return;
       }
+      if (!create.eventName?.trim()) {
+         alert('이벤트명을 입력해주세요.');
+         return;
+      }
       if (!create.max_members || parseInt(create.max_members) < 1) {
          alert('최대 인원을 입력해주세요.');
          return;
       }
-      if (!create.location) {
+      if (!create.location?.trim()) {
          alert('장소를 입력해주세요.');
          return;
       }
@@ -79,6 +101,8 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
          return;
       }
       onSave(create);
+      handleCancel();
+      setIsOpen(false);
    };
 
    const handleCancel = () => {
@@ -89,6 +113,31 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
          date: '',
          time: '',
          description: '',
+         label1: '',
+         label2: '',
+         label3: '',
+         eventName: '',
+      });
+      setTagInput('');
+   };
+
+   const handleAddTag = () => {
+      const value = tagInput.trim();
+      if (!value) return;
+      if (!create.label1) {
+         setCreate({ ...create, label1: value });
+      } else if (!create.label2) {
+         setCreate({ ...create, label2: value });
+      } else if (!create.label3) {
+         setCreate({ ...create, label3: value });
+      }
+      setTagInput('');
+   };
+
+   const handleRemoveTag = (tagNumber: 1 | 2 | 3) => {
+      setCreate({
+         ...create,
+         [`label${tagNumber}`]: '',
       });
    };
 
@@ -113,7 +162,16 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
                일정
                <span className="text-red-500">*</span>
             </label>
-            <Input type="datetime-local" />
+            <Input
+               type="datetime-local"
+               value={create.date && create.time ? `${create.date}T${create.time}` : ''}
+               onChange={e => {
+                  if (e.target.value) {
+                     const [date, time] = e.target.value.split('T');
+                     setCreate({ ...create, date, time });
+                  }
+               }}
+            />
          </div>
          {/* 이벤트명 */}
          <div className="flex flex-col gap-2">
@@ -176,10 +234,28 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
             </label>
             <Input
                type="text"
-               value={create.tag}
-               onChange={e => setCreate({ ...create, tag: e.target.value })}
-               placeholder="태그를 입력하세요."
+               value={tagInput}
+               onChange={e => setTagInput(e.target.value)}
+               onKeyPress={e => {
+                  if (e.key === 'Enter') {
+                     e.preventDefault();
+                     handleAddTag();
+                  }
+               }}
+               placeholder="태그 입력 후 Enter (최대 3개)"
+               disabled={!!create.label3}
             />
+            <div className="flex gap-2 flex-wrap">
+               {create.label1 && (
+                  <Tag label={`# ${create.label1}`} removable={true} onRemove={() => handleRemoveTag(1)} />
+               )}
+               {create.label2 && (
+                  <Tag label={`# ${create.label2}`} removable={true} onRemove={() => handleRemoveTag(2)} />
+               )}
+               {create.label3 && (
+                  <Tag label={`# ${create.label3}`} removable={true} onRemove={() => handleRemoveTag(3)} />
+               )}
+            </div>
          </div>
       </div>
    );
@@ -189,12 +265,26 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData, mode = 'create'
          title="새 파티"
          body={PopupBody}
          leftTitle="취소"
-         leftCallback={handleCancel}
+         leftCallback={() => {
+            handleCancel();
+            setIsOpen(false);
+         }}
          rightTitle="등록"
-         rightCallback={handleSave}
+         rightCallback={() => {
+            handleSave();
+            setIsOpen(false);
+         }}
+         closeOnRight={false}
          className="w-150 h-[calc(100vh-40px)]"
          hideOverlay={true}
          position="top-left"
+         open={isOpen}
+         onOpenChange={open => {
+            setIsOpen(open);
+            if (!open) {
+               handleCancel();
+            }
+         }}
       />
    );
 };
