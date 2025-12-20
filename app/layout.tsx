@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Header from "@/components/header/header";
-import MapSection from "@/components/ui/Map/MapSection";
-import MapScriptLoader from "@/components/ui/Map/mapScriptLoader";
-import MapCanvas from "@/components/ui/Map/mapCanvars";
+import Header from '@/components/header/header';
+import MapSection from '@/components/ui/Map/MapSection';
+import MapScriptLoader from '@/components/ui/Map/mapScriptLoader';
+import MapCanvas from '@/components/ui/Map/mapCanvars';
 
 import "./globals.css";
 import { usePathname } from "next/navigation";
