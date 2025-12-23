@@ -1,26 +1,42 @@
 "use client";
 import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { EventDetailTitle } from '@/feature/event/detail/EventDetailTitle';
 import { EventDetailSum } from '@/feature/event/detail/EventDetailSum';
 import { PartyDrawer } from '@/feature/event/detail/PartyDrawer';
 import { ImageCarousel } from '@/feature/event/detail/ImageCarousel';
 import { PartyRow } from '@/components/partyrow/PartyRow'
+import NaverMapContainer from "@/components/map/NaverMapContainer";
+import { EmptyIcon } from '@/components/status/EmptyIcon';
+import { LoadingBounce } from '@/components/status/LoadingBounce';
 
+/* ===========================
+   Interface
+=========================== */
+interface EventImage {
+  image_url: string;
+  is_main: boolean;
+}
+
+interface EventData {
+  id: number;
+  title: string;
+  start_date: string;
+  end_date: string;
+  address: string;
+  address2: string;
+  latitude: number;
+  longitude: number;
+  phone: string;
+  main_image: string;
+  homepage?: string;
+  overview?: string;
+  event_images?: EventImage[];
+  price?: number | null;
+  insta_url?: string | null;
+} 
 
 export default function Page() {
-  const { id } = useParams<{ id: string }>();
-  const region = "부산 중구";
-  const title = "광복로 겨울빛 트리 축제";
-  const startDate = "2025.12.05";
-  const endDate = "2026.02.22";
-  const imageUrl = "/1.png";
-  const images = ["/1.png", "/1.png", "/1.png", "/1.png"];
-  const description = "부산의 겨울을 밝히는 대표 트리축제가 K-문화를 담은 찬란한 겨울빛으로 찾아온다. 2025년 12월 5일 올해 단 한번의 하이라이트, 카운트다운과 함께 광복로가 빛으로 깨어나는 점등식을 시작으로 26년 2월 22일까지 '2025 광복로 겨울빛 트리축제'를 만나볼 수 있다. 축제 기간 동안 부산 지역 뮤지션들의 버스킹 공연, 시민이 직접 트리 불빛을 켜볼 수 있는 참여형 점등식 등 다채로운 거리 이벤트가 준비되어 있다. 12월 20일~21일 주말에는 크리스마스 쿠킹클래스, 미니 트리만들기 등 다양한 체험프로그램도 펼쳐지니 빠짐없이 즐겨볼 수 있다."
-  const price = 20000;
-  const phone = "02-123-4567";
-  const insta_url = "https://www.instagram.com/busan_fireworks/";
-  const naver_map_embed_url = "https://map.naver.com/p/embed?lng=129.0364&lat=35.1017&zoom=15";
-  const homepage = "https://www.naver.com/";
   const partyList = [
     {
       id: 1,
@@ -42,57 +58,84 @@ export default function Page() {
     },
   ];
 
+  const { id } = useParams<{ id: string }>();
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const region = event?.address.split(" ") ?? [];
+  const imageUrl = event?.main_image ?? "/error/no-image.svg";
+  const images = event?.event_images?.filter(img => !img.is_main).map(img => img.image_url) ?? [];
+  const carousImages = images.length > 0 ? images : ["/error/no-image.svg"];
+  const price = event?.price ?? 0;
+  const insta_url = event?.insta_url ?? "https://www.instagram.com/";
+
+  /* ===========================
+      API Fetch
+  =========================== */
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchEvent = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/events/${id}`);
+        if (!res.ok) throw new Error("Failed to fetch event");
+        
+        const json = await res.json();
+        console.log(json.data)
+
+        setEvent(json.data);
+      } catch (err) { console.error(err); }
+      finally { setLoading(false); }
+    };
+
+    fetchEvent();
+  }, [id]);
+
+  if (loading) return <LoadingBounce />;
+  if (!event) return <EmptyIcon />;
+
   return (
-    <div className="
-      flex flex-col space-y-4 md:space-y-6 lg:space-y-[22px]
-      pb-[80px]
-      pt-[70px] 
-      px-[16px]
-      sm:px-[32px]
-      lg:px-[80px]
-      xl:px-[100px]
-    ">
+    <div className="flex flex-col space-y-4 md:space-y-6 lg:space-y-[22px] pb-[80px] pt-[70px] px-[16px] sm:px-[32px] lg:px-[80px] xl:px-[100px]">
       {/* 타이틀 */}
       <EventDetailTitle
-        region={region}
-        title={title}
-        startDate={startDate}
-        endDate={endDate}
+        id={id}
+        region={region.length >= 2 ? `${region[0]} ${region[1]}` : region[0] ?? ""}
+        title={event.title}
+        startDate={event.start_date}
+        endDate={event.end_date}
         imageUrl={imageUrl}
       />
 
-      {/* 커슽첨 이미지 케러쉘 */}
-      <ImageCarousel images={images ?? []} />
+      {/* 이미지 */}
+      <ImageCarousel images={carousImages} />
 
       {/* 설명 */}
-      <p className="text-sm md:text-base text-gray-700 leading-relaxed pb-[80px]">
-        {description}
+      <p className="text-sm md:text-base text-gray-700 leading-relaxed pb-[80px] pt-[10px]">
+        {event.overview}
       </p>
 
       <span className='text-xl md:text-2xl lg:text-[36px] font-semibold'>
-        {title}는 이렇게 구성되어 있어요
+        {event.title}는 이렇게 구성되어 있어요
       </span>
 
       {/* 디테일 */}
       <EventDetailSum
-        imageUrl={imageUrl}
-        startDate={startDate}
-        endDate={endDate}
+        imageUrl={event.main_image}
+        startDate={event.start_date}
+        endDate={event.end_date}
         price={price}
-        region={region}
-        phone={phone}
+        region={event.address}
+        phone={event.phone}
         insta_url={insta_url}
       />
 
       {/* 지도 */}
       <div className="flex items-center gap-3">
         <div className="w-full h-[260px] md:h-[320px] lg:h-[353px] rounded-xl overflow-hidden border">
-          <iframe
-            src={naver_map_embed_url}
-            width="100%"
-            height="100%"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
+          <NaverMapContainer
+            lat={event.latitude}
+            lng={event.longitude}
           />
         </div>
       </div>
@@ -100,7 +143,7 @@ export default function Page() {
       {/* 홈페이지 버튼 */}
       <div className="w-full h-[45px] bg-[var(--primary)] text-[#F1F5FA] rounded-[4px] flex items-center justify-center gap-4 cursor-pointer hover:opacity-80">
         <a
-          href={homepage}
+          href={event.homepage}
           target="_blank"
           rel="noopener noreferrer"
           className="
@@ -136,8 +179,7 @@ export default function Page() {
       </div>
 
       {/* 우측 하단 플로팅 버튼 */}
-      <PartyDrawer eventId={id} name={title} />
+      <PartyDrawer eventId={id} name={event.title} />
     </div>
-
   );
 }

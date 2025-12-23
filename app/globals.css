@@ -81,6 +81,8 @@
    --sidebar-border: oklch(0.922 0 0);
    --sidebar-ring: oklch(0.708 0 0);
    --input-placeholder-foreground: oklch(9.05% 0.0346 254.19 / 0.3);
+   --scroll-bar-bottom: rgba(0, 0, 0, 0.2);
+   --scroll-bar-bottom-bg: rgba(243, 243, 243, 1);
 }
 
 .dark {

@@ -6,9 +6,9 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 export function ImageCarousel({ images }: { images: string[] }) {
     return (
         <div className="relative w-full">
-            <ScrollArea className="w-full rounded-xl border">
+            <ScrollArea className="w-full rounded-md">
                 <div
-                    className="flex gap-3 p-3 md:gap-4 md:p-4"
+                    className="flex gap-3 md:gap-4 pb-4"
                 >
                     {images.map((src, index) => (
                         <div
@@ -20,7 +20,7 @@ export function ImageCarousel({ images }: { images: string[] }) {
                                 lg:h-[240px] lg:w-[360px]
                                 flex-shrink-0
                                 overflow-hidden
-                                rounded-lg
+                                rounded-md
                             "
                         >
                             <Image
@@ -34,9 +34,13 @@ export function ImageCarousel({ images }: { images: string[] }) {
                 </div>
                 <ScrollBar orientation="horizontal"
                     className="
-                        bg-transparent
-                        [&>div]:bg-gray-500
-                        [&>div]:hover:bg-gray-600
+                        h-[12px]
+                        bg-[var(--scroll-bar-bottom-bg)]
+                        rounded-[20px]
+                        [&>div]:h-[12px]
+                        [&>div]:rounded-[20px]
+                        [&>div]:bg-[var(--scroll-bar-bottom-bg)]
+                        [&>div]:hover:bg-[var(--scroll-bar-bottom)]
                     " />
             </ScrollArea>
         </div>

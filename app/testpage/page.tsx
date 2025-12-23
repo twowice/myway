@@ -1,42 +1,86 @@
+'use client';
+import { Icon24 } from '@/components/icons/icon24';
+import { Icon36 } from '@/components/icons/icon36';
 
-"use client";
-
-import Tag from "@/components/tag/tag";
-import Toast from "@/components/toast/toast";
-import { Calendar29 } from "@/components/ui/calendar29"
 export default function Home() {
-    const handleRemove = () => {
-        console.log("Tag removed");
-    };
-    return (
-        <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-            {/* <div className="bg-[yellow] p-5 mr-3 ">
-                <p className="pb-3">TAG</p>
-                <Tag label="#축제" />
-                <div className="h-4" />
-                <Tag label="#행사" removable onRemove={handleRemove} />
-            </div> */}
-            
-            {/* <div className="bg-[yellow] p-5">
-                <p className="pb-3">Toast</p>
-                <Toast message="새 경로가 등록되었습니다." />
-                <div className="h-4 p-3" />
-                <Toast message="새 다이어리가 등록되었습니다." />
-                <div className="h-4 p-3" />
-                <Toast message="새 파티가 등록되었습니다." />
-            </div> */}
-            <Calendar29 />
-            <div className="scrollbar overflow-y-auto h-[200px] w-[300px]">
-                <div className="h-[400px]">
-                    스크롤 테스트
-                </div>
-            </div>
+  return (
+    <div style={{ padding: '50px', background: '#f0f0f0' }}>
+      <h1>아이콘 테스트 페이지</h1>
 
-            <div className="scrollbar overflow-x-auto w-[300px]">
-                <div className="w-[600px]">
-                    가로 스크롤 테스트
-                </div>
-            </div>
-        </div>
-    );
+      {/* 기본 사용 */}
+      <Icon24 name="arrow" />
+      <Icon24 name="add" />
+      <Icon36 name="notice36" />
+      <Icon24 name="routedef" />
+      <Icon24 name="sharedef" />
+      <Icon24 name="pinned" />
+      <Icon24 name="likedef" />
+      <Icon24 name="likefill" className='text-red-500' />
+      <Icon24 name="minus" />
+      <Icon24 name="plus" />
+      <Icon24 name="drag" />
+      <Icon24 name="down" />
+      <Icon24 name="up" />
+      <Icon24 name="sunny" />
+      <Icon24 name="rainy" />
+      <Icon24 name="cloudy" />
+      <Icon24 name="snow" />
+      <Icon24 name="thunder" />
+      <Icon24 name="notify" />
+      <Icon24 name="closeblack" />
+      <Icon24 name="close" />
+      <Icon24 name="back" />
+      <Icon24 name="go" />
+      <Icon24 name="notice" />
+      <Icon24 name="search" />
+      <Icon24 name="trash" />
+      <Icon24 name="clock" />
+      <Icon24 name="calendar" />
+      <Icon24 name="arrow" />
+      <Icon24 name="add" />
+      <Icon24 name="talk" />
+      <Icon24 name="doubleclose" />
+
+      <Icon36 name="more" />
+      <Icon36 name="profile" />
+      <Icon36 name="event" />
+      <Icon36 name="alertexist" />
+      <Icon36 name="alert" />
+      <Icon36 name="location" />
+      <Icon36 name="price" />
+      <Icon36 name="city" />
+      <Icon36 name="phone" />
+      <Icon36 name="party" />
+      <Icon36 name="sns" />
+      <Icon36 name="bigcalendar" />
+      <Icon36 name="matching" />
+      <Icon36 name="record" />
+      <Icon36 name="bigheartdef" />
+      <Icon36 name="user" />
+      <Icon36 name="festival" />
+      <Icon36 name="basicmarker" />
+
+      <br /><br />
+
+      {/* 크기 바꾸기 */}
+      <Icon24 name="routedef" width={50} height={50} />
+
+      <br /><br />
+
+      {/* 색상 바꾸기 */}
+      <Icon24 name="routedef" className="text-red-500" />
+
+      <br /><br />
+
+      {/* 클릭도 되는지 테스트 */}
+      <Icon24 
+        name="routedef" 
+        width={60} 
+        className="text-blue-600 hover:text-purple-600 cursor-pointer"
+        onClick={() => alert('클릭됨!')}
+      />
+
+      <br /><br />
+    </div>
+  );
 }

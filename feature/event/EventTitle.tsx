@@ -1,3 +1,7 @@
+/* ===========================
+    Event Title
+=========================== */
+
 export function EventTitle({ count }: { count: number }) {
     return (
         <div className="flex items-end gap-2">

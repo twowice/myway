@@ -19,6 +19,7 @@ export const SearchBar = ({
    delay = 300 // ADD BY CKH 25.12.15
 }: SearchBarProps) => {
    const [internalValue, setInternalValue] = useState('');
+
    const isControlled = controlledValue !== undefined;
    const value = isControlled ? controlledValue : internalValue;
 
@@ -41,22 +42,18 @@ export const SearchBar = ({
       onChange?.(newValue);
    };
 
-   const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      onSearch?.(value);
-   };
-
    const handleClear = () => {
       const newValue = '';
+
       if (!isControlled) {
          setInternalValue(newValue);
       }
       onChange?.(newValue);
-      // onSearch?.(newValue);
+      onSearch?.('');
    };
 
    return (
-      <form onSubmit={handleSubmit} className={`relative ${className}`}>
+      <form onSubmit={(e) => e.preventDefault()} className={`relative ${className}`}>
          <div className="relative flex items-center h-10">
             <Icon24 name="search" className="absolute left-4 h-6 w-6" />
 

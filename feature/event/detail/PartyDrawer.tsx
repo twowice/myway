@@ -1,10 +1,10 @@
 "use client";
-
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
     Drawer,
     DrawerContent,
     DrawerHeader,
+    DrawerDescription,
     DrawerTitle,
     DrawerClose,
 } from "@/components/ui/drawer";
@@ -28,22 +28,52 @@ interface ChatMessage {
 }
 
 export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
+    const buttonRef = useRef<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
     const total = 10;
     const count = 3;
 
     const mySenderId = "aadfa";
     const messages = [
-        { roomId: "광복로 겨울빛 트리 축제", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
-        { roomId: "광복로 겨울빛 트리 축제", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
-        { roomId: "광복로 겨울빛 트리 축제", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
+        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
     ];
+
+    const [input, setInput] = useState("");
+
+    const handleSend = () => {
+        if (!input.trim()) return;
+
+        console.log("보낼 메시지:", input);
+
+        // TODO: socket.emit("send_message", {...})
+
+        setInput("");
+    };
+
 
     return (
         <>
             {/* 플로팅 버튼 */}
             <button
-                onClick={() => setOpen(true)}
+                ref={buttonRef}
+                onClick={() => {
+                    buttonRef.current?.blur();
+                    setOpen(true);
+                }}
                 className="
                 fixed
                 bottom-6
@@ -70,14 +100,16 @@ export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
 
             {/* Drawer */}
             <Drawer open={open} onOpenChange={setOpen} direction="right">
-                <DrawerContent className="right-0 left-auto h-full w-[90%] sm:w-[420px] rounded-none">
+                <DrawerContent className="right-0 left-auto h-full w-[90%] sm:w-[420px] rounded-none flex flex-col">
                     <DrawerHeader>
                         <div className="flex items-center justify-between w-full pb-[24px]">
                             <div className="flex flex-col">
                                 <DrawerTitle className="text-lg font-semibold">
                                     {name}
                                 </DrawerTitle>
+                                <DrawerDescription className="sr-only">축제 실시간 채팅 Drawer</DrawerDescription>
                                 <span className="text-sm text-gray-500">
+                                    <p className="sr-only">실시간 채팅 Drawer</p>
                                     실시간 채팅
                                 </span>
                             </div>
@@ -92,7 +124,7 @@ export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
                         </div>
                     </DrawerHeader>
 
-                    <div className="px-4 pb-6 flex flex-col gap-4">
+                    <div className="px-4 pb-6 flex flex-col gap-[15px] flex-1 overflow-hidden">
                         <div className="
                             flex
                             flex-col
@@ -110,7 +142,7 @@ export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
                             <p>현재 {count}명 참여중</p>
                         </div>
 
-                        <div className="flex flex-col gap-3 overflow-y-auto max-h-[420px] pr-1">
+                        <div className="flex flex-col gap-3 overflow-y-auto flex-1 pr-1 border rounded-[4px] pt-[8px] pb-[8px] pr-[12px] pl-[12px]">
                             {messages
                                 .filter(msg => msg.roomId === name) // roomId 기준 (안 섞여있으면 제거 가능)
                                 .map((msg, idx) => {
@@ -158,7 +190,7 @@ export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
                                                     {!isMine && (
                                                         <TwoFunctionPopup
                                                             dialogTrigger={
-                                                                <Icon24 name="notify" viewBox="0 0 24 24" className="bg-[#white] cursor-pointer" />
+                                                                <Icon24 name="notify" viewBox="0 0 24 24" className="cursor-pointer text-[#FF5F57]" />
                                                             }
                                                             title="사용자 신고 처리"
                                                             body={
@@ -214,9 +246,44 @@ export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
                                                     )}
                                                 </div>
                                             </div>
+
                                         </div>
                                     );
                                 })}
+                        </div>
+                        {/* ======================= 채팅 입력 ======================= */}
+                        <div className="flex items-center gap-[10px]">
+                            <Input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        handleSend();
+                                    }
+                                }}
+                                placeholder="메시지를 입력하세요"
+                                className="flex-1 h-[40px]"
+                            />
+
+                            <button
+                                onClick={handleSend}
+                                className="
+                                    w-[100px]
+                                    h-[40px]
+                                    bg-[var(--primary)]
+                                    text-white
+                                    flex
+                                    items-center
+                                    justify-center
+                                    hover:opacity-90
+                                    transition
+                                    rounded-[4px]
+                                    cursor-pointer
+                                "
+                            >
+                                전송
+                            </button>
                         </div>
                     </div>
                 </DrawerContent>

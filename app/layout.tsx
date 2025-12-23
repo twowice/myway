@@ -35,18 +35,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       );
    }
 
-   // 로그인/회원가입 페이지는 Header 없이 전체 화면
-   if (path.startsWith('/loginpage') || path.startsWith('/signup')) {
-      return (
-         <html lang="ko">
-            <body>
-               <AuthSessionProvider>
-                  <main className="w-full h-screen">{children}</main>
-               </AuthSessionProvider>
-            </body>
-         </html>
-      );
-   }
+  // 로그인/회원가입 페이지는 Header 없이 전체 화면
+  if (path.startsWith("/loginpage") || path.startsWith("/signup") || path.startsWith("/testpage")) {
+    return (
+      <html lang="ko">
+        <body>
+          <AuthSessionProvider>
+            <main className="w-full h-screen">
+              {children}
+            </main>
+          </AuthSessionProvider>
+        </body>
+      </html>
+    );
+  }
 
    return (
       <html lang="ko">

@@ -72,6 +72,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!existing && user.email) {
           await supabase.from('users').insert({
+            id: user.id,
             email: user.email,
             name: user.name || user.email.split('@')[0],
             image_url: user.image,

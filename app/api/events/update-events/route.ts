@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { auth } from '@/lib/auth'
 
 /* ===========================
    ENV
@@ -16,13 +17,10 @@ export async function GET() {
         /* ===========================
            Batch Auth
         =========================== */
-        // const cronKey = request.headers.get("x-cron-key");
-        // if (cronKey !== process.env.CRON_SECRET) {
-        //     return NextResponse.json(
-        //         { message: "Unauthorized" },
-        //         { status: 401 }
-        //     );
-        // }
+        const session = await auth()
+         if (!session) {
+            return NextResponse.json({ message: "❌ Session error" }, { status: 401 });
+        }
 
         if (!KTO_API_KEY) throw new Error("KTO_API_KEY is missing");
 
@@ -41,7 +39,7 @@ export async function GET() {
                 MobileApp: "Myway",
                 _type: "json",
                 arrange: "C",
-                eventStartDate: "20240101",
+                eventStartDate: "20250101",
             });
 
             const res = await fetch(`${BASE_URL}?serviceKey=${KTO_API_KEY}&${params.toString()}`);
@@ -139,13 +137,13 @@ export async function GET() {
                 });
             }
 
-            if (item.firstimage2) {
-                imagePayload.push({
-                    event_id: eventId,
-                    image_url: item.firstimage2,
-                    is_main: false,
-                });
-            }
+            // if (item.firstimage2) {
+            //     imagePayload.push({
+            //         event_id: eventId,
+            //         image_url: item.firstimage2,
+            //         is_main: false,
+            //     });
+            // }
         }
 
         /* ===========================
