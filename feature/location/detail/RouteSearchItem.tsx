@@ -3,30 +3,8 @@ import { Icon24 } from "@/components/icons/icon24";
 import { Path } from "@/app/api/map/odsay/odsay";
 import { RouteStopoverItem } from "./RouteStopoverItem";
 import { makeRouteBarSegments, RouteProgressBar } from "./RouteProgressBar";
-
-function formatKoreanTime(d: Date) {
-  return d.toLocaleTimeString("ko-KR", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
-function sumWalkTimeFromSubPath(path: Path) {
-  return path.subPath
-    .filter((s: any) => s.trafficType === 3)
-    .filter((s: any) => !(s.distance === 0 && s.sectionTime === 0)) // 더미 제거
-    .reduce((acc: number, s: any) => acc + (s.sectionTime ?? 0), 0);
-}
-
-function getProgressRatio(path: Path) {
-  const total = path.info.totalTime || 1;
-  const walk = sumWalkTimeFromSubPath(path);
-
-  if (!walk || walk <= 0) return 0.7;
-  const ratio = (total - walk) / total;
-  return Math.min(0.95, Math.max(0.2, ratio));
-}
+import { formatKoreanTime } from "@/utills/date/dateFormat";
+import { getSegmentColor } from "@/utills/route/routeSegmentColors";
 
 function makeTransitRows(path: Path) {
   const transits = path.subPath
@@ -41,14 +19,22 @@ function makeTransitRows(path: Path) {
 
     const lineLabel =
       s.trafficType === 1
-        ? lane0?.name ?? "지하철"
-        : lane0?.busNo ?? lane0?.name ?? "버스";
+        ? String(lane0?.name)
+            .replace(/^수도권\s*/g, "") // 맨 앞의 "수도권" + 뒤 공백(있으면) 제거
+            .trim() ?? "지하철"
+        : lane0?.busNo
+        ? `${lane0?.busNo}번 버스`
+        : lane0?.name
+        ? `${lane0?.name}번 버스`
+        : "버스";
 
-    const stationName = s.startName ? `${s.startName}역` : "";
+    const stationName = s.startName ? `${s.startName}` : "";
 
     const way = s.way ? `${s.way}행` : "";
 
-    return { lineLabel, stationName, way };
+    const color = getSegmentColor(s);
+
+    return { lineLabel, stationName, way, color };
   });
 }
 
@@ -85,22 +71,27 @@ export function RouteSearchItem({
   const segments = makeRouteBarSegments(path);
 
   return (
-    <div className="rounded-2xl bg-secondary/60 p-5">
+    <div className="rounded-2xl bg-secondary/60 p-5" onClick={() => {}}>
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <span className="text-primary font-semibold">{label}</span>
-
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-extrabold">
-              {path.info.totalTime}
+          {label === "최적" && (
+            <span className="text-primary font-semibold text-[12px] md:text-[14px]">
+              {label}
             </span>
-            <span className="text-base font-medium">분</span>
-          </div>
+          )}
+          <div className="flex flex-row gap-2 items-center">
+            <div className="flex items-baseline gap-1">
+              <span className="text-[16px] md:text-[18px] font-bold">
+                {path.info.totalTime}
+              </span>
+              <span className="text-[12px] md:text-[14px]">분</span>
+            </div>
 
-          <span className="text-muted-foreground font-medium">
-            {arrivalText}
-          </span>
+            <span className="text-muted-foreground text-[12px] md:text-[14px]">
+              {arrivalText}
+            </span>
+          </div>
         </div>
 
         <Button variant="ghost" size="icon" className="rounded-full">
@@ -122,10 +113,11 @@ export function RouteSearchItem({
         {transitRows.map((r, idx) => (
           <RouteStopoverItem
             key={`${r.lineLabel}-${r.stationName}-${idx}`}
-            leftLabel={r.lineLabel} // ✅ 수도권 n호선이 “지하철” 자리로
-            mainText={r.stationName} // ✅ 역 이름이 “수도권 n호선” 자리로
+            leftLabel={r.lineLabel} // 수도권 n호선이 “지하철” 자리로
+            mainText={r.stationName} // 역 이름이 “수도권 n호선” 자리로
             rightText={r.way}
             accent
+            color={r.color}
           />
         ))}
 

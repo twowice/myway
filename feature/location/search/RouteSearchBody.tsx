@@ -4,7 +4,7 @@ import { SearchState, useSearchStore } from "@/stores/map/seachstore";
 import { useShallow } from "zustand/react/shallow";
 import { RouteSearchHistoryItem } from "./RouteSearchHistory";
 import { RouteSearchItem } from "../detail/RouteSearchItem";
-import { getTransPath } from "@/lib/map/search";
+import { getTransPath } from "@/lib/map/odsay";
 
 export const RouteSearchBody = ({}: {}) => {
   const {
