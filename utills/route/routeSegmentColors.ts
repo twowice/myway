@@ -107,11 +107,17 @@ export function getTrainColor(sub: any): string {
  * API 응답마다 타입 키명이 다를 수 있어 “후보 필드”들을 같이 체크.
  */
 export function getExpressIntercityBusColor(sub: any): string {
+    const lane0 = sub?.lane?.[0];
+
     const type =
-        sub?.busType ??            // 후보 1
-        sub?.busClass ??           // 후보 2
-        sub?.expressBusType ??     // 후보 3
-        sub?.intercityBusType;     // 후보 4
+        sub?.busType ??                // 후보 1
+        sub?.busClass ??               // 후보 2
+        sub?.expressBusType ??         // 후보 3
+        sub?.intercityBusType ??       // 후보 4
+        lane0?.busType ??              // 후보 5 (lane)
+        lane0?.busClass ??             // 후보 6 (lane)
+        lane0?.type ??
+        sub                  // 후보 7 (lane - ODsay에서 class/type로 쓰는 경우)
 
     return EXPRESS_INTERCITY_BUS_TYPE_COLOR[type] ?? DEFAULT_COLOR;
 }
@@ -129,8 +135,20 @@ export function getSegmentColor(sub: any): string {
     // 열차(도시간/철도)
     if (sub?.trafficType === 4 && sub?.trainType != null) return getTrainColor(sub);
 
+    // 고속/시외버스(도시간) - trafficType이 6으로 오는 케이스(터미널 버스)
+    if (sub?.trafficType === 6) return getExpressIntercityBusColor(sub);
+
     // 고속/시외버스(도시간) - trafficType이 4로 오거나 별도 필드로 오는 케이스 대비
-    if (sub?.trafficType === 4 && (sub?.busType != null || sub?.expressBusType != null || sub?.intercityBusType != null)) {
+    if (
+        sub?.trafficType === 4 &&
+        (sub?.busType != null ||
+            sub?.busClass != null ||
+            sub?.expressBusType != null ||
+            sub?.intercityBusType != null ||
+            sub?.lane?.[0]?.busType != null ||
+            sub?.lane?.[0]?.busClass != null ||
+            sub?.lane?.[0]?.type != null)
+    ) {
         return getExpressIntercityBusColor(sub);
     }
 

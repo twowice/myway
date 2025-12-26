@@ -6,22 +6,54 @@ import { makeRouteBarSegments, RouteProgressBar } from "./RouteProgressBar";
 import { formatKoreanTime } from "@/utills/date/dateFormat";
 import { getSegmentColor } from "@/utills/route/routeSegmentColors";
 
+function getTrainLineLabel(s: any) {
+  const TRAIN_TYPE_LABEL: Record<number, string> = {
+    1: "KTX",
+    2: "새마을",
+    3: "무궁화",
+    4: "통근열차",
+    5: "누리로",
+    6: "공항철도",
+    7: "ITX-청춘",
+  };
+
+  const base = TRAIN_TYPE_LABEL[Number(s.trainType)] ?? "기차";
+  const sp = s.trainSpSeatYn === "Y" ? "(특실)" : "";
+  return `${base}${sp}`;
+}
+
+function getTerminalBusLineLabel(s: any) {
+  const lane0 = s.lane?.[0];
+  if (lane0?.name) return String(lane0.name);
+  return "시외/고속버스";
+}
+
 function makeTransitRows(path: Path) {
   const transits = path.subPath
     .filter(
       (s: any) =>
         !(s.trafficType === 3 && s.distance === 0 && s.sectionTime === 0)
     )
-    .filter((s: any) => s.trafficType === 1 || s.trafficType === 2);
+    .filter(
+      (s: any) =>
+        s.trafficType === 1 ||
+        s.trafficType === 2 ||
+        s.trafficType === 4 ||
+        s.trafficType === 6
+    );
 
   return transits.map((s: any) => {
     const lane0 = s.lane?.[0];
 
     const lineLabel =
       s.trafficType === 1
-        ? String(lane0?.name)
+        ? String(lane0?.name ?? "")
             .replace(/^수도권\s*/g, "") // 맨 앞의 "수도권" + 뒤 공백(있으면) 제거
-            .trim() ?? "지하철"
+            .trim() || "지하철"
+        : s.trafficType === 4
+        ? getTrainLineLabel(s)
+        : s.trafficType === 6
+        ? getTerminalBusLineLabel(s)
         : lane0?.busNo
         ? `${lane0?.busNo}번 버스`
         : lane0?.name
@@ -33,8 +65,9 @@ function makeTransitRows(path: Path) {
     const way = s.way ? `${s.way}행` : "";
 
     const color = getSegmentColor(s);
+    const endStation = s.endName;
 
-    return { lineLabel, stationName, way, color };
+    return { lineLabel, stationName, way, color, endStation };
   });
 }
 
@@ -42,6 +75,9 @@ const PATH_TYPE_LABEL: Record<number, string> = {
   1: "지하철",
   2: "버스",
   3: "지하철+버스",
+  11: "기차",
+  12: "버스",
+  20: "시외/고속버스",
 };
 
 export function RouteSearchItem({
@@ -118,6 +154,7 @@ export function RouteSearchItem({
             rightText={r.way}
             accent
             color={r.color}
+            endStation={r.endStation}
           />
         ))}
 
