@@ -5,7 +5,7 @@ import { Path } from "@/app/api/map/odsay/odsay";
 import { RouteStopoverItem } from "./RouteStopoverItem";
 import { makeRouteBarSegments, RouteProgressBar } from "./RouteProgressBar";
 import { formatKoreanTime } from "@/utills/date/dateFormat";
-import { getSegmentColor } from "@/utills/route/routeSegmentColors";
+import { getSegmentColor } from "@/utills/route/routeColors";
 
 type Props = {
   index: number;

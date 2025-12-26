@@ -1,4 +1,4 @@
-import { getSegmentColor } from "@/utills/route/routeSegmentColors";
+import { getSegmentColor } from "@/utills/route/routeColors";
 
 export type BarSeg = { color: string; ratio: number };
 
