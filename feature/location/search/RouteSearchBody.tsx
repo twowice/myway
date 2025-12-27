@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { RouteSearchBar } from "./RouteSearchBar";
 import { SearchState, useSearchStore } from "@/stores/map/seachstore";
@@ -9,16 +11,30 @@ import { RouteDetailPopup } from "../detail/RouteDetailPopup";
 import { useRef, useState } from "react";
 import { useMapStore } from "@/stores/map/store";
 import type { OdsayLoadLane } from "@/app/api/map/odsay/odsay";
+import { saveRouteSearchHistory } from "@/lib/map/history";
 import {
   clearDrawResult,
   drawOdsayStyledPolylinesWithTransfer,
   type DrawResult,
 } from "@/utills/route/routePolyLineDrawer";
+import { panelstore } from "@/stores/panelstore";
+import { getSegmentColor } from "@/utills/route/routeColors";
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { map, isMapScriptLoaded } = useMapStore();
   const drawResultRef = useRef<DrawResult | null>(null);
+  const fallbackPolylinesRef = useRef<naver.maps.Polyline[]>([]);
+  const openpanel = panelstore((state) => state.openpanel);
+
+  const clearRoutePolylines = () => {
+    if (drawResultRef.current) {
+      clearDrawResult(drawResultRef.current);
+      drawResultRef.current = null;
+    }
+    fallbackPolylinesRef.current.forEach((p) => p.setMap(null));
+    fallbackPolylinesRef.current = [];
+  };
   const {
     places,
     setRoutePoints,
@@ -63,6 +79,36 @@ export const RouteSearchBody = ({}: {}) => {
       setPaths(routeData);
       setRoutePoints(places);
       setIsAfterSearching(true);
+
+      const bestPath = routeData?.result?.path?.[0];
+      const totalTimeSeconds = Number(bestPath?.info?.totalTime ?? 0) * 60;
+      const totalFare =
+        bestPath?.info?.payment ??
+        (bestPath?.info as any)?.totalPayment ??
+        null;
+      const mapObjectId = bestPath?.info?.mapObj ?? null;
+
+      try {
+        await saveRouteSearchHistory({
+          departure_name: startPlace.name,
+          departure_latitude: startPlace.lat,
+          departure_longitude: startPlace.lng,
+          destination_name: endPlace.name,
+          destination_latitude: endPlace.lat,
+          destination_longitude: endPlace.lng,
+          total_time_seconds: Number.isFinite(totalTimeSeconds)
+            ? totalTimeSeconds
+            : null,
+          total_fare:
+            totalFare != null && Number.isFinite(Number(totalFare))
+              ? Number(totalFare)
+              : null,
+          map_object_id: mapObjectId,
+          raw_response: routeData,
+        });
+      } catch (historyError: any) {
+        console.warn("검색 기록 저장 실패:", historyError?.message);
+      }
     } catch (error: any) {
       console.error("길찾기 중 오류 발생:", error.message);
       alert(`길찾기 실패: ${error.message}`);
@@ -80,20 +126,72 @@ export const RouteSearchBody = ({}: {}) => {
     return `0:0@${trimmed}`;
   };
 
-  const drawLoadlane = async (mapObj: string) => {
-    if (!map || !isMapScriptLoaded || !mapObj) return;
+  const drawFallbackSegments = (subPaths: any[]) => {
+    if (!map || !isMapScriptLoaded || !subPaths?.length) return;
+
+    subPaths.forEach((sub) => {
+      const trafficType = sub?.trafficType;
+      if (trafficType !== 4 && trafficType !== 6) return;
+
+      const startX = Number(sub?.startX);
+      const startY = Number(sub?.startY);
+      const endX = Number(sub?.endX);
+      const endY = Number(sub?.endY);
+
+      if (
+        Number.isNaN(startX) ||
+        Number.isNaN(startY) ||
+        Number.isNaN(endX) ||
+        Number.isNaN(endY)
+      ) {
+        alert("선택하신 이동수단은 지도 경로를 제공하지 않습니다");
+        return;
+      }
+
+      const path = [
+        new window.naver.maps.LatLng(startY, startX),
+        new window.naver.maps.LatLng(endY, endX),
+      ];
+
+      fallbackPolylinesRef.current.push(
+        new window.naver.maps.Polyline({
+          map,
+          path,
+          strokeColor: getSegmentColor(sub),
+          strokeWeight: 4,
+          strokeOpacity: 0.9,
+          strokeStyle: "dash",
+          zIndex: 900,
+        })
+      );
+    });
+  };
+
+  const drawLoadlane = async (mapObj: string, subPaths: any[]) => {
+    clearRoutePolylines();
+    if (!map || !isMapScriptLoaded) return;
+
+    drawFallbackSegments(subPaths);
+
+    if (!mapObj) return;
 
     const normalized = normalizeMapObject(mapObj);
     if (!normalized) return;
 
     const data = (await getLoadlane(normalized)) as OdsayLoadLane;
     console.log("경로 그리기 API 결과:", data);
-    if (drawResultRef.current) {
-      clearDrawResult(drawResultRef.current);
-      drawResultRef.current = null;
-    }
-
     drawResultRef.current = drawOdsayStyledPolylinesWithTransfer(map, data);
+
+    if (openpanel) {
+      const openPanelEl = document.querySelector(
+        '[data-panel-root="true"][data-panel-open="true"]'
+      ) as HTMLElement | null;
+      const panelWidth = openPanelEl?.getBoundingClientRect().width ?? 0;
+      const shiftX = Math.round(panelWidth / 2);
+      if (shiftX > 0 && map.panBy && window?.naver?.maps?.Point) {
+        map.panBy(new window.naver.maps.Point(-shiftX, 0));
+      }
+    }
   };
 
   return (
@@ -130,7 +228,8 @@ export const RouteSearchBody = ({}: {}) => {
                 }
                 onClick={() => {
                   setOpenIndex(index);
-                  void drawLoadlane(path.info.mapObj);
+                  clearRoutePolylines();
+                  void drawLoadlane(path.info.mapObj, path.subPath ?? []);
                 }}
               />
             </RouteDetailPopup>

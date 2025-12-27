@@ -148,14 +148,14 @@ export function drawOdsayStyledPolylinesWithTransfer(
         strokeOpacity: 0.9,
         strokeLineCap: "round",
         strokeLineJoin: "round",
-        lineDash: [10, 8], // ✅ 점선
+        strokeStyle: "dash", // ✅ 점선
         zIndex: 999,       // ✅ 실선 위로
       })
     );
   }
 
   // 3) boundary fit
-  const b = odsay.result.boundary;
+  const b = odsay?.result?.boundary;
   if (b) {
     const bounds = new naver.maps.LatLngBounds(
       new naver.maps.LatLng(b.bottom, b.left),
