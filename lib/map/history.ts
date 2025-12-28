@@ -47,7 +47,7 @@ export async function fetchRouteSearchHistories(params?: {
   limit?: number;
   offset?: number;
 }): Promise<RouteSearchHistory[]> {
-  const limit = params?.limit ?? 10;
+  const limit = params?.limit ?? 5;
   const offset = params?.offset ?? 0;
   const response = await fetch(
     `/api/map/search/history?limit=${limit}&offset=${offset}`

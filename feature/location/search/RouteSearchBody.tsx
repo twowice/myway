@@ -70,7 +70,7 @@ export const RouteSearchBody = ({}: {}) => {
 
   const loadHistories = useCallback(async () => {
     try {
-      const data = await fetchRouteSearchHistories({ limit: 10 });
+      const data = await fetchRouteSearchHistories({ limit: 5 });
       setHistories(data);
     } catch (error: any) {
       console.warn("검색 기록 조회 실패:", error?.message);
@@ -185,7 +185,7 @@ export const RouteSearchBody = ({}: {}) => {
 
     if (!mapObj) {
       alert(
-        "현재 선택하신 대중교통(KTX, ITX, SRT, 시외 버스 등은 도보 및 지하철&시내버스 경로를 제외한 지도 경로 정보를 제공하지 않습니다.\n추후 업데이트를 통해 해당 내용은 제공될 예정입니다.)"
+        "현재 선택하신 대중교통(KTX, ITX, SRT, 시외 버스 등)은 도보 및 지하철&시내버스 경로를 제외한 지도 경로 정보를 제공하지 않습니다.\n추후 업데이트를 통해 해당 내용은 제공될 예정입니다."
       );
       fallbackPolylinesRef.current.push(...drawFallbackSegments(map, subPaths));
       if (startPlace && endPlace) {
@@ -276,35 +276,37 @@ export const RouteSearchBody = ({}: {}) => {
               );
 
             return (
-            <RouteDetailPopup
-              key={`popup-${index}`}
-              open={openIndex === index}
-              onOpenChange={(isOpen) => setOpenIndex(isOpen ? index : null)}
-              title={title}
-              path={path}
-              fromName={places.find((p) => p.order === 1)?.name ?? ""}
-              toName={places.find((p) => p.order === places.length)?.name ?? ""}
-            >
-              <RouteSearchItem
-                key={index}
-                index={index}
+              <RouteDetailPopup
+                key={`popup-${index}`}
+                open={openIndex === index}
+                onOpenChange={(isOpen) => setOpenIndex(isOpen ? index : null)}
+                title={title}
                 path={path}
                 fromName={places.find((p) => p.order === 1)?.name ?? ""}
                 toName={
                   places.find((p) => p.order === places.length)?.name ?? ""
                 }
-                onClick={() => {
-                  setOpenIndex(index);
-                  clearRoutePolylines();
-                  void drawLoadlane(
-                    path.info.mapObj,
-                    path.subPath ?? [],
-                    places.find((p) => p.order === 1),
-                    places.find((p) => p.order === places.length)
-                  );
-                }}
-              />
-            </RouteDetailPopup>
+              >
+                <RouteSearchItem
+                  key={index}
+                  index={index}
+                  path={path}
+                  fromName={places.find((p) => p.order === 1)?.name ?? ""}
+                  toName={
+                    places.find((p) => p.order === places.length)?.name ?? ""
+                  }
+                  onClick={() => {
+                    setOpenIndex(index);
+                    clearRoutePolylines();
+                    void drawLoadlane(
+                      path.info.mapObj,
+                      path.subPath ?? [],
+                      places.find((p) => p.order === 1),
+                      places.find((p) => p.order === places.length)
+                    );
+                  }}
+                />
+              </RouteDetailPopup>
             );
           })
         ) : (

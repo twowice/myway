@@ -27,8 +27,10 @@ export const RouteSearchBar = ({
   const [isSearching, setIsSearching] = useState(false);
   const [isPlaceSelected, setIsPlaceSelected] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isUserEditing, setIsUserEditing] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const addOrUpdatePlace = useSearchStore((state) => state.addOrUpdatePlace);
+  const removePlace = useSearchStore((state) => state.removePlace);
   const places = useSearchStore((state) => state.places);
 
   const debouncedFetchSuggestions = useCallback(async (query: string) => {
@@ -70,6 +72,7 @@ export const RouteSearchBar = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
+    setIsUserEditing(true);
     if (isPlaceSelected) {
       setIsPlaceSelected(false);
     }
@@ -85,6 +88,7 @@ export const RouteSearchBar = ({
     setSuggestions([]);
     setShowSuggestions(false);
     setIsPlaceSelected(true);
+    setIsUserEditing(false);
     console.log("[RouteSearchBar] place : ", place);
     addOrUpdatePlace({
       order,
@@ -121,6 +125,8 @@ export const RouteSearchBar = ({
   }, [handleOutsideClick]);
 
   useEffect(() => {
+    if (isUserEditing) return;
+
     const selectedPlace = places.find((p) => p.order === order);
     if (selectedPlace) {
       if (inputValue !== selectedPlace.name) {
@@ -136,7 +142,7 @@ export const RouteSearchBar = ({
       setInputValue("");
       setIsPlaceSelected(false);
     }
-  }, [places, order, inputValue, isPlaceSelected]);
+  }, [places, order, inputValue, isPlaceSelected, isUserEditing]);
 
   return (
     <div
@@ -149,6 +155,7 @@ export const RouteSearchBar = ({
           placeholder={placeholder}
           value={inputValue}
           onChange={handleInputChange}
+          onBlur={() => setIsUserEditing(false)}
           onFocus={() => {
             if (
               inputValue.trim() &&
@@ -168,6 +175,8 @@ export const RouteSearchBar = ({
               setSuggestions([]);
               setShowSuggestions(false);
               setIsPlaceSelected(false);
+              setIsUserEditing(false);
+              removePlace(order);
             }}
           >
             <Icon24 name="closeblack" />
