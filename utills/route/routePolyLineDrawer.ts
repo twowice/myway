@@ -1,5 +1,11 @@
 import { GraphPo, Lane, OdsayLoadLane } from "@/app/api/map/odsay/odsay";
-import { getLaneTypeColor, getSegmentColor, WALK_COLOR } from "./routeColors";
+import {
+  getLaneTypeColor,
+  getPolylineSegmentColor,
+  getSegmentColor,
+  WALK_COLOR,
+} from "./routeColors";
+import { getTmapPedestrianRoute } from "@/lib/map/tmap";
 
 function first<T>(arr?: T[]): T | undefined {
   return arr && arr.length ? arr[0] : undefined;
@@ -97,6 +103,198 @@ export type DrawResult = {
   polylines: naver.maps.Polyline[];
   transferPolylines: naver.maps.Polyline[];
 };
+
+type LatLngPoint = { lat: number; lng: number };
+
+function isValidPoint(point?: LatLngPoint): point is LatLngPoint {
+  return (
+    !!point &&
+    Number.isFinite(point.lat) &&
+    Number.isFinite(point.lng)
+  );
+}
+
+function createDashedPolyline(
+  map: naver.maps.Map,
+  path: naver.maps.LatLng[],
+  styleSource: any
+): naver.maps.Polyline {
+  return new naver.maps.Polyline({
+    map,
+    path,
+    strokeColor: getPolylineSegmentColor(styleSource),
+    strokeWeight: 4,
+    strokeOpacity: 0.9,
+    strokeStyle: "dash",
+    zIndex: 900,
+  });
+}
+
+export function drawFallbackSegments(
+  map: naver.maps.Map | null,
+  subPaths: any[]
+): naver.maps.Polyline[] {
+  if (!map || !subPaths?.length) return [];
+
+  const polylines: naver.maps.Polyline[] = [];
+
+  const drawStraightFallback = (sub: any) => {
+    const startX = Number(sub?.startX);
+    const startY = Number(sub?.startY);
+    const endX = Number(sub?.endX);
+    const endY = Number(sub?.endY);
+
+    if (
+      Number.isNaN(startX) ||
+      Number.isNaN(startY) ||
+      Number.isNaN(endX) ||
+      Number.isNaN(endY)
+    ) {
+      return;
+    }
+
+    const path = [
+      new naver.maps.LatLng(startY, startX),
+      new naver.maps.LatLng(endY, endX),
+    ];
+
+    polylines.push(createDashedPolyline(map, path, sub));
+  };
+
+  for (let index = 0; index < subPaths.length; index += 1) {
+    const sub = subPaths[index];
+    const trafficType = sub?.trafficType;
+    const isIntercity = trafficType === 4 || trafficType === 6;
+    if (!isIntercity) continue;
+    drawStraightFallback(sub);
+  }
+
+  return polylines;
+}
+
+export function getEdgeTargetsFromSubPaths(subPaths: any[]): {
+  start?: LatLngPoint;
+  end?: LatLngPoint;
+} {
+  if (!subPaths?.length) return {};
+
+  const firstSub = subPaths[0];
+  const lastSub = subPaths[subPaths.length - 1];
+
+  const startX = Number(firstSub?.startX);
+  const startY = Number(firstSub?.startY);
+  const endX = Number(lastSub?.endX);
+  const endY = Number(lastSub?.endY);
+
+  const start = Number.isFinite(startX) && Number.isFinite(startY)
+    ? { lat: startY, lng: startX }
+    : undefined;
+  const end = Number.isFinite(endX) && Number.isFinite(endY)
+    ? { lat: endY, lng: endX }
+    : undefined;
+
+  return { start, end };
+}
+
+export function getEdgeTargetsFromLoadlane(data?: OdsayLoadLane): {
+  start?: LatLngPoint;
+  end?: LatLngPoint;
+} {
+  const lanes = data?.result?.lane ?? [];
+  if (!lanes.length) return {};
+
+  const firstLane = lanes[0];
+  const lastLane = lanes[lanes.length - 1];
+  const firstSections = firstLane?.section ?? [];
+  const lastSections = lastLane?.section ?? [];
+  const firstSection = firstSections[0];
+  const lastSection = lastSections[lastSections.length - 1];
+  const firstPos = firstSection?.graphPos?.[0];
+  const lastPos = lastSection?.graphPos?.[lastSection.graphPos.length - 1];
+
+  const start =
+    firstPos && Number.isFinite(firstPos.y) && Number.isFinite(firstPos.x)
+      ? { lat: firstPos.y, lng: firstPos.x }
+      : undefined;
+  const end =
+    lastPos && Number.isFinite(lastPos.y) && Number.isFinite(lastPos.x)
+      ? { lat: lastPos.y, lng: lastPos.x }
+      : undefined;
+
+  return { start, end };
+}
+
+export async function drawEdgeWalkSegments(
+  map: naver.maps.Map | null,
+  startPlace: LatLngPoint,
+  endPlace: LatLngPoint,
+  edgeTargets?: {
+    start?: LatLngPoint;
+    end?: LatLngPoint;
+  }
+): Promise<naver.maps.Polyline[]> {
+  if (!map) return [];
+
+  const polylines: naver.maps.Polyline[] = [];
+  const walkStyle = { trafficType: 3 };
+
+  const drawStraightBetween = (from: LatLngPoint, to: LatLngPoint) => {
+    if (!isValidPoint(from) || !isValidPoint(to)) return;
+
+    const path = [
+      new naver.maps.LatLng(from.lat, from.lng),
+      new naver.maps.LatLng(to.lat, to.lng),
+    ];
+
+    polylines.push(createDashedPolyline(map, path, walkStyle));
+  };
+
+  const drawTmapOrFallback = async (from: LatLngPoint, to: LatLngPoint) => {
+    if (!isValidPoint(from) || !isValidPoint(to)) return;
+
+    if (
+      Math.abs(from.lat - to.lat) < 1e-7 &&
+      Math.abs(from.lng - to.lng) < 1e-7
+    ) {
+      return;
+    }
+
+    try {
+      const route = await getTmapPedestrianRoute({
+        startX: from.lng,
+        startY: from.lat,
+        endX: to.lng,
+        endY: to.lat,
+      });
+
+      if (!route?.paths?.length) {
+        drawStraightBetween(from, to);
+        return;
+      }
+
+      route.paths.forEach((segment) => {
+        const path = segment.map(
+          (point) => new naver.maps.LatLng(point.lat, point.lng)
+        );
+        if (path.length >= 2) {
+          polylines.push(createDashedPolyline(map, path, walkStyle));
+        }
+      });
+    } catch (error) {
+      console.warn("Tmap 도보 경로 실패, 직선으로 대체:", error);
+      drawStraightBetween(from, to);
+    }
+  };
+
+  if (edgeTargets?.start) {
+    await drawTmapOrFallback(startPlace, edgeTargets.start);
+  }
+  if (edgeTargets?.end) {
+    await drawTmapOrFallback(edgeTargets.end, endPlace);
+  }
+
+  return polylines;
+}
 
 export function drawOdsayStyledPolylinesWithTransfer(
   map: naver.maps.Map,

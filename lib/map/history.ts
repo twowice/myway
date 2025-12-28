@@ -27,3 +27,37 @@ export async function saveRouteSearchHistory(
 
   return response.json();
 }
+
+export type RouteSearchHistory = {
+  id: number;
+  created_at: string;
+  departure_name: string;
+  departure_latitude: number;
+  departure_longitude: number;
+  destination_name: string;
+  destination_latitude: number;
+  destination_longitude: number;
+  total_time_seconds: number | null;
+  total_fare: number | null;
+  map_object_id: string | null;
+  raw_response: unknown;
+};
+
+export async function fetchRouteSearchHistories(params?: {
+  limit?: number;
+  offset?: number;
+}): Promise<RouteSearchHistory[]> {
+  const limit = params?.limit ?? 10;
+  const offset = params?.offset ?? 0;
+  const response = await fetch(
+    `/api/map/search/history?limit=${limit}&offset=${offset}`
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "검색 기록 조회 실패");
+  }
+
+  const data = await response.json();
+  return data?.data ?? [];
+}

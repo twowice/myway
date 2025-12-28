@@ -8,20 +8,29 @@ import { RouteSearchHistoryItem } from "./RouteSearchHistory";
 import { RouteSearchItem } from "../detail/RouteSearchItem";
 import { getLoadlane, getTransPath } from "@/lib/map/odsay";
 import { RouteDetailPopup } from "../detail/RouteDetailPopup";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMapStore } from "@/stores/map/store";
 import type { OdsayLoadLane } from "@/app/api/map/odsay/odsay";
 import { saveRouteSearchHistory } from "@/lib/map/history";
 import {
   clearDrawResult,
+  drawEdgeWalkSegments,
+  drawFallbackSegments,
+  getEdgeTargetsFromLoadlane,
+  getEdgeTargetsFromSubPaths,
   drawOdsayStyledPolylinesWithTransfer,
   type DrawResult,
 } from "@/utills/route/routePolyLineDrawer";
 import { panelstore } from "@/stores/panelstore";
-import { getSegmentColor } from "@/utills/route/routeColors";
+import type { OdsayTranspath } from "@/app/api/map/odsay/odsay";
+import {
+  fetchRouteSearchHistories,
+  type RouteSearchHistory,
+} from "@/lib/map/history";
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [histories, setHistories] = useState<RouteSearchHistory[]>([]);
   const { map, isMapScriptLoaded } = useMapStore();
   const drawResultRef = useRef<DrawResult | null>(null);
   const fallbackPolylinesRef = useRef<naver.maps.Polyline[]>([]);
@@ -37,6 +46,7 @@ export const RouteSearchBody = ({}: {}) => {
   };
   const {
     places,
+    setAllPlaces,
     setRoutePoints,
     isDuringSearching,
     setIsDuringSearching,
@@ -49,6 +59,7 @@ export const RouteSearchBody = ({}: {}) => {
       isDuringSearching: state.isDuringSearching,
       setIsDuringSearching: state.setIsDuringSearching,
       places: state.places,
+      setAllPlaces: state.setAllPlaces,
       setRoutePoints: state.setRoutePoints,
       setIsAfterSearching: state.setIsAfterSearching,
       isAfterSearching: state.isAfterSearching,
@@ -56,6 +67,19 @@ export const RouteSearchBody = ({}: {}) => {
       setPaths: state.setPaths,
     }))
   );
+
+  const loadHistories = useCallback(async () => {
+    try {
+      const data = await fetchRouteSearchHistories({ limit: 10 });
+      setHistories(data);
+    } catch (error: any) {
+      console.warn("검색 기록 조회 실패:", error?.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadHistories();
+  }, [loadHistories]);
 
   const search = async () => {
     if (places.length < 2) {
@@ -106,6 +130,7 @@ export const RouteSearchBody = ({}: {}) => {
           map_object_id: mapObjectId,
           raw_response: routeData,
         });
+        await loadHistories();
       } catch (historyError: any) {
         console.warn("검색 기록 저장 실패:", historyError?.message);
       }
@@ -118,6 +143,29 @@ export const RouteSearchBody = ({}: {}) => {
     }
   };
 
+  const applyHistory = (history: RouteSearchHistory) => {
+    const startPlace = {
+      order: 1,
+      name: history.departure_name,
+      address: "",
+      lat: history.departure_latitude,
+      lng: history.departure_longitude,
+    };
+    const endPlace = {
+      order: 2,
+      name: history.destination_name,
+      address: "",
+      lat: history.destination_latitude,
+      lng: history.destination_longitude,
+    };
+
+    setAllPlaces([startPlace, endPlace]);
+    setRoutePoints([startPlace, endPlace]);
+    setIsAfterSearching(true);
+    setIsDuringSearching(false);
+    setPaths(history.raw_response as OdsayTranspath);
+  };
+
   const normalizeMapObject = (mapObj: string) => {
     const trimmed = mapObj.trim();
     if (!trimmed) return "";
@@ -126,54 +174,31 @@ export const RouteSearchBody = ({}: {}) => {
     return `0:0@${trimmed}`;
   };
 
-  const drawFallbackSegments = (subPaths: any[]) => {
-    if (!map || !isMapScriptLoaded || !subPaths?.length) return;
-
-    subPaths.forEach((sub) => {
-      const trafficType = sub?.trafficType;
-      if (trafficType !== 4 && trafficType !== 6) return;
-
-      const startX = Number(sub?.startX);
-      const startY = Number(sub?.startY);
-      const endX = Number(sub?.endX);
-      const endY = Number(sub?.endY);
-
-      if (
-        Number.isNaN(startX) ||
-        Number.isNaN(startY) ||
-        Number.isNaN(endX) ||
-        Number.isNaN(endY)
-      ) {
-        alert("선택하신 이동수단은 지도 경로를 제공하지 않습니다");
-        return;
-      }
-
-      const path = [
-        new window.naver.maps.LatLng(startY, startX),
-        new window.naver.maps.LatLng(endY, endX),
-      ];
-
-      fallbackPolylinesRef.current.push(
-        new window.naver.maps.Polyline({
-          map,
-          path,
-          strokeColor: getSegmentColor(sub),
-          strokeWeight: 4,
-          strokeOpacity: 0.9,
-          strokeStyle: "dash",
-          zIndex: 900,
-        })
-      );
-    });
-  };
-
-  const drawLoadlane = async (mapObj: string, subPaths: any[]) => {
+  const drawLoadlane = async (
+    mapObj: string,
+    subPaths: any[],
+    startPlace?: { lat: number; lng: number },
+    endPlace?: { lat: number; lng: number }
+  ) => {
     clearRoutePolylines();
     if (!map || !isMapScriptLoaded) return;
 
-    drawFallbackSegments(subPaths);
-
-    if (!mapObj) return;
+    if (!mapObj) {
+      alert(
+        "현재 선택하신 대중교통(KTX, ITX, SRT, 시외 버스 등은 도보 및 지하철&시내버스 경로를 제외한 지도 경로 정보를 제공하지 않습니다.\n추후 업데이트를 통해 해당 내용은 제공될 예정입니다.)"
+      );
+      fallbackPolylinesRef.current.push(...drawFallbackSegments(map, subPaths));
+      if (startPlace && endPlace) {
+        const edgeTargetsFromSubPaths = getEdgeTargetsFromSubPaths(subPaths);
+        fallbackPolylinesRef.current.push(
+          ...(await drawEdgeWalkSegments(map, startPlace, endPlace, {
+            start: edgeTargetsFromSubPaths.start,
+            end: edgeTargetsFromSubPaths.end,
+          }))
+        );
+      }
+      return;
+    }
 
     const normalized = normalizeMapObject(mapObj);
     if (!normalized) return;
@@ -181,6 +206,19 @@ export const RouteSearchBody = ({}: {}) => {
     const data = (await getLoadlane(normalized)) as OdsayLoadLane;
     console.log("경로 그리기 API 결과:", data);
     drawResultRef.current = drawOdsayStyledPolylinesWithTransfer(map, data);
+
+    fallbackPolylinesRef.current.push(...drawFallbackSegments(map, subPaths));
+
+    if (startPlace && endPlace) {
+      const edgeTargetsFromLoadlane = getEdgeTargetsFromLoadlane(data);
+      const edgeTargetsFromSubPaths = getEdgeTargetsFromSubPaths(subPaths);
+      fallbackPolylinesRef.current.push(
+        ...(await drawEdgeWalkSegments(map, startPlace, endPlace, {
+          start: edgeTargetsFromLoadlane.start ?? edgeTargetsFromSubPaths.start,
+          end: edgeTargetsFromLoadlane.end ?? edgeTargetsFromSubPaths.end,
+        }))
+      );
+    }
 
     if (openpanel) {
       const openPanelEl = document.querySelector(
@@ -229,17 +267,32 @@ export const RouteSearchBody = ({}: {}) => {
                 onClick={() => {
                   setOpenIndex(index);
                   clearRoutePolylines();
-                  void drawLoadlane(path.info.mapObj, path.subPath ?? []);
+                  void drawLoadlane(
+                    path.info.mapObj,
+                    path.subPath ?? [],
+                    places.find((p) => p.order === 1),
+                    places.find((p) => p.order === places.length)
+                  );
                 }}
               />
             </RouteDetailPopup>
           ))
         ) : (
-          <RouteSearchHistoryItem
-            order={1}
-            departure="해운대 해수욕장"
-            destination="벡스코"
-          />
+          <>
+            {histories.length === 0 ? (
+              <p>검색 기록이 없습니다.</p>
+            ) : (
+              histories.map((history, index) => (
+                <RouteSearchHistoryItem
+                  key={history.id}
+                  order={index + 1}
+                  departure={history.departure_name}
+                  destination={history.destination_name}
+                  onSelect={() => applyHistory(history)}
+                />
+              ))
+            )}
+          </>
         )}
       </div>
     </div>

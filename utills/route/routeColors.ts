@@ -1,4 +1,5 @@
 export const WALK_COLOR = "#D9D9D9";
+export const WALK_POLYLINE_COLOR = "#4B5563";
 export const DEFAULT_COLOR = "#6B7280";
 
 const SUBWAY_LINE_COLOR: Record<number, string> = {
@@ -153,6 +154,11 @@ export function getSegmentColor(sub: any): string {
     }
 
     return DEFAULT_COLOR;
+}
+
+export function getPolylineSegmentColor(sub: any): string {
+    if (sub?.trafficType === 3) return WALK_POLYLINE_COLOR;
+    return getSegmentColor(sub);
 }
 
 export function getLaneTypeColor(lane: { class: number; type: number }): string {
