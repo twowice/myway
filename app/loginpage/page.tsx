@@ -4,7 +4,7 @@ import { signIn } from 'next-auth/react'
 
 export default function LoginPage() {
   const handleSocialLogin = async (provider: 'google' | 'kakao' | 'naver') => {
-    await signIn(provider, { callbackUrl: '/loginpage/callback' })
+    await signIn(provider, { callbackUrl: '/' })
   }
 
   return (
@@ -22,7 +22,6 @@ export default function LoginPage() {
         </div>
 
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold mb-2">로그인</h1>
           <p className="text-gray-600">소셜 계정으로 간편하게 시작하세요</p>
         </div>
 

@@ -1,11 +1,8 @@
 // app/api/user/updateprofile/route.ts
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdminClient } from '@/lib/supabase'  // ← 이걸 import!
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabase = getSupabaseAdminClient()  // ← Admin 클라이언트 사용!
 
 export async function POST(request: Request) {
   try {
@@ -13,13 +10,9 @@ export async function POST(request: Request) {
     const { userId, name, email, gender, phone, birthDate } = body
 
     if (!userId) {
-      return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '사용자 ID가 필요합니다.' }, { status: 400 })
     }
 
-    // ⭐ UUID로 직접 업데이트
     const { data, error } = await supabase
       .from('users')
       .update({
@@ -30,7 +23,7 @@ export async function POST(request: Request) {
         birth_date: birthDate,
         is_profile_complete: true,
       })
-      .eq('id', userId)  // ⭐ UUID 사용
+      .eq('id', userId)
       .select()
       .single()
 
@@ -45,9 +38,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error('Server error:', error)
-    return NextResponse.json(
-      { error: '서버 오류' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: '서버 오류' }, { status: 500 })
   }
 }
