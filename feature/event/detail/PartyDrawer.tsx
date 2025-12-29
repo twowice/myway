@@ -1,13 +1,7 @@
 "use client";
-import { useRef, useState } from "react";
-import {
-    Drawer,
-    DrawerContent,
-    DrawerHeader,
-    DrawerDescription,
-    DrawerTitle,
-    DrawerClose,
-} from "@/components/ui/drawer";
+import { useRef, useState, useEffect } from "react";
+import { getSocket } from "@/lib/socket";
+import { Drawer, DrawerContent, DrawerHeader, DrawerDescription, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { TwoFunctionPopup } from '@/components/popup/twofunction'
 import { RadioComponent } from '@/components/basic/radio'
 import { Input } from '@/components/ui/input'
@@ -23,44 +17,80 @@ interface ChatMessage {
     roomId: string;
     createdAt: number;
     sender: string;
-    maskedSender: string;
+    maskedSender?: string;
     message?: string;
 }
 
-export function PartyDrawer({ eventId, name }: PartyDrawerProps) {
+export function PartyDrawer({ name }: PartyDrawerProps) {
     const buttonRef = useRef<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
-    const total = 10;
-    const count = 3;
-
-    const mySenderId = "aadfa";
-    const messages = [
-        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556979899, sender: "aadfa", maskedSender: "aad**", message: "안녕하세요!" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "aadfa", maskedSender: "aad**", message: "축제 언제 가세요?" },
-        { roomId: "사천에어쇼", createdAt: 1765556970378, sender: "adfad", maskedSender: "adf**", message: "저는 토요일에 갈 예정이에요!" },
-    ];
-
     const [input, setInput] = useState("");
+    const socket = getSocket();
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const mySenderId = "aadfa";
+    const [total, setTotal] = useState(0);
+    const [count, setCount] = useState(0);
+    
+    useEffect(() => {
+        if(!open) return;
+
+        socket.connect();
+        
+        const onConnect = () => {
+            socket.emit("join", {
+                roomId: name,
+                sender: mySenderId
+            });
+        };
+
+        socket.on("connect", onConnect);
+        socket.emit("join_room", name);
+
+        /* -------------------------- 방 꽉참 -------------------------- */
+        socket.on("room_full", ({ roomId, limit }) => {
+            alert(`❌ '${roomId}' 방은 이미 ${limit}명으로 가득 찼습니다!`);
+        });
+
+        /* ---------------------- 접속자 수 표시 ----------------------- */
+        socket.on("room_count", ({ roomId, count }) => {
+            if (roomId === name) setCount(count); 
+        });
+
+        /* ------------------ 방 입장 시 과거 메시지 ------------------ */
+        socket.on("room_history", ({ messages, totalMessageCount }) => {
+            setMessages(messages);
+            setTotal(totalMessageCount)
+        });
+
+        /* ---------------------- 새 메시지 수신 ----------------------- */
+        socket.on("receive_message", (data: ChatMessage) => {
+            setMessages(prev => [...prev, data]);
+            setTotal(prev => prev + 1);
+        });
+
+        return () => {
+            socket.off("room_full");
+            socket.off("room_count");
+            socket.off("room_history");
+            socket.off("receive_message");
+            socket.disconnect();
+        };
+    }, [open, name])
+
 
     const handleSend = () => {
         if (!input.trim()) return;
 
         console.log("보낼 메시지:", input);
 
-        // TODO: socket.emit("send_message", {...})
+        const messageData = {
+            roomId: name,
+            sender: mySenderId,
+            message: input,
+            createdAt: Date.now()
+        }
 
+        socket.emit("send_message", messageData);
         setInput("");
     };
 
