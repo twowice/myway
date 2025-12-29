@@ -39,3 +39,34 @@ export interface Info {
     checkIntervalTimeOverYn: CheckIntervalTimeOverYn;
     totalIntervalTime: number;
 }
+
+export interface OdsayLoadLane {
+    result: Result;
+}
+
+export interface Result {
+    lane: Lane[];
+    boundary: Boundary;
+}
+
+export interface Boundary {
+    top: number;
+    left: number;
+    bottom: number;
+    right: number;
+}
+
+export interface Lane {
+    class: number;
+    type: number;
+    section: Section[];
+}
+
+export interface Section {
+    graphPos: GraphPo[];
+}
+
+export interface GraphPo {
+    x: number;
+    y: number;
+}

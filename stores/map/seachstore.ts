@@ -1,3 +1,4 @@
+import { OdsayTranspath } from '@/app/api/map/odsay/odsay';
 import { create } from 'zustand';
 
 export interface SelectedPlace {
@@ -17,6 +18,8 @@ export interface SearchState {
     routePoints: RoutePoint[];
     isDuringSearching: boolean;
     isAfterSearching: boolean;
+    paths: OdsayTranspath | null
+
 
     addOrUpdatePlace: (newPlace: SelectedPlace) => void;
     removePlace: (order: number) => void;
@@ -28,6 +31,8 @@ export interface SearchState {
 
     setIsDuringSearching: (isDuringSearching: boolean) => void;
     setIsAfterSearching: (isAfterSearching: boolean) => void;
+
+    setPaths: (path: OdsayTranspath) => void;
 }
 
 export const useSearchStore = create<SearchState>((set) => ({
@@ -35,6 +40,7 @@ export const useSearchStore = create<SearchState>((set) => ({
     routePoints: [],
     isDuringSearching: false,
     isAfterSearching: false,
+    paths: null,
 
     addOrUpdatePlace: (newPlace) => set((state) => {
         const existingIndex = state.places.findIndex(p => p.order === newPlace.order);
@@ -67,4 +73,6 @@ export const useSearchStore = create<SearchState>((set) => ({
     setIsDuringSearching: (isDuringSearching) => set({ isDuringSearching: isDuringSearching }),
 
     setIsAfterSearching: (isAfterSearching) => set({ isAfterSearching: isAfterSearching }),
+
+    setPaths: (newPaths) => set({ paths: newPaths }),
 }));

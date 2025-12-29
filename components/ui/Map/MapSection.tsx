@@ -7,11 +7,15 @@ import { useWeeklyWeather } from "@/types/weeklyWeather";
 import { useState, useCallback, useRef, useEffect } from "react";
 import WeeklyWeatherModal from "@/feature/weeklyWeatherModal";
 import { useMapStore } from "@/stores/map/store";
+import { panelstore } from "@/stores/panelstore";
 
 const MapSection = () => {
   const map = useMapStore((state) => state.map);
   const isMapScriptLoaded = useMapStore((state) => state.isMapScriptLoaded);
   const isInitialFetchDone = useRef(false);
+  const openpanel = panelstore((state) => state.openpanel);
+  const lastPanelShiftRef = useRef(0);
+  const lastPanelOpenRef = useRef(false);
 
   const { weather, fetchWeather } = useWeather();
   const { airQuality, fetchAirQuality } = useAirQuality();
@@ -87,6 +91,31 @@ const MapSection = () => {
       isListenerAddedRef.current = false;
     };
   }, [map, isMapScriptLoaded, currentPosition, fetchMapData]); // ⭐️ 의존성 배열에 fetchMapData 추가
+
+  useEffect(() => {
+    if (!map || !isMapScriptLoaded) return;
+
+    const isPanelOpen = Boolean(openpanel);
+    if (isPanelOpen === lastPanelOpenRef.current) return;
+
+    if (isPanelOpen) {
+      const openPanelEl = document.querySelector(
+        '[data-panel-root="true"][data-panel-open="true"]'
+      ) as HTMLElement | null;
+      const panelWidth = openPanelEl?.getBoundingClientRect().width ?? 0;
+      const shiftX = Math.round(panelWidth / 2);
+      if (shiftX > 0 && map.panBy) {
+        // 왼쪽 패널이 열리면 우측 영역이 중심이 되도록 왼쪽으로 이동
+        map.panBy(-shiftX, 0);
+        lastPanelShiftRef.current = shiftX;
+      }
+    } else if (lastPanelShiftRef.current > 0 && map.panBy) {
+      map.panBy(lastPanelShiftRef.current, 0);
+      lastPanelShiftRef.current = 0;
+    }
+
+    lastPanelOpenRef.current = isPanelOpen;
+  }, [map, isMapScriptLoaded, openpanel]);
 
   const handleWeatherClick = () => {
     if (showWeeklyModal) {
