@@ -30,6 +30,7 @@ import type { OdsayTranspath } from "@/app/api/map/odsay/odsay";
 import {
   fetchRouteSearchHistories,
   type RouteSearchHistory,
+  deleteRouteSearchHistory,
 } from "@/lib/map/history";
 
 export const RouteSearchBody = ({}: {}) => {
@@ -225,6 +226,18 @@ export const RouteSearchBody = ({}: {}) => {
     setPaths(history.raw_response as OdsayTranspath);
   };
 
+  const handleDeleteHistory = useCallback(
+    async (id: number) => {
+      try {
+        await deleteRouteSearchHistory(id);
+        setHistories((prev) => prev.filter((history) => history.id !== id));
+      } catch (error: any) {
+        console.warn("검색 기록 삭제 실패:", error?.message);
+      }
+    },
+    []
+  );
+
   const normalizeMapObject = (mapObj: string) => {
     const trimmed = mapObj.trim();
     if (!trimmed) return "";
@@ -380,6 +393,7 @@ export const RouteSearchBody = ({}: {}) => {
                   departure={history.departure_name}
                   destination={history.destination_name}
                   onSelect={() => applyHistory(history)}
+                  onDelete={() => handleDeleteHistory(history.id)}
                 />
               ))
             )}

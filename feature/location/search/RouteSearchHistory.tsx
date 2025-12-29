@@ -6,11 +6,13 @@ export const RouteSearchHistoryItem = ({
   departure,
   destination,
   onSelect,
+  onDelete,
 }: {
   order: number;
   departure: string;
   destination: string;
   onSelect?: () => void;
+  onDelete?: () => void;
 }) => {
   const orderstring = order < 10 ? "0" + String(order) : String(order);
   return (
@@ -27,7 +29,7 @@ export const RouteSearchHistoryItem = ({
           <p>{destination}</p>
         </button>
       </div>
-      <Button variant={"ghost"}>
+      <Button variant={"ghost"} onClick={onDelete}>
         <Icon24 name="closeblack" />
       </Button>
     </div>

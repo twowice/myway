@@ -82,3 +82,18 @@ export async function fetchRouteSearchHistories(params?: {
   const data = await response.json();
   return data?.data ?? [];
 }
+
+export async function deleteRouteSearchHistory(id: number) {
+  const response = await fetch("/api/map/search/history", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "검색 기록 삭제 실패");
+  }
+
+  return response.json();
+}

@@ -157,3 +157,44 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "❌ Session error" }, { status: 401 });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const { id } = body ?? {};
+
+    if (!id || typeof id !== "number") {
+      return NextResponse.json(
+        { message: "유효한 검색 기록 ID가 필요합니다." },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("route_search_histories")
+      .update({ status: "deleted" })
+      .eq("id", id)
+      .eq("user_id", session.user.id);
+
+    if (error) {
+      console.error("Route search history delete error:", error);
+      return NextResponse.json(
+        { message: "검색 기록 삭제 실패" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Route search history delete API error:", error);
+    return NextResponse.json(
+      { message: "검색 기록 삭제 중 오류 발생" },
+      { status: 500 }
+    );
+  }
+}
