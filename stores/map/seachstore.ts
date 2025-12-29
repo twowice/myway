@@ -1,14 +1,6 @@
 import { OdsayTranspath } from '@/app/api/map/odsay/odsay';
+import type { SelectedPlace } from '@/types/map/place';
 import { create } from 'zustand';
-
-export interface SelectedPlace {
-    order: number;
-    name: string;
-    address: string;
-    roadAddress?: string;
-    lat: number;
-    lng: number;
-}
 
 export interface RoutePoint extends SelectedPlace {
 }

@@ -1,15 +1,5 @@
 import { NextResponse } from 'next/server';
-
-interface PlaceResult {
-    name: string;
-    address: string;
-    roadAddress: string;
-    lat: number;
-    lng: number;
-    category: string;
-    telephone?: string;
-    link?: string;
-}
+import type { PlaceResult } from '@/types/map/place';
 
 const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_SEARCH_ID;
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SEARCH_SECRET;
@@ -31,8 +21,6 @@ export async function GET(request: Request) {
         const naverApiUrl = new URL('https://openapi.naver.com/v1/search/local.json');
         naverApiUrl.searchParams.append('query', query);
         naverApiUrl.searchParams.append('display', '5');
-
-        console.log(`[Next.js API Route] 네이버 Search API 호출 대상 URL: ${naverApiUrl.toString()}`);
 
         const naverApiResponse = await fetch(naverApiUrl.toString(), {
             method: 'GET',
