@@ -1,14 +1,13 @@
-// lib/auth.ts - 새 버전 (Supabase Auth + NextAuth 통합)
+// lib/auth.ts
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import NaverProvider from "next-auth/providers/naver"
 import KakaoProvider from "next-auth/providers/kakao"
-import CredentialsProvider from "next-auth/providers/credentials"
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!  // anon key 사용
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -25,74 +24,93 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.KAKAO_CLIENT_ID!,
       clientSecret: process.env.KAKAO_CLIENT_SECRET!,
     }),
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
-
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: credentials.email as string,
-          password: credentials.password as string,
-        })
-
-        if (error || !data.user) return null
-
-        // public.users에서 프로필 정보 가져오기
-        const { data: profile, error: profileError } = await supabase
-          .from('users')
-          .select('name, image_url, is_profile_complete')
-          .eq('id', data.user.id)
-          .single()
-
-        if (profileError && profileError.code !== 'PGRST116') return null  // no row
-
-        return {
-          id: data.user.id,
-          email: data.user.email!,
-          name: profile?.name || data.user.email?.split('@')[0],
-          image: profile?.image_url,
-          isProfileComplete: profile?.is_profile_complete ?? false,
-        }
-      }
-    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider !== 'credentials') {
-        // 소셜 로그인
-        const { data: existing } = await supabase
+      if (!account) return false
+
+      try {
+        // email로 Supabase에서 기존 사용자 찾기
+        const { data: existingUser, error: findError } = await supabase
           .from('users')
-          .select('id')
+          .select('id, is_profile_complete, name, image_url')
           .eq('email', user.email)
+          .maybeSingle()
+
+        if (findError && findError.code !== 'PGRST116') {
+          console.error('Error finding user:', findError)
+          return false
+        }
+
+        if (existingUser) {
+          // 기존 사용자 - Supabase UUID를 NextAuth에 적용
+          user.id = existingUser.id
+          user.name = existingUser.name || user.name
+          user.image = existingUser.image_url || user.image
+        } else {
+          // 신규 사용자 - Supabase에 생성
+          const { data: newUser, error: insertError } = await supabase
+            .from('users')
+            .insert({
+              email: user.email,
+              name: user.name || user.email?.split('@')[0],
+              image_url: user.image,
+              provider: account.provider,
+              is_profile_complete: false,  // 추가 정보 입력 필요
+            })
+            .select('id')
+            .single()
+
+          if (insertError || !newUser) {
+            console.error('User creation error:', insertError)
+            return false
+          }
+
+          // 새로 생성된 UUID를 NextAuth에 적용
+          user.id = newUser.id
+        }
+
+        return true
+      } catch (error) {
+        console.error('SignIn callback error:', error)
+        return false
+      }
+    },
+    
+    async jwt({ token, user, trigger, session }) {
+      // 최초 로그인 시 - user 객체에 Supabase UUID가 들어있음
+      if (user) {
+        const { data: dbUser } = await supabase
+          .from('users')
+          .select('id, name, email, image_url, is_profile_complete')
+          .eq('id', user.id)  // UUID로 조회
           .single()
 
-        if (!existing && user.email) {
-          await supabase.from('users').insert({
-            id: user.id,
-            email: user.email,
-            name: user.name || user.email.split('@')[0],
-            image_url: user.image,
-            provider: account?.provider,
-            is_profile_complete: false,
-          })
+        if (dbUser) {
+          token.id = dbUser.id
+          token.name = dbUser.name
+          token.email = dbUser.email
+          token.picture = dbUser.image_url
+          token.isProfileComplete = dbUser.is_profile_complete
         }
       }
-      return true
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.isProfileComplete = user.isProfileComplete ?? false
+
+      // session update 시 (추가 정보 입력 완료 후)
+      if (trigger === 'update' && session) {
+        token.isProfileComplete = session.isProfileComplete
+        if (session.name) token.name = session.name
+        if (session.email) token.email = session.email
       }
+
       return token
     },
+    
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.name = token.name as string
+        session.user.email = token.email as string
+        session.user.image = token.picture as string
         session.user.isProfileComplete = token.isProfileComplete as boolean
       }
       return session
