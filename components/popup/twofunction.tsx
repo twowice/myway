@@ -44,6 +44,7 @@ export const TwoFunctionPopup = ({
    body,
    leftTitle = '아니오',
    rightTitle = '네',
+   open,
    leftCallback = () => {},
    rightCallback = () => {},
    hideOverlay = false,
@@ -66,9 +67,10 @@ export const TwoFunctionPopup = ({
    titleButton?: React.ReactNode;
    closeOnLeft?: boolean; // 편집모드일때는닫힘 방지
    closeOnRight?: boolean; // 편집모드일때는닫힘 방지
+   open?: boolean;
 }): React.ReactElement => {
    return (
-      <Dialog onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
          <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
          <DialogContent
             className={cn(

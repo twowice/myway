@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { ChangeEvent, useRef, useState } from "react";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import { cn } from '@/lib/utils';
+import { ChangeEvent, useRef, useState } from 'react';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
 
 /**
  * @component
@@ -23,115 +23,116 @@ import { Button } from "../ui/button";
  */
 
 export const PhotoInputContainer = ({
-  initImages = null,
-  uploadImage,
+   initImages = null,
+   uploadImage,
+   autoScroll = false,
 }: {
-  initImages?: string[] | null;
-  uploadImage: (file: File) => number;
+   initImages?: string[] | null;
+   uploadImage: (file: File) => number;
+   autoScroll?: boolean;
 }): React.ReactElement => {
-  const [images, setImages] = useState<string[] | null>(initImages);
+   const [images, setImages] = useState<string[] | null>(initImages);
 
-  const PhotoInput = () => {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-          alert("파일 크기가 너무 큽니다 (최대 5MB).");
-          return;
-        }
-        if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
-          alert("JPEG, PNG, GIF 이미지 파일만 업로드할 수 있습니다.");
-          return;
-        }
+   const PhotoInput = () => {
+      const fileInputRef = useRef<HTMLInputElement>(null);
+      const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+         const file = event.target.files?.[0];
+         if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+               alert('파일 크기가 너무 큽니다 (최대 5MB).');
+               return;
+            }
+            if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+               alert('JPEG, PNG, GIF 이미지 파일만 업로드할 수 있습니다.');
+               return;
+            }
 
-        //화면에 이미지를 보이기 위해서 작동
-        setImages((prev) => [URL.createObjectURL(file), ...(prev ?? [])]);
+            //화면에 이미지를 보이기 위해서 작동
+            setImages(prev => [URL.createObjectURL(file), ...(prev ?? [])]);
 
-        //이미지 업로드를 위한 통신 부분으로 추후 통신 status 코드에 따른 구분이 가능하도록 number을 리턴 받습니다.
-        //해당 부분은 추후 커스텀이 가능합니다.
-        try {
-          const responseStatus = await uploadImage(file);
-          handleUploadError(responseStatus);
-        } catch (error) {
-          console.log("[PhotoInput] 에러가 발생했습니다:", error);
-        }
-      } else {
-        alert("오류로 인해 이미지 파일 추가에 실패했습니다.");
-        console.error("[PhotoInput Error] image file is not exist : ", file);
-      }
-    };
+            //이미지 업로드를 위한 통신 부분으로 추후 통신 status 코드에 따른 구분이 가능하도록 number을 리턴 받습니다.
+            //해당 부분은 추후 커스텀이 가능합니다.
+            try {
+               const responseStatus = await uploadImage(file);
+               handleUploadError(responseStatus);
+            } catch (error) {
+               console.log('[PhotoInput] 에러가 발생했습니다:', error);
+            }
+         } else {
+            alert('오류로 인해 이미지 파일 추가에 실패했습니다.');
+            console.error('[PhotoInput Error] image file is not exist : ', file);
+         }
+      };
 
-    const handleButtonClick = () => {
-      fileInputRef.current?.click();
-    };
+      const handleButtonClick = () => {
+         fileInputRef.current?.click();
+      };
 
-    /**
-     *
-     * @param {number} code uploadeImage 함수에서 받은 HTTP통신 상태 코드
-     * @returns {boolean} 정상 통신일 경우 true를 반환하도록 기본 설계가 되어 있습니다 -> 추후 커스텀 가능
-     */
-    const handleUploadError = (code: number) => {
-      switch (code) {
-        case 200:
-          return true;
-        case 400:
-          throw Error("Bad Request");
-        default:
-          throw Error("Unknown");
-      }
-    };
+      /**
+       *
+       * @param {number} code uploadeImage 함수에서 받은 HTTP통신 상태 코드
+       * @returns {boolean} 정상 통신일 경우 true를 반환하도록 기본 설계가 되어 있습니다 -> 추후 커스텀 가능
+       */
+      const handleUploadError = (code: number) => {
+         switch (code) {
+            case 200:
+               return true;
+            case 400:
+               throw Error('Bad Request');
+            default:
+               throw Error('Unknown');
+         }
+      };
 
-    return (
-      <div className="flex flex-col w-[178.67px] h-full shrink-0">
-        <Input
-          id="picture"
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept="image/jpeg, image/png, image/gif"
-        />
-        <Button
-          className={"w-full h-full rounded-1 bg-primary-foreground text-4"}
-          onClick={handleButtonClick}
-          variant={"ghost"}
-        >
-          +
-        </Button>
+      return (
+         <div className="flex flex-col w-[178.67px] h-full shrink-0">
+            <Input
+               id="picture"
+               type="file"
+               ref={fileInputRef}
+               onChange={handleFileChange}
+               className="hidden"
+               accept="image/jpeg, image/png, image/gif"
+            />
+            <Button
+               className={'w-full h-full rounded-1 bg-primary-foreground text-4'}
+               onClick={handleButtonClick}
+               variant={'ghost'}
+            >
+               +
+            </Button>
+         </div>
+      );
+   };
+
+   const Photo = ({ image }: { image: string }) => {
+      return (
+         <img
+            className={cn(
+               'w-[178.67px] h-full',
+               'object-contain',
+               'rounded-1',
+               'bg-primary-foreground',
+               'aspect-[178.67/112]',
+            )}
+            src={image}
+         />
+      );
+   };
+
+   return (
+      <div
+         className={cn(
+            'flex flex-row',
+            'w-min-100',
+            autoScroll ? 'overflow-x-auto' : 'overflow-x-scroll',
+            'h-28',
+            'gap-2',
+            'justify-start',
+         )}
+      >
+         <PhotoInput />
+         {images !== null && images?.map((image, idx) => <Photo key={idx} image={image}></Photo>)}
       </div>
-    );
-  };
-
-  const Photo = ({ image }: { image: string }) => {
-    return (
-      <img
-        className={cn(
-          "w-[178.67px] h-full",
-          "object-contain",
-          "rounded-1",
-          "bg-primary-foreground",
-          "aspect-[178.67/112]"
-        )}
-        src={image}
-      />
-    );
-  };
-
-  return (
-    <div
-      className={cn(
-        "flex flex-row",
-        "w-min-100",
-        "overflow-x-scroll",
-        "h-28",
-        "gap-2",
-        "justify-start"
-      )}
-    >
-      <PhotoInput />
-      {images !== null &&
-        images?.map((image, idx) => <Photo key={idx} image={image}></Photo>)}
-    </div>
-  );
+   );
 };

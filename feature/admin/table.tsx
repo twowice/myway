@@ -7,7 +7,8 @@ interface TableOption<T = string> {
    key: string & keyof T;
    label: string;
    width?: string;
-   render?: (value: T[keyof T], row: T) => React.ReactNode;
+   align?: 'left' | 'center' | 'right';
+   render?: (value: any, row: T) => React.ReactNode;
 }
 
 interface TableProps<T = string> {
@@ -16,6 +17,7 @@ interface TableProps<T = string> {
    className?: string;
    emptyMessage?: string;
    itemsPerPage?: number;
+   onRowClick?: (row: T) => void;
 }
 
 export function TableComponent<T extends Record<string, any>>({
@@ -23,7 +25,8 @@ export function TableComponent<T extends Record<string, any>>({
    data = [],
    className,
    emptyMessage = '데이터가 없습니다.',
-   itemsPerPage = 12,
+   itemsPerPage = 10,
+   onRowClick,
 }: TableProps<T>) {
    const containerRef = useRef<HTMLDivElement>(null);
    const [rowHeight, setRowHeight] = useState('60px');
@@ -32,7 +35,7 @@ export function TableComponent<T extends Record<string, any>>({
       if (containerRef.current) {
          const updateHeight = () => {
             const containerHeight = containerRef.current?.clientHeight || 0;
-            const headerHeight = 48; // h-12 = 48px
+            const headerHeight = 40;
             const availableHeight = containerHeight - headerHeight;
             const calculatedHeight = availableHeight / itemsPerPage;
             setRowHeight(`${calculatedHeight}px`);
@@ -53,13 +56,9 @@ export function TableComponent<T extends Record<string, any>>({
       );
    }
 
-   // 항상 itemsPerPage만큼 행을 표시 (빈 행으로 채우기)
-   const emptyRowsCount = Math.max(0, itemsPerPage - data.length);
-   const emptyRows = Array.from({ length: emptyRowsCount });
-
    return (
-      <div ref={containerRef} className="w-full h-full border rounded-lg overflow-hidden bg-background">
-         <Table className={`table-fixed w-full ${className || ''}`}>
+      <div ref={containerRef} className="w-full h-full overflow-auto border rounded-md bg-background">
+         <Table className={`w-full min-w-max ${className || ''}`}>
             <colgroup>
                {columns.map((column, index) => (
                   <col key={index} className={column.width} />
@@ -67,10 +66,13 @@ export function TableComponent<T extends Record<string, any>>({
             </colgroup>
 
             {/* 헤더 */}
-            <TableHeader className="bg-primary/10">
-               <TableRow className="h-12">
+            <TableHeader className="sticky top-0 z-10">
+               <TableRow className="h-10">
                   {columns.map(column => (
-                     <TableHead key={String(column.key)} className="text-center text-sm font-semibold">
+                     <TableHead
+                        key={String(column.key)}
+                        className="align-middle text-center text-sm font-semibold whitespace-nowrap bg-primary/10"
+                     >
                         {column.label}
                      </TableHead>
                   ))}
@@ -81,17 +83,11 @@ export function TableComponent<T extends Record<string, any>>({
             <TableBody>
                {data.length === 0 ? (
                   // 데이터가 하나도 없을 때
-                  <>
-                     {Array.from({ length: itemsPerPage }).map((_, index) => (
-                        <TableRow key={`empty-all-${index}`} style={{ height: rowHeight }}>
-                           <TableCell colSpan={columns.length} className="text-center align-middle">
-                              {index === Math.floor(itemsPerPage / 2) && (
-                                 <p className="text-muted-foreground">{emptyMessage}</p>
-                              )}
-                           </TableCell>
-                        </TableRow>
-                     ))}
-                  </>
+                  <TableRow style={{ height: `calc(${rowHeight} * ${itemsPerPage})` }}>
+                     <TableCell colSpan={columns.length} className="text-center align-middle">
+                        <p className="text-muted-foreground text-lg">{emptyMessage}</p>
+                     </TableCell>
+                  </TableRow>
                ) : (
                   <>
                      {/* 실제 데이터 */}
@@ -99,13 +95,15 @@ export function TableComponent<T extends Record<string, any>>({
                         <TableRow
                            key={rowIndex}
                            style={{ height: rowHeight }}
-                           className="hover:bg-muted/30 transition-colors"
+                           onClick={() => onRowClick?.(row)}
+                           className={`hover:bg-muted/30 transition-colors
+                           ${onRowClick ? 'cursor-pointer' : ''}`}
                         >
                            {columns.map(column => (
                               <TableCell
                                  key={String(column.key)}
                                  className={`
-                                    text-center 
+                                     ${column.align === 'left' ? 'text-left' : column.align === 'right' ? 'text-right' : 'text-center'}
                                     align-middle 
                                     text-sm
                                     px-4
@@ -113,17 +111,6 @@ export function TableComponent<T extends Record<string, any>>({
                                  `}
                               >
                                  {column.render ? column.render(row[column.key], row) : String(row[column.key] ?? '-')}
-                              </TableCell>
-                           ))}
-                        </TableRow>
-                     ))}
-
-                     {/* 빈 행으로 채우기 */}
-                     {emptyRows.map((_, index) => (
-                        <TableRow key={`empty-${index}`} style={{ height: rowHeight }} className="pointer-events-none">
-                           {columns.map(column => (
-                              <TableCell key={String(column.key)} className="text-center align-middle">
-                                 {/* 빈 셀 */}
                               </TableCell>
                            ))}
                         </TableRow>

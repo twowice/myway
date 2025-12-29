@@ -4,13 +4,13 @@ import { Icon24 } from '@/components/icons/icon24';
 import { Segment } from '@/components/tabs/segment/segment';
 import { Button } from '@/components/ui/button/button';
 import Tab from '@/components/ui/tab';
-import { allNotices } from '@/dummy/more';
 import { NoticeList } from '@/feature/more/noticeList';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import MorePanel from '@/components/header/panels/morepanel';
-import { NoticeType } from '@/types/more/notice';
+import { Notice, NoticeType } from '@/types/more/notice';
 import { EllipsisPagination } from '@/components/pagination/pagination';
+import { supabase } from '@/lib/clientSupabase';
 
 export default function MoreContent({ children }: { children?: React.ReactNode }) {
    const router = useRouter();
@@ -22,6 +22,10 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
    const [currentPage, setCurrentPage] = useState(1);
    const itemsPerPage = 15;
 
+   //supabase
+   const [notices, setNotices] = useState<Notice[]>([]);
+   const [loading, setLoading] = useState(true);
+
    // 공지사항 탭 내의 세부 필터 상태 (전체, 일반 등)
    const [noticeFilter, setNoticeFilter] = useState<NoticeType | 'all'>('all');
 
@@ -30,11 +34,70 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
       isDetailNotice ? 'notice' : isDetailPolicy ? 'policy' : tabFromUrl || 'alarm',
    );
 
+   // Supabase에서 공지사항 가져오기
+   useEffect(() => {
+      fetchNotices();
+
+      // 실시간 구독: 공지사항이 추가/수정/삭제되면 자동으로 목록 업데이트
+      const channel = supabase
+         .channel('notices-list-changes')
+         .on(
+            'postgres_changes',
+            {
+               event: '*', // INSERT, UPDATE, DELETE 모두 감지
+               schema: 'public',
+               table: 'notices',
+            },
+            payload => {
+               console.log('공지사항 변경 감지:', payload);
+               // 변경사항이 있으면 목록 다시 가져오기
+               fetchNotices();
+            },
+         )
+         .subscribe();
+
+      return () => {
+         supabase.removeChannel(channel);
+      };
+   }, []);
+
+   const fetchNotices = async () => {
+      try {
+         setLoading(true);
+         const { data, error } = await supabase
+            .from('notices')
+            .select('*')
+            .order('is_top_fixed', { ascending: false }) // 상단 고정 먼저
+            .order('created_at', { ascending: false }); // 그 다음 최신순
+
+         if (error) {
+            console.error('공지사항 조회 실패:', error);
+            return;
+         }
+
+         // Supabase 데이터를 Notice 타입으로 변환
+         const formattedNotices: Notice[] = (data || []).map(item => ({
+            id: item.id,
+            type: item.type as NoticeType,
+            title: item.title,
+            detail: item.detail,
+            date: new Date(item.created_at).toLocaleDateString('ko-KR'),
+            isTopFixed: item.is_top_fixed,
+         }));
+
+         setNotices(formattedNotices);
+      } catch (error) {
+         console.error('공지사항 조회 중 오류:', error);
+      } finally {
+         setLoading(false);
+      }
+   };
+
    // 1. 데이터 필터링 로직 (부모에서 계산)
    const filteredNotices = useMemo(() => {
-      if (noticeFilter === 'all') return allNotices;
-      return allNotices.filter(n => n.type === noticeFilter);
-   }, [noticeFilter]);
+      if (noticeFilter === 'all') return notices;
+      return notices.filter(n => n.type === noticeFilter);
+   }, [noticeFilter, notices]);
 
    const totalPages = Math.ceil(filteredNotices.length / itemsPerPage);
 

@@ -7,4 +7,8 @@ export interface Notice {
    detail: string;
    date: string;
    isTopFixed?: boolean;
+   created_at?: string;
+   updated_at?: string;
+   author_id?: string;
+   author_name?: string;
 }

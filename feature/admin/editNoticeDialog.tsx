@@ -13,17 +13,16 @@ import {
    FaAlignRight,
    FaAlignJustify,
 } from 'react-icons/fa';
-import { OneFunctionPopup } from '@/components/popup/onefunction';
-import { Button } from '@/components/ui/button/button';
-import { Icon24 } from '@/components/icons/icon24';
 import { RadioComponent } from '@/components/basic/radio';
 import { CheckboxComponent } from '@/components/basic/checkbox';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { RiResetLeftFill } from 'react-icons/ri';
+import { NoticeData } from '@/types/userReport';
+import { TwoFunctionPopup } from '@/components/popup/twofunction';
 
 type MenuBarProps = {
    editor: Editor | null;
@@ -222,11 +221,15 @@ const MenuBar = ({ editor }: MenuBarProps) => {
    );
 };
 
-interface AddNoticeProps {
-   onAddNotice: (formData: any) => Promise<void>;
+interface EditNoticeProps {
+   notice: NoticeData | null;
+   isOpen: boolean;
+   onClose: () => void;
+   onEditNotice: (formData: any, originalNotice: NoticeData) => Promise<void>;
+   onDeleteNotice: (noticeId: number) => Promise<void>;
 }
 
-export function AddNotice({ onAddNotice }: AddNoticeProps) {
+export function EditNotice({ notice, isOpen, onClose, onEditNotice, onDeleteNotice }: EditNoticeProps) {
    const [isEmpty, setIsEmpty] = useState(true);
    const [category, setCategory] = useState('normal');
    const [isTopFixed, setIsTopFixed] = useState(false);
@@ -259,7 +262,20 @@ export function AddNotice({ onAddNotice }: AddNoticeProps) {
       },
    });
 
-   const handleAdd = async () => {
+   useEffect(() => {
+      if (notice) {
+         setCategory(notice.category);
+         setIsTopFixed(notice.is_top_fixed);
+         setTitle(notice.title);
+
+         if (editor && notice.content) {
+            editor.commands.setContent(notice.content);
+            setIsEmpty(false);
+         }
+      }
+   }, [notice, editor]);
+
+   const handleEdit = async () => {
       if (!title.trim()) {
          alert('제목을 입력해주세요.');
          return;
@@ -277,13 +293,17 @@ export function AddNotice({ onAddNotice }: AddNoticeProps) {
          content: editor.getHTML(),
       };
 
-      try {
-         await onAddNotice(noticeData);
+      const formData = {
+         category,
+         isTopFixed,
+         title: title.trim(),
+         content: editor.getHTML(),
+      };
 
-         setTitle('');
-         setCategory('normal');
-         setIsTopFixed(false);
-         editor?.commands.clearContent();
+      try {
+         await onEditNotice(formData, notice!);
+
+         onClose();
 
          alert('공지사항이 등록되었습니다.');
       } catch (error) {
@@ -310,16 +330,34 @@ export function AddNotice({ onAddNotice }: AddNoticeProps) {
       // }
    };
 
+   const handleDelete = async () => {
+      if (!notice?.id) return;
+      const confirmDelete = window.confirm(
+         '정말로 이 공지사항을 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.',
+      );
+
+      if (!confirmDelete) return;
+
+      try {
+         await onDeleteNotice(notice.id);
+         onClose();
+         alert('공지사항이 삭제되었습니다.');
+      } catch (error) {
+         console.error('공지사항 삭제 실패:', error);
+      }
+   };
+
+   if (!notice) return null;
+
    return (
-      <OneFunctionPopup
-         width="!max-w-[800px]"
-         dialogTrigger={
-            <Button variant={'add'} size={'lg'}>
-               <Icon24 name="plus" className="text-primary-foreground" />
-               신규 등록
-            </Button>
-         }
-         title="신규 공지사항 등록"
+      <TwoFunctionPopup
+         className="max-w-[800px]!"
+         open={isOpen}
+         onOpenChange={open => {
+            if (!open) onClose();
+         }}
+         dialogTrigger={<div />}
+         title="공지사항 수정"
          body={
             <div className="flex flex-col gap-5 max-h-[80vh] overflow-y-auto pr-2">
                <div className="flex gap-2 w-full items-center">
@@ -367,8 +405,12 @@ export function AddNotice({ onAddNotice }: AddNoticeProps) {
                </div>
             </div>
          }
-         buttonTitle="등록하기"
-         callback={handleAdd}
+         leftTitle="삭제하기"
+         rightTitle="수정하기"
+         leftCallback={handleDelete}
+         rightCallback={handleEdit}
+         closeOnLeft={false}
+         closeOnRight={false}
       />
    );
 }
