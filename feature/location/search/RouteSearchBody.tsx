@@ -37,6 +37,11 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
 import { TwoFunctionPopup } from "@/components/popup/twofunction";
+import {
+  historyToPlaces,
+  sharedRouteToPlaces,
+} from "@/utills/route/historyToPlaces";
+import { placesToHistoryPayload } from "@/utills/route/placesToHistoryPayload";
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -109,28 +114,7 @@ export const RouteSearchBody = ({}: {}) => {
         const data = await fetchSharedRoute(sharedCode);
         if (cancelled) return;
 
-        const startPlace = {
-          order: 1,
-          name: data.departure.name,
-          address: data.departure.address ?? "",
-          roadAddress: data.departure.roadAddress ?? "",
-          category: data.departure.category ?? "",
-          telephone: data.departure.telephone ?? undefined,
-          link: data.departure.link ?? undefined,
-          lat: data.departure.latitude,
-          lng: data.departure.longitude,
-        };
-        const endPlace = {
-          order: 2,
-          name: data.destination.name,
-          address: data.destination.address ?? "",
-          roadAddress: data.destination.roadAddress ?? "",
-          category: data.destination.category ?? "",
-          telephone: data.destination.telephone ?? undefined,
-          link: data.destination.link ?? undefined,
-          lat: data.destination.latitude,
-          lng: data.destination.longitude,
-        };
+        const { startPlace, endPlace } = sharedRouteToPlaces(data);
 
         setAllPlaces([startPlace, endPlace]);
         setRoutePoints([startPlace, endPlace]);
@@ -234,33 +218,23 @@ export const RouteSearchBody = ({}: {}) => {
       const mapObjectId = bestPath?.info?.mapObj ?? null;
 
       try {
-        const saved = await saveRouteSearchHistory({
-          departure_name: startPlace.name,
-          departure_latitude: startPlace.lat,
-          departure_longitude: startPlace.lng,
-          departure_address: startPlace.address,
-          departure_road_address: startPlace.roadAddress,
-          departure_category: startPlace.category,
-          departure_telephone: startPlace.telephone ?? null,
-          departure_link: startPlace.link ?? null,
-          destination_name: endPlace.name,
-          destination_latitude: endPlace.lat,
-          destination_longitude: endPlace.lng,
-          destination_address: endPlace.address,
-          destination_road_address: endPlace.roadAddress,
-          destination_category: endPlace.category,
-          destination_telephone: endPlace.telephone ?? null,
-          destination_link: endPlace.link ?? null,
-          total_time_seconds: Number.isFinite(totalTimeSeconds)
-            ? totalTimeSeconds
-            : null,
-          total_fare:
-            totalFare != null && Number.isFinite(Number(totalFare))
-              ? Number(totalFare)
-              : null,
-          map_object_id: mapObjectId,
-          raw_response: routeData,
-        });
+        const saved = await saveRouteSearchHistory(
+          placesToHistoryPayload({
+            startPlace,
+            endPlace,
+            rawResponse: routeData,
+            summary: {
+              totalTimeSeconds: Number.isFinite(totalTimeSeconds)
+                ? totalTimeSeconds
+                : null,
+              totalFare:
+                totalFare != null && Number.isFinite(Number(totalFare))
+                  ? Number(totalFare)
+                  : null,
+              mapObjectId,
+            },
+          })
+        );
         const savedId = Number(saved?.id);
         setShareHistoryId(Number.isFinite(savedId) ? savedId : null);
         await loadHistories();
@@ -323,28 +297,7 @@ export const RouteSearchBody = ({}: {}) => {
 
   const applyHistory = (history: RouteSearchHistory) => {
     setShareHistoryId(history.id);
-    const startPlace = {
-      order: 1,
-      name: history.departure_name,
-      address: history.departure_address ?? "",
-      roadAddress: history.departure_road_address ?? "",
-      category: history.departure_category ?? "",
-      telephone: history.departure_telephone ?? undefined,
-      link: history.departure_link ?? undefined,
-      lat: history.departure_latitude,
-      lng: history.departure_longitude,
-    };
-    const endPlace = {
-      order: 2,
-      name: history.destination_name,
-      address: history.destination_address ?? "",
-      roadAddress: history.destination_road_address ?? "",
-      category: history.destination_category ?? "",
-      telephone: history.destination_telephone ?? undefined,
-      link: history.destination_link ?? undefined,
-      lat: history.destination_latitude,
-      lng: history.destination_longitude,
-    };
+    const { startPlace, endPlace } = historyToPlaces(history);
 
     setAllPlaces([startPlace, endPlace]);
     setRoutePoints([startPlace, endPlace]);
