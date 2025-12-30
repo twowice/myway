@@ -34,12 +34,12 @@ export default function PolicyDetail({ params }: { params: Promise<{ id: string 
    return (
       <MoreContent>
          <div className="flex flex-col h-full">
-            <Button onClick={handleBack} variant={'ghost'} className="justify-start p-0 shrink-0 w-full mb-3">
+            <Button onClick={handleBack} variant={'ghost'} className="justify-start shrink-0 w-full mb-3 text-base">
                <Icon24 name="back" className="text-foreground" />
                {policy.title}
             </Button>
-            <div className="flex-1 overflow-y-auto min-h-0">
-               <div className="whitespace-pre-wrap pb-4">{policy.detail}</div>
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+               <div className="whitespace-pre-wrap">{policy.detail}</div>
             </div>
          </div>
       </MoreContent>

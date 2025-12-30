@@ -123,12 +123,12 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
 
    return (
       <MorePanel>
-         <div className="bg-white w-full h-full flex flex-col gap-6">
+         <div className="bg-white w-full h-full flex flex-col overflow-hidden">
             {/* 헤더 */}
-            <div className="shrink-0">
-               <p className="text-[32px]">안녕하세요, 00님</p>
+            <div className="shrink-0  mb-2">
+               <p className="text-[24px] font-semibold">더보기</p>
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-hidden">
                <Tab
                   value={selectedTab}
                   onValueChange={setSelectedTab}
@@ -138,7 +138,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                         label: '알림 설정',
                         content: (
                            <div className="flex flex-col h-full">
-                              <div className="flex-1 overflow-y-auto">
+                              <div className="flex-1 overflow-y-auto pr-2">
                                  <div className="flex flex-col gap-4">
                                     <div className="text-xl flex flex-col gap-3">
                                        알림 설정
@@ -185,7 +185,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                         value: 'notice',
                         label: '공지사항',
                         content: isDetailNotice ? (
-                           <div className="flex flex-col h-full ">{children}</div>
+                           <div className="h-full overflow-y-auto pr-2">{children}</div>
                         ) : (
                            <div className="flex flex-col h-full min-h-0">
                               <div className="flex-1 min-h-0 h-full">
@@ -195,27 +195,47 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                                        {
                                           value: 'all',
                                           title: '전체',
-                                          content: <NoticeList data={pagedNotices} />,
+                                          content: (
+                                             <div className="h-full overflow-y-auto pr-2">
+                                                <NoticeList data={pagedNotices} />
+                                             </div>
+                                          ),
                                        },
                                        {
                                           value: 'normal',
                                           title: '일반',
-                                          content: <NoticeList data={pagedNotices} />,
+                                          content: (
+                                             <div className="h-full overflow-y-auto pr-2">
+                                                <NoticeList data={pagedNotices} />
+                                             </div>
+                                          ),
                                        },
                                        {
                                           value: 'update',
                                           title: '업데이트',
-                                          content: <NoticeList data={pagedNotices} />,
+                                          content: (
+                                             <div className="h-full overflow-y-auto pr-2">
+                                                <NoticeList data={pagedNotices} />
+                                             </div>
+                                          ),
                                        },
                                        {
                                           value: 'event',
                                           title: '이벤트',
-                                          content: <NoticeList data={pagedNotices} />,
+                                          content: (
+                                             <div className="h-full overflow-y-auto pr-2">
+                                                <NoticeList data={pagedNotices} />
+                                             </div>
+                                          ),
                                        },
                                        {
                                           value: 'policy',
                                           title: '이용정책',
-                                          content: <NoticeList data={pagedNotices} />,
+                                          content: (
+                                             <div className="h-full overflow-y-auto pr-2">
+                                                <NoticeList data={pagedNotices} />
+                                             </div>
+                                          ),
                                        },
                                     ]}
                                  />
@@ -227,41 +247,43 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                         value: 'policy',
                         label: '이용약관 및 정책',
                         content: isDetailPolicy ? (
-                           <div className="flex flex-col h-full">{children}</div>
+                           <div className="h-full overflow-y-auto pr-2">{children}</div>
                         ) : (
-                           <div className="flex flex-col gap-2 overflow-y-auto">
-                              <Button
-                                 variant={'icon-right'}
-                                 className="w-full"
-                                 onClick={() => router.push('/morepage/policy/4')}
-                              >
-                                 <Icon24 name="go" className="text-secondary" />
-                                 이용약관(서비스 약관)
-                              </Button>
-                              <Button
-                                 variant={'icon-right'}
-                                 className="w-full"
-                                 onClick={() => router.push('/morepage/policy/1')}
-                              >
-                                 <Icon24 name="go" className="text-secondary" />
-                                 개인정보 처리방침
-                              </Button>
-                              <Button
-                                 variant={'icon-right'}
-                                 className="w-full"
-                                 onClick={() => router.push('/morepage/policy/2')}
-                              >
-                                 <Icon24 name="go" className="text-secondary" />
-                                 위치 기반 서비스 이용 약관
-                              </Button>
-                              <Button
-                                 variant={'icon-right'}
-                                 className="w-full"
-                                 onClick={() => router.push('/morepage/policy/3')}
-                              >
-                                 <Icon24 name="go" className="text-secondary" />
-                                 커뮤니티 운영 정책
-                              </Button>
+                           <div className="h-full overflow-y-auto pr-2">
+                              <div className="flex flex-col gap-2">
+                                 <Button
+                                    variant={'icon-right'}
+                                    className="w-full"
+                                    onClick={() => router.push('/morepage/policy/4')}
+                                 >
+                                    <Icon24 name="go" className="text-secondary" />
+                                    이용약관(서비스 약관)
+                                 </Button>
+                                 <Button
+                                    variant={'icon-right'}
+                                    className="w-full"
+                                    onClick={() => router.push('/morepage/policy/1')}
+                                 >
+                                    <Icon24 name="go" className="text-secondary" />
+                                    개인정보 처리방침
+                                 </Button>
+                                 <Button
+                                    variant={'icon-right'}
+                                    className="w-full"
+                                    onClick={() => router.push('/morepage/policy/2')}
+                                 >
+                                    <Icon24 name="go" className="text-secondary" />
+                                    위치 기반 서비스 이용 약관
+                                 </Button>
+                                 <Button
+                                    variant={'icon-right'}
+                                    className="w-full"
+                                    onClick={() => router.push('/morepage/policy/3')}
+                                 >
+                                    <Icon24 name="go" className="text-secondary" />
+                                    커뮤니티 운영 정책
+                                 </Button>
+                              </div>
                            </div>
                         ),
                      },
@@ -270,7 +292,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
             </div>
             {/* 페이지네이션 영역: 탭 하단에 고정 */}
             {selectedTab === 'notice' && !isDetailNotice && totalPages > 0 && (
-               <div className="flex items-center justify-center shrink-0 h-14">
+               <div className="flex items-center justify-center shrink-0 h-14 mt-4">
                   <EllipsisPagination
                      currentPage={currentPage}
                      totalPages={totalPages}
@@ -279,7 +301,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                </div>
             )}
             {/* 버전 정보 */}
-            <div className="flex items-center justify-between text-gray-600 shrink-0 px-4 py-4 border-t">
+            <div className="flex items-center justify-between text-gray-600 shrink-0 p-4 border-t mt-4">
                <p>버전정보 v.1.00.0</p>
                <p>최신 버전</p>
             </div>
