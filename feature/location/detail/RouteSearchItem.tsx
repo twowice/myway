@@ -49,7 +49,7 @@ function makeTransitRows(path: Path) {
   const transits = path.subPath
     .filter(
       (s: any) =>
-        !(s.trafficType === 3 && s.distance === 0 && s.sectionTime === 0)
+        !((s.trafficType === 3 && s.sectionTime === 0) || s.distance === 0)
     )
     .filter(
       (s: any) =>
@@ -82,7 +82,7 @@ function makeTransitRows(path: Path) {
       stationName: s.startName ? `${s.startName}` : "",
       way: s.way ? `${s.way}행` : "",
       color: getSegmentColor(s),
-      endStation: s.endName,
+      distance: s.distance,
     };
   });
 }
@@ -163,7 +163,6 @@ export const RouteSearchItem = React.forwardRef<HTMLDivElement, Props>(
               rightText={r.way}
               accent
               color={r.color}
-              endStation={r.endStation}
             />
           ))}
 
