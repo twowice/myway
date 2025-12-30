@@ -8,41 +8,16 @@ type Provider = 'google' | 'kakao' | 'naver'
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState<Provider | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   const handleSocialLogin = async (provider: Provider) => {
-    try {
-      setIsLoading(true)
-      setLoadingProvider(provider)
-      setError(null)
-
-      const result = await signIn(provider, { 
-        callbackUrl: '/',
-        redirect: false // 리다이렉트를 수동으로 처리
-      })
-
-      // 사용자가 로그인 취소한 경우
-      if (result?.error) {
-        if (result.error === 'OAuthCallback') {
-          setError('로그인이 취소되었습니다.')
-        } else {
-          setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')
-        }
-        setIsLoading(false)
-        setLoadingProvider(null)
-        return
-      }
-
-      // 성공 시 리다이렉트
-      if (result?.ok) {
-        window.location.href = result.url || '/'
-      }
-    } catch (err) {
-      console.error('Login error:', err)
-      setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')
-      setIsLoading(false)
-      setLoadingProvider(null)
-    }
+    setIsLoading(true)
+    setLoadingProvider(provider)
+    
+    // redirect: true일 때는 바로 리다이렉트되므로 에러 처리 불필요
+    await signIn(provider, { 
+      callbackUrl: '/loginpage/callback',
+      redirect: true
+    })
   }
 
   const getProviderName = (provider: Provider) => {
@@ -71,13 +46,6 @@ export default function LoginPage() {
         <div className="mb-8 text-center">
           <p className="text-gray-600">소셜 계정으로 간편하게 시작하세요</p>
         </div>
-
-        {/* 에러 메시지 */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600 text-center">{error}</p>
-          </div>
-        )}
 
         {/* 소셜 로그인 버튼들 */}
         <div className="space-y-3">

@@ -33,7 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // email로 Supabase에서 기존 사용자 찾기
         const { data: existingUser, error: findError } = await supabase
           .from('users')
-          .select('id, is_profile_complete, name, image_url')
+          .select('id, is_profile_complete, name, image_url, role')
           .eq('email', user.email)
           .maybeSingle()
 
@@ -57,6 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               image_url: user.image,
               provider: account.provider,
               is_profile_complete: false,  // 추가 정보 입력 필요
+              role: 'user',  // 기본값은 user
             })
             .select('id')
             .single()
@@ -82,7 +83,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         const { data: dbUser } = await supabase
           .from('users')
-          .select('id, name, email, image_url, is_profile_complete')
+          .select('id, name, email, image_url, is_profile_complete, role')
           .eq('id', user.id)  // UUID로 조회
           .single()
 
@@ -92,6 +93,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.email = dbUser.email
           token.picture = dbUser.image_url
           token.isProfileComplete = dbUser.is_profile_complete
+          token.role = dbUser.role  // role 추가
         }
       }
 
@@ -112,6 +114,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.email = token.email as string
         session.user.image = token.picture as string
         session.user.isProfileComplete = token.isProfileComplete as boolean
+        session.user.role = token.role as string  // role 추가
       }
       return session
     },
