@@ -17,9 +17,10 @@ interface EditEventProps {
 
 export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }: EditEventProps) {
    const [eventName, setEventName] = useState('');
-   const [eventImages, setEventImages] = useState<string[] | null>(null);
+   const [eventImages, setEventImages] = useState<string[]>([]);
    const [eventIntro, setEventIntro] = useState('');
    const [eventHomepage, setEventHomepage] = useState('');
+   const [eventSNS, setEventSNS] = useState('');
    const [hosts, setHosts] = useState<string[]>(['']);
    const [startDate, setStartDate] = useState('');
    const [endDate, setEndDate] = useState('');
@@ -35,6 +36,8 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
    const [eventStatus, setEventStatus] = useState('non_progress');
    const [isAddressSearchOpen, setIsAddressSearchOpen] = useState(false);
    const [playTime, setPlayTime] = useState('');
+   const [phone, setPhone] = useState('');
+   const [uploadingImage, setUploadingImage] = useState(false);
 
    // event 데이터가 변경될 때마다 폼 초기화
    useEffect(() => {
@@ -52,7 +55,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
          const imageUrls = eventData.event_images.map((img: any) => img.image_url);
          setEventImages(imageUrls);
       } else {
-         setEventImages(null);
+         setEventImages([]);
       }
 
       //이벤트 소개
@@ -60,6 +63,12 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
 
       // 홈페이지
       setEventHomepage(eventData.homepage || '');
+
+      // SNS
+      setEventSNS(eventData.insta_url || '');
+
+      // 전화번호
+      setPhone(eventData.phone || '');
 
       // 주최사
       if (eventData.organizer) {
@@ -115,6 +124,50 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       }
    };
 
+   /**
+    * ⭐ File을 Base64로 변환하여 바로 저장
+    */
+   const handleImageUpload = async (file: File): Promise<number> => {
+      try {
+         setUploadingImage(true);
+
+         console.log('🔄 이미지 변환 시작:', file.name);
+
+         // File을 Base64로 변환
+         const base64 = await fileToBase64(file);
+
+         console.log('✅ Base64 변환 완료');
+
+         // State에 Base64 저장
+         setEventImages(prev => {
+            const newImages = [...prev, base64];
+            console.log('📸 이미지 목록 업데이트:', newImages.length);
+            return newImages;
+         });
+
+         console.log('✅ 이미지 추가 완료!');
+         return 200;
+      } catch (error) {
+         console.error('❌ 이미지 처리 에러:', error);
+         alert('이미지 처리 중 오류가 발생했습니다.');
+         return 400;
+      } finally {
+         setUploadingImage(false);
+      }
+   };
+
+   /**
+    * File을 Base64 문자열로 변환
+    */
+   const fileToBase64 = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+         const reader = new FileReader();
+         reader.readAsDataURL(file);
+         reader.onload = () => resolve(reader.result as string);
+         reader.onerror = error => reject(error);
+      });
+   };
+
    const handleEdit = async () => {
       if (!eventName.trim()) {
          alert('이벤트 명을 입력해주세요.');
@@ -125,12 +178,22 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
          return;
       }
 
+      if (uploadingImage) {
+         alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+         return;
+      }
+
+      console.log('📤 이벤트 수정 시작');
+      console.log('이미지 목록:', eventImages);
+      console.log('주최사:', hosts);
+      console.log('SNS:', eventSNS);
+
       const formData = {
          eventName,
-         eventImages,
+         eventImages: eventImages.length > 0 ? eventImages : null,
          eventIntro,
          eventHomepage,
-         organizer: hosts[0] || '',
+         organizer: hosts.filter(h => h.trim())[0] || '',
          startDate,
          endDate,
          playTime,
@@ -144,12 +207,13 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
          roadAddress,
          detailAddress,
          eventStatus,
+         phone,
+         insta_url: eventSNS,
       };
 
       try {
          await onEditEvent(formData, event);
          onClose();
-         alert('이벤트가 수정되었습니다.');
       } catch (error) {
          console.error('이벤트 수정 실패:', error);
       }
@@ -191,7 +255,6 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       try {
          await onDeleteEvent(event.id);
          onClose();
-         alert('이벤트가 삭제되었습니다.');
       } catch (error) {
          console.error('이벤트 삭제 실패:', error);
       }
@@ -226,14 +289,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
                   {/* 이벤트 이미지 */}
                   <div className="flex flex-col gap-2 w-full">
                      <label className="text-sm font-semibold">이벤트 이미지</label>
-                     <PhotoInputContainer
-                        initImages={eventImages}
-                        uploadImage={images => {
-                           setEventImages(images);
-                           return 5;
-                        }}
-                        autoScroll={true}
-                     />
+                     <PhotoInputContainer initImages={eventImages} uploadImage={handleImageUpload} autoScroll={true} />
                   </div>
 
                   {/* 이벤트 소개 */}
@@ -256,6 +312,18 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
                         onChange={e => setEventHomepage(e.target.value)}
                         className="flex-1 text-sm px-4 py-2 border rounded-md"
                         placeholder="이벤트 홈페이지를 입력해주세요."
+                     />
+                  </div>
+
+                  {/* 이벤트 인스타 */}
+                  <div className="flex flex-col gap-2 w-full">
+                     <label className="text-sm font-semibold">이벤트 SNS</label>
+                     <input
+                        type="text"
+                        value={eventSNS}
+                        onChange={e => setEventSNS(e.target.value)}
+                        className="flex-1 text-sm px-4 py-2 border rounded-md"
+                        placeholder="SNS URL을 입력해주세요."
                      />
                   </div>
 
@@ -305,6 +373,18 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
                            placeholder="운영시간을 입력해주세요."
                         />
                      </div>
+                  </div>
+
+                  {/* 전화번호 */}
+                  <div className="flex flex-col gap-2 w-full">
+                     <label className="text-sm font-semibold">전화번호</label>
+                     <input
+                        type="text"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        className="flex-1 text-sm px-4 py-2 border rounded-md"
+                        placeholder="전화번호를 입력해주세요."
+                     />
                   </div>
 
                   {/* 이벤트 기간 */}

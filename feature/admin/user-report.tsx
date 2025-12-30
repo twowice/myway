@@ -35,26 +35,13 @@ export default function UserReport() {
 
          if (error) throw error;
 
-         const reportsWithPeriod = (data || []).map(report => ({
-            ...report,
-            sanction_period: calculateSactionPeriod(report),
-         }));
-         setReports(reportsWithPeriod);
+         setReports(data || []);
       } catch (error) {
          console.error('신고 조회 실패:', error);
          alert('신고 목록을 불러오는데 실패하였습니다.');
       } finally {
          setLoading(false);
       }
-   };
-
-   const calculateSactionPeriod = (report: UserReportData): string => {
-      if (!report.sanction_start_date || !report.sanction_end_date) {
-         return '-';
-      }
-      const start = new Date(report.sanction_start_date).toLocaleDateString('ko-KR');
-      const end = new Date(report.sanction_end_date).toLocaleDateString('ko-KR');
-      return `${start}~${end}`;
    };
 
    const getSanctionTypeLabel = (type: string): string => {
@@ -67,6 +54,7 @@ export default function UserReport() {
       };
       return labels[type] || type;
    };
+
    useEffect(() => {
       setCurrentPage(1);
    }, [categoryFilter, sortFilter, searchText, reportDate, typeFilter]);
@@ -113,7 +101,7 @@ export default function UserReport() {
    const handleSearch = () => setCurrentPage(1);
    const handleReset = () => {
       setCategoryFilter('all');
-      setSortFilter('user_name');
+      setSortFilter('reported_user_name');
       setTypeFilter('all');
       setSearchText('');
       setReportDate('');
@@ -122,23 +110,11 @@ export default function UserReport() {
 
    const handleUpdateReport = async (reportId: number, updateData: Partial<UserReportData>) => {
       try {
-         const { error } = await supabase
-            .from('user_reports')
-            .update({
-               ...updateData,
-               updated_at: new Date().toISOString(),
-            })
-            .eq('id', reportId);
+         const { error } = await supabase.from('user_reports').update(updateData).eq('id', reportId);
 
          if (error) throw error;
 
-         setReports(prev =>
-            prev.map(report =>
-               report.id === reportId
-                  ? { ...report, ...updateData, sanction_period: calculateSactionPeriod({ ...report, ...updateData }) }
-                  : report,
-            ),
-         );
+         setReports(prev => prev.map(report => (report.id === reportId ? { ...report, ...updateData } : report)));
          alert('제재 정보가 업데이트되었습니다.');
       } catch (error) {
          console.error('신고 업데이트 실패:', error);
@@ -244,17 +220,28 @@ export default function UserReport() {
             <div className="absolute inset-0 overflow-auto">
                <TableComponent<UserReportData>
                   columns={[
-                     { key: 'user_name', label: '사용자 명', width: 'w-[100px]' },
-                     { key: 'phone_number', label: '전화번호', width: 'w-[130px]' },
-                     { key: 'report_date', label: '신고 접수날짜', width: 'w-[120px]' },
-                     { key: 'sanction_period', label: '제재 기간', width: 'w-[170px]' },
+                     {
+                        key: 'reported_user_name',
+                        label: '사용자 명',
+                        width: 'max-w-[120px] whitespace-normal break-words',
+                     },
+                     {
+                        key: 'report_date',
+                        label: '신고 접수날짜',
+                        width: 'max-w-[120px] whitespace-normal break-words',
+                     },
+                     {
+                        key: 'sanction_period',
+                        label: '제재 기간',
+                        width: 'max-w-[180px] whitespace-normal break-words',
+                     },
                      {
                         key: 'sanction_type',
                         label: '제재 유형',
-                        width: 'w-[120px]',
+                        width: 'max-w-[140px]',
                         render: value => (
                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                                  value === '7일 계정정지'
                                     ? 'bg-red-100 text-red-800'
                                     : value === '14일 계정정지'
@@ -266,7 +253,7 @@ export default function UserReport() {
                                           : 'bg-gray-100 text-gray-800'
                               }`}
                            >
-                              {value}
+                              {getSanctionTypeLabel(value)}
                            </span>
                         ),
                      },
@@ -277,7 +264,7 @@ export default function UserReport() {
                         width: 'w-[120px]',
                         render: value => (
                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                                  value === '부정적인 언어'
                                     ? 'bg-red-100 text-red-800'
                                     : value === '도배'
@@ -297,7 +284,9 @@ export default function UserReport() {
                         key: 'is_processed',
                         label: '제재관리',
                         width: 'w-[110px]',
-                        render: (value, row) => <UserReportDialog reportData={row} type="user-report" />,
+                        render: (value, row) => (
+                           <UserReportDialog reportData={row} onUpdate={handleUpdateReport} type="user-report" />
+                        ),
                      },
                   ]}
                   data={currentData}

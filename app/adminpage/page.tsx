@@ -16,6 +16,7 @@ export default function Admin() {
    // const { data: session, status } = useSession();
    const [selectedMenu, setSelectedMenu] = useState<MenuType>('event');
    const [hasNotification, setHasNotification] = useState(false);
+   // const [isAuthorized, setIsAuthoized] = useState(false);
 
    // useEffect(() => {
    //    //로딩 시 대기
@@ -29,15 +30,25 @@ export default function Admin() {
 
    //    // 관리자 아님
    //    if (session.user.role !== 'admin') {
+   //       alert('관리자만 접근할 수 있습니다.');
    //       router.push('/');
    //       return;
    //    }
+
+   //    // 프로필 미완성
+   //    if (!session?.user.isProfileComplete) {
+   //       router.push('/loginpage/additionalinfo');
+   //    }
+
+   //    // 모든 검증 통과
+   //    setIsAuthoized(true);
    // }, [session, status, router]);
 
    // // 로딩중 또는 권한 확인
-   // if (status === 'loading' || !session || session.user.role !== 'admin') {
+   // if (status === 'loading' || !isAuthorized) {
    //    return (
    //       <div className="flex items-center justify-center h-screen">
+   //          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
    //          <p>로딩 중...</p>
    //       </div>
    //    );

@@ -53,7 +53,19 @@ export default function Event() {
    const fetchEvents = async () => {
       try {
          setLoading(true);
-         const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+         const { data, error } = await supabase
+            .from('events')
+            .select(
+               `
+               *,
+               event_images (
+                  id,
+                  image_url,
+                  is_main
+               )
+            `,
+            )
+            .order('created_at', { ascending: false });
 
          if (error) throw error;
          setEvents(data || []);
@@ -97,6 +109,8 @@ export default function Event() {
          price: priceDisplay,
          location: event.address ? `${event.address}${event.address2 ? ' ' + event.address2 : ''}` : '-',
          state,
+         phone: event.phone || '-',
+         insta_url: event.insta_url || '-',
       };
    };
    useEffect(() => {
@@ -180,6 +194,8 @@ export default function Event() {
             price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
             organizer: formData.organizer || '',
             content_id: Date.now(),
+            phone: formData.phone || '',
+            insta_url: formData.insta_url || '',
          };
          const { data: newEvent, error: eventError } = await supabase
             .from('events')
@@ -190,9 +206,9 @@ export default function Event() {
          if (eventError) throw eventError;
 
          if (formData.eventImages && formData.eventImages.length > 0) {
-            const imageData: Partial<EventImage>[] = formData.eventImages.map((url: string, index: number) => ({
+            const imageData: Partial<EventImage>[] = formData.eventImages.map((base64: string, index: number) => ({
                event_id: newEvent.id,
-               image_url: url,
+               image_url: base64, // Base64 문자열
                is_main: index === 0,
             }));
 
@@ -202,7 +218,16 @@ export default function Event() {
 
             const { data: eventWithImages } = await supabase
                .from('events')
-               .select(`*, event_images (*)`)
+               .select(
+                  `
+                  *,
+                  event_images (
+                     id,
+                     image_url,
+                     is_main
+                  )
+               `,
+               )
                .eq('id', newEvent.id)
                .single();
 
@@ -222,6 +247,7 @@ export default function Event() {
    const handleRowClick = (displayEvent: EventDisplayData) => {
       const originalEvent = events.find(e => e.id === displayEvent.id);
       if (originalEvent) {
+         console.log('📋 선택된 이벤트 (이미지 포함):', originalEvent);
          setSelectedEvent(originalEvent);
          setIsEditOpen(true);
       }
@@ -241,6 +267,8 @@ export default function Event() {
             overview: formData.eventIntro,
             price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
             organizer: formData.orgainzer || '',
+            phone: formData.phone || '',
+            insta_url: formData.insta_url || '',
          };
 
          const { error: eventError } = await supabase.from('events').update(eventData).eq('id', originalEvent.id);
@@ -373,6 +401,7 @@ export default function Event() {
                            { value: 'host', label: '주최' },
                            { value: 'period', label: '기간' },
                            { value: 'operating_hours', label: '운영시간' },
+                           { value: 'phone', label: '전화번호' },
                            { value: 'price', label: '가격' },
                            { value: 'location', label: '이벤트 장소' },
                            { value: 'state', label: '이벤트 상태' },
@@ -403,15 +432,31 @@ export default function Event() {
             <div className="absolute inset-0 overflow-auto">
                <TableComponent<EventDisplayData>
                   columns={[
-                     { key: 'name', label: '이벤트 명', align: 'left' },
-                     { key: 'host', label: '주최' },
-                     { key: 'period', label: '기간' },
-                     { key: 'operating_hours', label: '운영 시간' },
-                     { key: 'price', label: '가격' },
-                     { key: 'location', label: '이벤트 장소', align: 'left' },
+                     {
+                        key: 'name',
+                        label: '이벤트 명',
+                        align: 'left',
+                        className: 'max-w-[200px] whitespace-normal break-words',
+                     },
+                     { key: 'host', label: '주최', className: 'max-w-[120px] whitespace-normal break-words' },
+                     { key: 'period', label: '기간', className: 'max-w-[180px] whitespace-normal break-words' },
+                     {
+                        key: 'operating_hours',
+                        label: '운영시간',
+                        className: 'max-w-[100px] whitespace-normal break-words',
+                     },
+                     { key: 'phone', label: '전화번호', className: 'max-w-[120px] whitespace-normal break-words' },
+                     { key: 'price', label: '가격', className: 'max-w-[80px]' },
+                     {
+                        key: 'location',
+                        label: '이벤트 장소',
+                        align: 'left',
+                        className: 'max-w-[250px] whitespace-normal break-words',
+                     },
                      {
                         key: 'state',
                         label: '이벤트 상태',
+                        className: 'max-w-[100px]',
                         render: value => (
                            <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${

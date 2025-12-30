@@ -6,6 +6,7 @@ import { OneFunctionPopup } from '@/components/popup/onefunction';
 import { Button } from '@/components/ui/button/button';
 import { useState } from 'react';
 import { AddressSearchDialog } from './addressSearchDialog';
+import { supabase } from '@/lib/clientSupabase';
 
 interface AddEventProps {
    onAddEvent: (formData: any) => Promise<void>;
@@ -13,8 +14,9 @@ interface AddEventProps {
 
 export function AddEvent({ onAddEvent }: AddEventProps) {
    const [eventName, setEventName] = useState('');
-   const [eventImages, setEventImages] = useState<string[]>(null);
+   const [eventImages, setEventImages] = useState<string[]>([]);
    const [eventIntro, setEventIntro] = useState('');
+   const [eventSNS, setEventSNS] = useState('');
    const [eventHomepage, setEventHomepage] = useState('');
    const [hosts, setHosts] = useState<string[]>(['']); //주최사 배열
    const [endDate, setEndDate] = useState('');
@@ -32,12 +34,15 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
    const [eventStatus, setEventStatus] = useState('non_progress');
    const [isOpen, setIsOpen] = useState(false);
    const [isAddressSearchOpen, setIsAddressSearchOpen] = useState(false);
+   const [phone, setPhone] = useState('');
+   const [uploadingImage, setUploadingImage] = useState(false);
 
    const resetForm = () => {
       setEventName('');
-      setEventImages(null);
+      setEventImages([]);
       setEventIntro('');
       setEventHomepage('');
+      setEventSNS('');
       setHosts(['']);
       setStartDate('');
       setEndDate('');
@@ -52,6 +57,7 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
       setRoadAddress('');
       setDetailAddress('');
       setEventStatus('non_progress');
+      setPhone('');
    };
 
    const handleAdd = async () => {
@@ -64,12 +70,20 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
          return;
       }
 
+      if (uploadingImage) {
+         alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+         return;
+      }
+
+      console.log('📤 이벤트 등록 시작');
+      console.log('이미지 목록:', eventImages);
+
       const formData = {
          eventName,
-         eventImages,
+         eventImages: eventImages.length > 0 ? eventImages : null,
          eventIntro,
          eventHomepage,
-         hosts: hosts.filter(h => h.trim()),
+         organizer: hosts.filter(h => h.trim())[0] || '',
          startDate,
          endDate,
          playTime,
@@ -83,18 +97,62 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
          roadAddress,
          detailAddress,
          eventStatus,
+         phone,
+         insta_url: eventSNS,
       };
 
+      // API
       try {
          await onAddEvent(formData);
          setIsOpen(false);
          resetForm();
-         alert('이벤트가 등록되었습니다.');
       } catch (error) {
          console.error('이벤트 등록 실패:', error);
       }
+   };
 
-      // API
+   /**
+    * ⭐ File을 Base64로 변환하여 바로 저장
+    */
+   const handleImageUpload = async (file: File): Promise<number> => {
+      try {
+         setUploadingImage(true);
+
+         console.log('🔄 이미지 변환 시작:', file.name);
+
+         // File을 Base64로 변환
+         const base64 = await fileToBase64(file);
+
+         console.log('✅ Base64 변환 완료');
+
+         // State에 Base64 저장
+         setEventImages(prev => {
+            const newImages = [...prev, base64];
+            console.log('📸 이미지 목록 업데이트:', newImages.length);
+            return newImages;
+         });
+
+         console.log('✅ 이미지 추가 완료!');
+         return 200;
+      } catch (error) {
+         console.error('❌ 이미지 처리 에러:', error);
+         alert('이미지 처리 중 오류가 발생했습니다.');
+         return 400;
+      } finally {
+         setUploadingImage(false);
+      }
+   };
+
+   /**
+    * File을 Base64 문자열로 변환
+    */
+   const fileToBase64 = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+         const reader = new FileReader();
+         reader.readAsDataURL(file);
+         reader.onload = () => resolve(reader.result as string);
+         reader.onerror = error => reject(error);
+      });
    };
 
    const handleHostAdd = () => {
@@ -151,15 +209,10 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
                      />
                   </div>
                   <div className="flex flex-col gap-2 w-full">
-                     <label className="text-sm font-semibold">이벤트 이미지</label>
-                     <PhotoInputContainer
-                        initImages={eventImages}
-                        uploadImage={images => {
-                           setEventImages(images);
-                           return 5;
-                        }}
-                        autoScroll={true}
-                     />
+                     <label className="text-sm font-semibold">
+                        이벤트 이미지 {uploadingImage && <span className="text-blue-500 ml-2">(업로드 중...)</span>}
+                     </label>
+                     <PhotoInputContainer initImages={eventImages} uploadImage={handleImageUpload} autoScroll={true} />
                   </div>
                   <div className="flex flex-col gap-2 w-full">
                      <label className="text-sm font-semibold">이벤트 소개</label>
@@ -178,6 +231,17 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
                         onChange={e => setEventHomepage(e.target.value)}
                         className="flex-1 text-sm px-4 py-2 border rounded-md"
                         placeholder="이벤트 홈페이지를 입력해주세요."
+                     />
+                  </div>
+                  {/* 이벤트 인스타 */}
+                  <div className="flex flex-col gap-2 w-full">
+                     <label className="text-sm font-semibold">이벤트 SNS</label>
+                     <input
+                        type="text"
+                        value={eventSNS}
+                        onChange={e => setEventSNS(e.target.value)}
+                        className="flex-1 text-sm px-4 py-2 border rounded-md"
+                        placeholder="SNS URL을 입력해주세요."
                      />
                   </div>
                   <div className="flex flex-col gap-2 w-full">
@@ -223,6 +287,17 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
                            placeholder="운영시간을 입력해주세요."
                         />
                      </div>
+                  </div>
+                  {/* 전화번호 */}
+                  <div className="flex flex-col gap-2 w-full">
+                     <label className="text-sm font-semibold">전화번호</label>
+                     <input
+                        type="text"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        className="flex-1 text-sm px-4 py-2 border rounded-md"
+                        placeholder="전화번호를 입력해주세요."
+                     />
                   </div>
                   <div className="flex flex-col gap-2 w-full">
                      <label className="text-sm font-semibold">이벤트 기간</label>
