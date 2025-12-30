@@ -46,7 +46,7 @@ export const Segment = ({
                      'data-[state=active]:text-secondary-foreground',
                      'text-base',
                      'border-0',
-                     'rounded-2',
+                     'rounded-md',
                   )}
                >
                   {element.title}

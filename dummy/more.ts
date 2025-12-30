@@ -365,8 +365,7 @@ export const allPolicys: Policy[] = [
    {
       id: 1,
       title: '개인정보 처리방침',
-      detail: `
-[Myway] 개인정보 처리방침
+      detail: `[Myway] 개인정보 처리방침
 
 [Myway]는 이용자의 개인정보를 중요하게 생각하며, 「개인정보 보호법」 등 관련 법령을 준수합니다.
 본 개인정보 처리방침은 서비스 이용 과정에서 수집되는 개인정보의 항목, 이용 목적, 보관 및 보호 조치 등을 안내합니다.
@@ -429,8 +428,7 @@ export const allPolicys: Policy[] = [
    {
       id: 3,
       title: '커뮤니티 운영 정책',
-      detail: `
-[Myway] 커뮤니티 운영 정책
+      detail: `[Myway] 커뮤니티 운영 정책
 
 본 정책은 서비스 내 커뮤니티, 파티, 댓글, 채팅 등 이용 시 적용됩니다.
 
@@ -457,8 +455,7 @@ export const allPolicys: Policy[] = [
    {
       id: 4,
       title: '이용약관(서비스 약관)',
-      detail: `
-[Myway] 이용약관(서비스 약관)
+      detail: `[Myway] 이용약관(서비스 약관)
 
 본 약관은 [Myway] 서비스 이용과 관련하여 회사와 회원 간의 기본적인 사항을 규정합니다.
 

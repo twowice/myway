@@ -59,8 +59,8 @@ export const NoticeList = ({ data }: { data: Notice[] }) => {
                   ),
                )
             ) : (
-               <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">등록된 공지사항이 없습니다.</p>
+               <div className="flex items-center justify-center h-full font-semibold">
+                  <p className="text-gray-400">등록된 공지사항이 없습니다.</p>
                </div>
             )}
          </div>

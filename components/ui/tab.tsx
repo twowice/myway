@@ -16,8 +16,13 @@ interface TabProps {
 
 export default function Tab({ items, className, value, onValueChange }: TabProps) {
    return (
-      <Tabs defaultValue={items[0].value} className={className} value={value} onValueChange={onValueChange}>
-         <TabsList>
+      <Tabs
+         defaultValue={items[0].value}
+         className={`flex flex-col h-full ${className || ''}`}
+         value={value}
+         onValueChange={onValueChange}
+      >
+         <TabsList className="shrink-0">
             {items.map(item => (
                <TabsTrigger key={item.value} value={item.value}>
                   {item.label}
@@ -25,7 +30,7 @@ export default function Tab({ items, className, value, onValueChange }: TabProps
             ))}
          </TabsList>
          {items.map(item => (
-            <TabsContent key={item.value} value={item.value}>
+            <TabsContent key={item.value} value={item.value} className="flex-1 min-h-0 mt-4">
                {item.content}
             </TabsContent>
          ))}
