@@ -13,6 +13,7 @@ type Props = {
   fromName: string;
   toName: string;
   departAt?: Date;
+  onShare?: () => void;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 const PATH_TYPE_LABEL: Record<number, string> = {
@@ -95,6 +96,7 @@ export const RouteSearchItem = React.forwardRef<HTMLDivElement, Props>(
       fromName,
       toName,
       departAt = new Date(),
+      onShare,
       onClick,
       className,
       ...rest
@@ -166,7 +168,11 @@ export const RouteSearchItem = React.forwardRef<HTMLDivElement, Props>(
             />
           ))}
 
-          <RouteStopoverItem leftLabel="도착" mainText={toName} />
+          <RouteStopoverItem
+            leftLabel="도착"
+            mainText={toName}
+            onShare={onShare}
+          />
         </div>
       </div>
     );

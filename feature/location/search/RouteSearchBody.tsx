@@ -32,15 +32,25 @@ import {
   type RouteSearchHistory,
   deleteRouteSearchHistory,
 } from "@/lib/map/history";
+import { createSharedRoute } from "@/lib/map/sharedRoutes";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
+import { TwoFunctionPopup } from "@/components/popup/twofunction";
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [histories, setHistories] = useState<RouteSearchHistory[]>([]);
+  const [shareHistoryId, setShareHistoryId] = useState<number | null>(null);
+  const [isShareLoginOpen, setIsShareLoginOpen] = useState(false);
   const { map, isMapScriptLoaded } = useMapStore();
   const drawResultRef = useRef<DrawResult | null>(null);
   const fallbackPolylinesRef = useRef<naver.maps.Polyline[]>([]);
   const markersRef = useRef<Map<number, naver.maps.Marker>>(new Map());
   const openpanel = panelstore((state) => state.openpanel);
+  const { data: session } = useSession();
+  const router = useRouter();
+  const { showToast } = useToast();
 
   const clearRoutePolylines = () => {
     if (drawResultRef.current) {
@@ -130,6 +140,7 @@ export const RouteSearchBody = ({}: {}) => {
     }
 
     setIsDuringSearching(true);
+    setShareHistoryId(null);
     try {
       const startPlace = places.find((p) => p.order === 1);
       const endPlace = places.find((p) => p.order === places.length);
@@ -155,7 +166,7 @@ export const RouteSearchBody = ({}: {}) => {
       const mapObjectId = bestPath?.info?.mapObj ?? null;
 
       try {
-        await saveRouteSearchHistory({
+        const saved = await saveRouteSearchHistory({
           departure_name: startPlace.name,
           departure_latitude: startPlace.lat,
           departure_longitude: startPlace.lng,
@@ -182,9 +193,12 @@ export const RouteSearchBody = ({}: {}) => {
           map_object_id: mapObjectId,
           raw_response: routeData,
         });
+        const savedId = Number(saved?.id);
+        setShareHistoryId(Number.isFinite(savedId) ? savedId : null);
         await loadHistories();
       } catch (historyError: any) {
         console.warn("검색 기록 저장 실패:", historyError?.message);
+        setShareHistoryId(null);
       }
     } catch (error: any) {
       console.error("길찾기 중 오류 발생:", error.message);
@@ -195,7 +209,52 @@ export const RouteSearchBody = ({}: {}) => {
     }
   };
 
+  const copyToClipboard = async (text: string) => {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const success = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    if (!success) {
+      throw new Error("클립보드 복사 실패");
+    }
+  };
+
+  const handleShare = async (pathIndex: number) => {
+    if (!session?.user?.id) {
+      setIsShareLoginOpen(true);
+      return;
+    }
+
+    if (!shareHistoryId) {
+      showToast("공유할 검색 기록이 존재하지 않습니다.");
+      return;
+    }
+
+    try {
+      const { shareUrl } = await createSharedRoute({
+        searchHistoryId: shareHistoryId,
+        sharedPathIndex: pathIndex,
+      });
+      await copyToClipboard(shareUrl);
+      showToast("경로 링크 복사가 완료되었습니다.");
+    } catch (error: any) {
+      console.error("공유 링크 생성 실패:", error);
+      showToast(error?.message ?? "공유 링크 생성 실패");
+    }
+  };
+
   const applyHistory = (history: RouteSearchHistory) => {
+    setShareHistoryId(history.id);
     const startPlace = {
       order: 1,
       name: history.departure_name,
@@ -226,17 +285,14 @@ export const RouteSearchBody = ({}: {}) => {
     setPaths(history.raw_response as OdsayTranspath);
   };
 
-  const handleDeleteHistory = useCallback(
-    async (id: number) => {
-      try {
-        await deleteRouteSearchHistory(id);
-        setHistories((prev) => prev.filter((history) => history.id !== id));
-      } catch (error: any) {
-        console.warn("검색 기록 삭제 실패:", error?.message);
-      }
-    },
-    []
-  );
+  const handleDeleteHistory = useCallback(async (id: number) => {
+    try {
+      await deleteRouteSearchHistory(id);
+      setHistories((prev) => prev.filter((history) => history.id !== id));
+    } catch (error: any) {
+      console.warn("검색 기록 삭제 실패:", error?.message);
+    }
+  }, []);
 
   const normalizeMapObject = (mapObj: string) => {
     const trimmed = mapObj.trim();
@@ -367,6 +423,9 @@ export const RouteSearchBody = ({}: {}) => {
                   toName={
                     places.find((p) => p.order === places.length)?.name ?? ""
                   }
+                  onShare={() => {
+                    void handleShare(index);
+                  }}
                   onClick={() => {
                     setOpenIndex(index);
                     clearRoutePolylines();
@@ -400,6 +459,22 @@ export const RouteSearchBody = ({}: {}) => {
           </>
         )}
       </div>
+
+      <TwoFunctionPopup
+        open={isShareLoginOpen}
+        onOpenChange={setIsShareLoginOpen}
+        title="로그인이 필요합니다."
+        body={
+          <p className="text-sm text-muted-foreground">
+            공유 링크를 생성하실려면 로그인이 필요합니다.
+          </p>
+        }
+        leftTitle="닫기"
+        rightTitle="로그인"
+        leftCallback={() => setIsShareLoginOpen(false)}
+        rightCallback={() => router.push("/loginpage")}
+        dialogTrigger={<span />}
+      />
     </div>
   );
 };

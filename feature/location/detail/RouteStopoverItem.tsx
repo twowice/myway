@@ -8,12 +8,14 @@ export function RouteStopoverItem({
   rightText,
   accent,
   color = "secondary-foreground",
+  onShare,
 }: {
   leftLabel: string; //  "2호선" 같은 라벨
   mainText: string; // "해운대해수욕장" | "~역" 등
   rightText?: string; // "신도림행"
   accent?: boolean; // 강조(노선명 bold)
   color?: string;
+  onShare?: () => void;
 }) {
   return (
     <div className="grid grid-cols-[64px_1fr_auto] md:grid-cols-[84px_1fr_auto] items-center gap-3 py-1">
@@ -40,7 +42,15 @@ export function RouteStopoverItem({
         </span>
       )}
       {leftLabel === "도착" && (
-        <Button variant={"ghost"}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(event) => {
+            event.stopPropagation();
+            onShare?.();
+          }}
+          disabled={!onShare}
+        >
           <Icon24 name={"sharedef"} />
         </Button>
       )}
