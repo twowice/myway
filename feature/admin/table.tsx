@@ -7,6 +7,7 @@ interface TableOption<T = string> {
    key: string & keyof T;
    label: string;
    width?: string;
+   className?: string;
    align?: 'left' | 'center' | 'right';
    render?: (value: any, row: T) => React.ReactNode;
 }
@@ -61,7 +62,7 @@ export function TableComponent<T extends Record<string, any>>({
          <Table className={`w-full min-w-max ${className || ''}`}>
             <colgroup>
                {columns.map((column, index) => (
-                  <col key={index} className={column.width} />
+                  <col key={index} className={column.width || column.className} />
                ))}
             </colgroup>
 

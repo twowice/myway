@@ -24,6 +24,8 @@ export function BadgeComponent({ type }: Notices) {
          className: 'rounded-md text-xs bg-foreground  px-2 py-1  w-15',
       },
    };
-   const { label, className } = badgeMap[type];
-   return <Badge className={className}>{label}</Badge>;
+   const badge = badgeMap[type] || {
+      label: type || '일반',
+   };
+   return <Badge>{badge.label}</Badge>;
 }

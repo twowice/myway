@@ -6,13 +6,13 @@ import { useState } from 'react';
 
 interface UserReportDialogProps {
    reportData: UserReportData | PartyReportData;
-   onUpdate?: (updateData: UserReportData | PartyReportData) => void;
+   onUpdate?: (reportId: number, updateData: Partial<UserReportData | PartyReportData>) => Promise<void>;
    type: 'user-report' | 'party-report';
    showChat?: boolean;
    title?: string;
 }
 
-export function UserReportDialog({ reportData, onUpdate, type }: UserReportDialogProps) {
+export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }: UserReportDialogProps) {
    const userSanctionOptions = [
       { value: 'account_suspended_7days', label: '7일 계정정지' },
       { value: 'account_suspended_14days', label: '14일 계정정지' },
@@ -26,14 +26,14 @@ export function UserReportDialog({ reportData, onUpdate, type }: UserReportDialo
    ];
    const sanctionOptions = type === 'user-report' ? userSanctionOptions : partySanctionOptions;
    const [sanctionType, setSanctionType] = useState(sanctionOptions[0].value);
-   const [additionalComment, setAdditionalComment] = useState('');
+   const [additionalComment, setAdditionalComment] = useState(reportData.add_opinion || '');
    const title = type === 'user-report' ? '사용자 신고 처리' : '파티 신고 처리';
    const showChat = type === 'user-report';
 
    const handleModify = () => {
-      setSanctionType(reportData.sanction_type === '미정' ? 'account_suspended_7days' : reportData.sanction_type);
-      setAdditionalComment('');
-      console.log('수정');
+      setSanctionType(reportData.sanction_type || 'account_suspended_7days');
+      setAdditionalComment(reportData.add_opinion || '');
+      console.log('수정 모드  ');
    };
    const handleApply = async () => {
       if (!sanctionType) {
@@ -63,61 +63,29 @@ export function UserReportDialog({ reportData, onUpdate, type }: UserReportDialo
          return `${today.toISOString().split('T')[0]} ~ ${endDate.toISOString().split('T')[0]}`;
       };
 
-      const getSanctionTypeName = (type: string) => {
-         switch (type) {
-            case 'account_suspended_7days':
-               return '7일 계정정지';
-            case 'account_suspended_14days':
-               return '14일 계정정지';
-            case 'account_suspended_30days':
-               return '30일 계정정지';
-            case 'account_suspended_permanent':
-               return '영구 계정정지';
-            default:
-               return '미정';
-         }
+      const updateData: Partial<UserReportData | PartyReportData> = {
+         sanction_type: sanctionType,
+         is_processed: true,
+         add_opinion: additionalComment || reportData.add_opinion,
       };
 
-      let updatedData: UserReportData | PartyReportData;
-
       if (type === 'user-report') {
-         updatedData = {
-            ...(reportData as UserReportData),
-            sanction_type: getSanctionTypeName(sanctionType),
-            sanction_period: getSanctionPeriod(sanctionType),
-            is_processed: true,
-         };
-      } else {
-         updatedData = {
-            ...(reportData as PartyReportData),
-            sanction_type: getSanctionTypeName(sanctionType),
-            is_processed: true,
-         };
+         (updateData as Partial<UserReportData>).sanction_period = getSanctionPeriod(sanctionType);
+      } else if (type === 'party-report' && sanctionType === 'party_dissolution') {
+         (updateData as Partial<PartyReportData>).party_dissolution_date = new Date().toISOString().split('T')[0];
       }
-      console.log('적용:', {});
-      updatedData;
-      // API
-      // try {
-      //    const reponse = await fetch(`/api/user-report/${reportData.user_name}`, {
-      //       method: 'PUT',
-      //       headers: { 'Content-Type': 'application/json' },
-      //       body: JSON.stringify({
-      //          ...updatedData,
-      //       }),
-      //    });
-      //    if (reponse.ok) {
-      //       alert('신고 처리가 완료되었습니다.');
-      //       if (onUpdate) {
-      //          onUpdate(updatedData);
-      //       }
-      //    } else {
-      //       throw new Error('처리 실패');
-      //    }
-      // } catch (error) {
-      //    console.error('신고 처리 실패:', error);
-      //    alert('신고 처리에 실패했습니다.');
-      // }
+
+      console.log('적용:', updateData);
+
+      if (onUpdate && reportData.id) {
+         try {
+            await onUpdate(reportData.id, updateData);
+         } catch (error) {
+            console.error('업데이트 실패:', error);
+         }
+      }
    };
+
    return (
       <TwoFunctionPopup
          dialogTrigger={
@@ -134,7 +102,22 @@ export function UserReportDialog({ reportData, onUpdate, type }: UserReportDialo
                      type="text"
                      disabled
                      className="flex-1 text-base px-2 py-2 bg-secondary rounded-md"
-                     value={reportData.reporter_name}
+                     value={reportData.reporter_name || '-'}
+                  />
+               </div>
+               <div className="flex flex-col gap-2 w-full">
+                  <label className="text-sm font-semibold">
+                     {type === 'user-report' ? '신고 대상 사용자' : '파티명'}
+                  </label>
+                  <input
+                     type="text"
+                     disabled
+                     className="flex-1 text-base px-2 py-2 bg-secondary rounded-md"
+                     value={
+                        type === 'user-report'
+                           ? (reportData as UserReportData).reported_user_name || '-'
+                           : (reportData as PartyReportData).party_name || '-'
+                     }
                   />
                </div>
                <div className="flex flex-col gap-2 w-full">
@@ -146,21 +129,13 @@ export function UserReportDialog({ reportData, onUpdate, type }: UserReportDialo
                      value={reportData.report_category}
                   />
                </div>
-               <div className="flex flex-col gap-2 w-full">
-                  <label className="text-sm font-semibold">이벤트 명</label>
-                  <input
-                     type="text"
-                     disabled
-                     className="flex-1 text-base px-2 py-2 bg-secondary rounded-md"
-                     value={reportData.event_name}
-                  />
-               </div>
+
                <div className="flex flex-col gap-2 w-full">
                   <label className="text-sm font-semibold">신고 내용</label>
                   <textarea
                      disabled
                      className="flex-1 text-base px-2 py-2 bg-secondary rounded-md"
-                     value={reportData.sanction_content}
+                     value={reportData.report_content}
                   />
                </div>
                {showChat && (
@@ -169,7 +144,7 @@ export function UserReportDialog({ reportData, onUpdate, type }: UserReportDialo
                      <textarea
                         disabled
                         className="flex-1 text-base px-2 py-2 bg-secondary rounded-md"
-                        value={(reportData as UserReportData).sanction_chat}
+                        value={(reportData as UserReportData).report_chat}
                      />
                   </div>
                )}

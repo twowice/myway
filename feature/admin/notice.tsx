@@ -57,14 +57,15 @@ export default function Notice() {
       };
    };
 
-   const getCategoryLabel = (category: string): string => {
+   const getCategoryLabel = (category: string | null | undefined): string => {
+      if (!category) return '일반';
       const labels: Record<string, string> = {
          normal: '일반',
          update: '업데이트',
          event: '이벤트',
          policy: '이용정책',
       };
-      return labels[category] || category;
+      return labels[category] || '일반';
    };
 
    useEffect(() => {
