@@ -1,0 +1,30 @@
+<svg
+  width="400"
+  height="300"
+  viewBox="0 0 400 300"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- Background -->
+  <rect width="400" height="300" rx="16" fill="#F3F4F6"/>
+
+  <!-- Image Icon -->
+  <rect x="120" y="80" width="160" height="110" rx="12" fill="#E5E7EB"/>
+  <circle cx="160" cy="120" r="10" fill="#9CA3AF"/>
+  <path
+    d="M140 165L175 130L205 155L230 140L260 165V175H140V165Z"
+    fill="#9CA3AF"
+  />
+
+  <!-- Text -->
+  <text
+    x="200"
+    y="230"
+    text-anchor="middle"
+    fill="#9CA3AF"
+    font-size="14"
+    font-family="Arial, Helvetica, sans-serif"
+  >
+    No Image
+  </text>
+</svg>
