@@ -30,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-   // 로그인/회원가입 페이지는 Header 없이 전체 화면
-   if (path.startsWith("/loginpage") || path.startsWith("/signup") || path.startsWith("/testpage")) {
+   // 로그인/회원가입/홈 페이지는 Header 없이 전체 화면
+   if (path === "/" || path.startsWith("/loginpage") || path.startsWith("/signup") || path.startsWith("/testpage")) {
       return (
          <html lang="ko">
             <body>
@@ -56,20 +56,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <MapScriptLoader />
                   <Header />
                   <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-16 lg:ms-20 h-full">
-                     {/* 홈('/') 또는 mainmenu[0] 경로에서 children 표시 */}
-                     {(path === '/' || path.startsWith(mainmenu[0].href)) && (
+                     {path.startsWith(mainmenu[0].href) && (
                         <div
                            className={cn(
-                              path === '/' || path.startsWith(mainmenu[0].href) ? 'w-full' : 'w-0',
+                              path.startsWith(mainmenu[0].href) ? 'w-full' : 'w-0',
                               'relative z-30 overflow-auto shrink-0',
                            )}
                         >
                            {children}
                         </div>
                      )}
-                     {/* 홈이 아닐 때만 MapCanvas 표시 */}
-                     {path !== '/' && !path.startsWith(mainmenu[0].href) && <MapCanvas />}
-                     {path !== '/' && !path.startsWith(mainmenu[0].href) && (
+                     {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
+                     {!path.startsWith(mainmenu[0].href) && (
                         <div
                            className={cn(
                               openpanel === null ? 'ms-0' : 'ms-100 lg:ms-150 md:ms-150',
