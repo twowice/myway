@@ -1,8 +1,14 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { PartyCreate } from "../party/partyCreatePopup";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 type EventSuggestion = {
   id: number;
@@ -12,13 +18,20 @@ type EventSuggestion = {
   end_date?: string;
 };
 
-export const EventSearchBar = ({
+type EventSearchState = {
+  eventName?: string;
+  eventId?: number;
+};
+
+type EventSearchBarProps<T extends EventSearchState> = {
+  create: T;
+  setCreate: Dispatch<SetStateAction<T>>;
+};
+
+export const EventSearchBar = <T extends EventSearchState,>({
   create,
   setCreate,
-}: {
-  create: PartyCreate;
-  setCreate: (info: PartyCreate) => void;
-}) => {
+}: EventSearchBarProps<T>) => {
   const [inputValue, setInputValue] = useState(create.eventName ?? "");
   const [suggestions, setSuggestions] = useState<EventSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);

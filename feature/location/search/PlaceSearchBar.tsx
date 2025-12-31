@@ -3,16 +3,30 @@
 import { Input } from "@/components/ui/input";
 import { fetchNaverPlaceSuggestions } from "@/lib/map/search";
 import { PlaceResult } from "@/types/map/place";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { PartyCreate } from "@/feature/party/partyCreatePopup";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
-export const PlaceSearchBar = ({
+type PlaceSearchState = {
+  location?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
+};
+
+type PlaceSearchBarProps<T extends PlaceSearchState> = {
+  create: T;
+  setCreate: Dispatch<SetStateAction<T>>;
+};
+
+export const PlaceSearchBar = <T extends PlaceSearchState,>({
   create,
   setCreate,
-}: {
-  create: PartyCreate;
-  setCreate: (info: PartyCreate) => void;
-}) => {
+}: PlaceSearchBarProps<T>) => {
   const [inputValue, setInputValue] = useState(create.location ?? "");
   const [suggestions, setSuggestions] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
