@@ -278,13 +278,17 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
                                                 {!isMine && (
                                                     <TwoFunctionPopup
+                                                        open={isOpen}
+                                                        onOpenChange={setIsOpen}
                                                         preventOutsideClose={true}
+                                                        closeOnRight={false}
                                                         dialogTrigger={
                                                             <Icon24 name="notify" viewBox="0 0 24 24" className="cursor-pointer text-[#FF5F57]"
                                                                 onClick={() => {
                                                                     setReportCategory("");
                                                                     setReportContent("");
                                                                     setAddOpinion("");
+                                                                    setIsOpen(true);
                                                                 }} />
                                                         }
                                                         title="사용자 신고 처리"
@@ -362,6 +366,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                                                                 console.log("신고 데이터", reportData);
                                                                 await submitReport(reportData);
 
+                                                                setIsOpen(false);
                                                                 setReportCategory("");
                                                                 setReportContent("");
                                                                 setAddOpinion("");
