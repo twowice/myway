@@ -10,9 +10,11 @@ import { SearchBar } from "@/components/ui/searchBar";
 import { PartyCreatePopup } from "@/feature/party/partyCreatePopup";
 import { PartyDetailPopup } from "@/feature/party/partyDetailPopup";
 import { fetchParties } from "@/lib/party/party";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Party() {
+  const { data: session } = useSession();
   const [partyList, setPartyList] = useState<any[]>([]);
   const [selectedParty, setSelectedParty] = useState<any>(null);
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
@@ -235,7 +237,7 @@ export default function Party() {
                       />
                     </div>
                   }
-                  currentUserId="currentUser"
+                  currentUserId={session?.user?.id}
                   onApply={handleApply}
                   onWithdraw={handleWithdraw}
                   onEdit={handleEdit}
