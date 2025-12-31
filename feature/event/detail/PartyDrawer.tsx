@@ -57,6 +57,9 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
     const bottomRef = useRef<HTMLDivElement | null>(null);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
     /* ===========================
        Report State
     =========================== */
@@ -64,6 +67,24 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
     const [reportContent, setReportContent] = useState("");
     const [addOpinion, setAddOpinion] = useState("");
 
+    /* ===========================
+        API Fetch
+    =========================== */
+    const submitReport = async (reportData: ReportPayload) => {
+        try {
+            const res = await fetch("/api/report", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(reportData),
+            });
+
+            if (!res.ok) throw new Error("❌ Report API Request Fail")
+
+            alert("신고가 접수되었습니다.");
+        } catch (e) { console.error("❌ Report Data Roading Fail:", e); }
+    };
 
     // 로그인 된 아이디 가져옴 (MySender)
     useEffect(() => {
@@ -257,6 +278,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
                                                 {!isMine && (
                                                     <TwoFunctionPopup
+                                                        preventOutsideClose={true}
                                                         dialogTrigger={
                                                             <Icon24 name="notify" viewBox="0 0 24 24" className="cursor-pointer text-[#FF5F57]"
                                                                 onClick={() => {
@@ -291,7 +313,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                                                                     <p className="text-sm font-medium text-[#04152F]">신고 내용</p>
                                                                     <Textarea placeholder="신고 사유를 입력해주세요" rows={4} className="resize-none h-[96px]" value={reportContent} onChange={(e) => setReportContent(e.target.value)} />
                                                                 </div>
-                                                                
+
                                                                 {/* 추가 의견 */}
                                                                 <div className="flex flex-col gap-1.5">
                                                                     <p className="text-sm font-medium text-[#04152F]">
@@ -301,38 +323,51 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                                                                 </div>
                                                             </div>
                                                         }
-                                                        leftTitle="수정"
+                                                        leftTitle="초기화"
                                                         rightTitle="적용"
-                                                        leftCallback={() => console.log("수정")}
-                                                        rightCallback={() => {
-                                                            if (!reportCategory) { alert("카테고리를 선택해주세요."); return; }
-                                                            if (!reportContent.trim()) { alert("사유를 입력해주세요."); return; }
-                                                            if (!session?.user?.id) { alert("로그인이 필요합니다."); return; }
-
-                                                            if (reportContent.length > 100) { alert("내용을 100자 이내로 작성해주세요."); return; }
-                                                            if (addOpinion.length > 100) { alert("추가 의견을 100자 이내로 작성해주세요."); return; }
-
-                                                            const reportData: ReportPayload = {
-                                                                createdAt: Date.now(),
-                                                                reportedUserId: msg.senderId,
-                                                                reportedUserName: msg.sender,
-
-                                                                reporterUserId: session?.user?.id ?? "",
-                                                                reporterUserName: session?.user?.name ?? "",
-
-                                                                reportContent: reportContent,
-                                                                reportChat: msg.message,
-                                                                reportDate: new Date(msg.createdAt).toISOString(),
-
-                                                                category: reportCategory,
-                                                                addOpinion: addOpinion || undefined,
-                                                            }
-
-                                                            console.log("신고 데이터", reportData)
-
+                                                        closeOnLeft={false}
+                                                        leftCallback={() => {
                                                             setReportCategory("");
                                                             setReportContent("");
                                                             setAddOpinion("");
+                                                        }}
+                                                        rightCallback={async () => {
+                                                            if (isSubmitting) return;
+                                                            setIsSubmitting(true);
+
+                                                            try {
+                                                                if (!reportCategory) { alert("카테고리를 선택해주세요."); return; }
+                                                                if (!reportContent.trim()) { alert("사유를 입력해주세요."); return; }
+                                                                if (!session?.user?.id) { alert("로그인이 필요합니다."); return; }
+
+                                                                if (reportContent.length > 100) { alert("내용을 100자 이내로 작성해주세요."); return; }
+                                                                if (addOpinion.length > 100) { alert("추가 의견을 100자 이내로 작성해주세요."); return; }
+
+                                                                const reportData: ReportPayload = {
+                                                                    createdAt: Date.now(),
+                                                                    reportedUserId: msg.senderId,
+                                                                    reportedUserName: msg.sender,
+
+                                                                    reporterUserId: session?.user?.id ?? "",
+                                                                    reporterUserName: session?.user?.name ?? "",
+
+                                                                    reportContent: reportContent,
+                                                                    reportChat: msg.message,
+                                                                    reportDate: new Date(msg.createdAt).toISOString(),
+
+                                                                    category: reportCategory,
+                                                                    addOpinion: addOpinion || undefined,
+                                                                };
+
+                                                                console.log("신고 데이터", reportData);
+                                                                await submitReport(reportData);
+
+                                                                setReportCategory("");
+                                                                setReportContent("");
+                                                                setAddOpinion("");
+                                                            } finally {
+                                                                setIsSubmitting(false);
+                                                            }
                                                         }}
                                                     />
                                                 )}
