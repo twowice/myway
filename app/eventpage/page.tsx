@@ -29,7 +29,7 @@ export default function Page() {
     const [events, setEvents] = useState<EventItem[]>([]); // 이벤트 데이터
     const [loading, setLoading] = useState(false); // 스켈레톤 (로딩)
     const [hasMore, setHasMore] = useState(true); // 컨텐츠가 더 있는 지 여부 [false시 무한 스크롤 중단]
-    const [offset, setOffset] = useState(0); // 무한 스크롤에 필요한 offset [100 단위로 증가]
+    const [offset, setOffset] = useState(0); // 무한 스크롤에 필요한 offset [12개 단위로 증가]
     const [total, setTotal] = useState(0); // 이벤트 개수
     const loadMoreRef = useRef<HTMLDivElement | null>(null); // 하단 화면 감시용 sentinel
     const isFetchingRef = useRef(false); // 리엑트 state가 아닌 즉시 반영되는 플래그 [Observer 중복 트리거 방지 & fetch 중복 호출 차단]
@@ -93,9 +93,9 @@ export default function Page() {
                 return Array.from(new Map(merged.map(e => [e.id, e])).values());
             });
             
-            // 이번 페이지가 100개면 다음페이지 존재
+            // 이번 페이지가 12개면 다음페이지 존재
             setHasMore(
-                json.pagination?.hasMore ?? mapped.length === 100
+                json.pagination?.hasMore ?? mapped.length === 12
             );
         } catch (e) { console.error("❌ Event Data Roading Fail:", e); }
         finally { setLoading(false); isFetchingRef.current = false; } // observer 활성화
@@ -126,7 +126,7 @@ export default function Page() {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting && !isFetchingRef.current) { // sentinel 보임 & ref로 중복 방어
-                    setOffset(prev => prev + 100);
+                    setOffset(prev => prev + 12);
                 }
             },
             { rootMargin: '200px' }
