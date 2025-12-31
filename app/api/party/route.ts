@@ -23,11 +23,32 @@ export async function GET(request: NextRequest) {
     const limit = Number(searchParams.get("limit") ?? 12);
     const offset = Number(searchParams.get("offset") ?? 0);
     const eventId = Number(searchParams.get("eventId"));
+    const keyword = searchParams.get("keyword")?.trim();
+    const statusParam = searchParams.get("status");
 
-    let query = supabase.from("parties").select("*", { count: "exact" });
+    let query = supabase
+      .from("parties")
+      .select("*", { count: "exact" })
+      .neq("status", "disbanded")
+      .order("created_at", { ascending: false });
 
     if (!Number.isNaN(eventId) && eventId > 0) {
       query = query.eq("event_id", eventId);
+    }
+
+    if (keyword) {
+      const safeKeyword = keyword.replace(/[%_\\]/g, "\\$&");
+      query = query.ilike("name", `%${safeKeyword}%`);
+    }
+
+    if (statusParam) {
+      const statuses = statusParam
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0);
+      if (statuses.length > 0) {
+        query = query.in("status", statuses);
+      }
     }
 
     if (Number.isInteger(limit) && limit > 0) {

@@ -8,6 +8,8 @@ export type FetchPartiesParams = {
   eventId?: number;
   limit?: number;
   offset?: number;
+  keyword?: string;
+  statuses?: string[];
 };
 
 export type FetchPartiesResponse = {
@@ -51,6 +53,12 @@ export async function fetchParties(
   }
   if (typeof params.offset === "number") {
     query.set("offset", String(params.offset));
+  }
+  if (params.keyword) {
+    query.set("keyword", params.keyword);
+  }
+  if (params.statuses && params.statuses.length > 0) {
+    query.set("status", params.statuses.join(","));
   }
 
   const response = await fetch(`/api/party?${query.toString()}`);

@@ -18,6 +18,9 @@ export default function Party() {
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const itemsPerPage = 16;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
@@ -58,9 +61,18 @@ export default function Party() {
   const loadParties = useCallback(async () => {
     try {
       const offset = (currentPage - 1) * itemsPerPage;
+      const statusMap: Record<string, string> = {
+        applicable: "open",
+        applicable_deadline: "closed",
+      };
+      const statuses = statusFilters
+        .map((value) => statusMap[value])
+        .filter((value): value is string => Boolean(value));
       const response = await fetchParties({
         limit: itemsPerPage,
         offset,
+        keyword: searchKeyword.trim(),
+        statuses,
       });
       setPartyList(response.data.map(mapParty));
       setTotalCount(response.pagination.total);
@@ -69,7 +81,7 @@ export default function Party() {
       setPartyList([]);
       setTotalCount(0);
     }
-  }, [currentPage, itemsPerPage, mapParty]);
+  }, [currentPage, itemsPerPage, mapParty, searchKeyword, statusFilters]);
 
   useEffect(() => {
     void loadParties();
@@ -165,13 +177,31 @@ export default function Party() {
               onSave={handleCreate}
             />
           </div>
-          <SearchBar />
+          <SearchBar
+            value={searchInput}
+            onChange={(value) => {
+              setSearchInput(value);
+            }}
+            onSearch={(value) => {
+              setSearchKeyword(value);
+              setCurrentPage(1);
+              setSelectedParty(null);
+              setSelectedPartyId(null);
+            }}
+          />
           <div className="p-2">
             <CheckboxComponent
               options={[
                 { value: "applicable", label: "신청 가능" },
                 { value: "applicable_deadline", label: "신청 마감" },
               ]}
+              values={statusFilters}
+              onValueChange={(values) => {
+                setStatusFilters(values);
+                setCurrentPage(1);
+                setSelectedParty(null);
+                setSelectedPartyId(null);
+              }}
             />
           </div>
         </div>
