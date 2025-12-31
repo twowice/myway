@@ -40,11 +40,10 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
     /* ===========================
        Chatting State
     =========================== */
-    const { data: session } = useSession(); // 로그인 된 아이디
+    const { data: session } = useSession();
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
-
-    const socketRef = useRef<ReturnType<typeof getSocket> | null>(null); // 소켓 1회 생성
+    const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
     if (!socketRef.current) socketRef.current = getSocket();
     const socket = socketRef.current;
 
@@ -59,6 +58,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [reportTarget, setReportTarget] = useState<ChatMessage | null>(null);
 
     /* ===========================
        Report State
@@ -277,104 +277,19 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                                                 </span>
 
                                                 {!isMine && (
-                                                    <TwoFunctionPopup
-                                                        open={isOpen}
-                                                        onOpenChange={setIsOpen}
-                                                        preventOutsideClose={true}
-                                                        closeOnRight={false}
-                                                        dialogTrigger={
-                                                            <Icon24 name="notify" viewBox="0 0 24 24" className="cursor-pointer text-[#FF5F57]"
-                                                                onClick={() => {
-                                                                    setReportCategory("");
-                                                                    setReportContent("");
-                                                                    setAddOpinion("");
-                                                                    setIsOpen(true);
-                                                                }} />
-                                                        }
-                                                        title="사용자 신고 처리"
-                                                        body={
-                                                            <div className="flex flex-col gap-5 w-full pb-5 pt-2 max-h-[60vh] overflow-y-auto px-1 pe-3">
-                                                                {/* 카테고리 */}
-                                                                <div className="flex flex-col gap-2">
-                                                                    <p className="text-sm font-medium text-[#04152F]">카테고리</p>
-                                                                    <RadioComponent
-                                                                        options={[
-                                                                            { value: '부정적인 언어', label: '부정적인 언어' },
-                                                                            { value: '도배', label: '도배' },
-                                                                            { value: '광고', label: '광고' },
-                                                                            { value: '사기', label: '사기' },
-                                                                            { value: '기타', label: '기타' },
-                                                                        ]}
-                                                                        className="flex flex-col gap-3"
-                                                                        itemGap="gap-2"
-                                                                        value={reportCategory}
-                                                                        onValueChange={(value) => setReportCategory(value)}
-                                                                    />
-                                                                </div>
-
-                                                                {/* 신고 내용 */}
-                                                                <div className="flex flex-col gap-1.5">
-                                                                    <p className="text-sm font-medium text-[#04152F]">신고 내용</p>
-                                                                    <Textarea placeholder="신고 사유를 입력해주세요" rows={4} className="resize-none h-[96px]" value={reportContent} onChange={(e) => setReportContent(e.target.value)} />
-                                                                </div>
-
-                                                                {/* 추가 의견 */}
-                                                                <div className="flex flex-col gap-1.5">
-                                                                    <p className="text-sm font-medium text-[#04152F]">
-                                                                        추가 의견 <span className="text-xs text-muted-foreground">(선택)</span>
-                                                                    </p>
-                                                                    <Input placeholder="추가로 전달할 내용이 있다면 입력하세요" value={addOpinion} onChange={(e) => setAddOpinion(e.target.value)} />
-                                                                </div>
-                                                            </div>
-                                                        }
-                                                        leftTitle="초기화"
-                                                        rightTitle="적용"
-                                                        closeOnLeft={false}
-                                                        leftCallback={() => {
+                                                    <button
+                                                        type="button"
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
                                                             setReportCategory("");
                                                             setReportContent("");
                                                             setAddOpinion("");
+                                                            setReportTarget(msg);
+                                                            setIsOpen(true);
                                                         }}
-                                                        rightCallback={async () => {
-                                                            if (isSubmitting) return;
-                                                            setIsSubmitting(true);
-
-                                                            try {
-                                                                if (!reportCategory) { alert("카테고리를 선택해주세요."); return; }
-                                                                if (!reportContent.trim()) { alert("사유를 입력해주세요."); return; }
-                                                                if (!session?.user?.id) { alert("로그인이 필요합니다."); return; }
-
-                                                                if (reportContent.length > 100) { alert("내용을 100자 이내로 작성해주세요."); return; }
-                                                                if (addOpinion.length > 100) { alert("추가 의견을 100자 이내로 작성해주세요."); return; }
-
-                                                                const reportData: ReportPayload = {
-                                                                    createdAt: Date.now(),
-                                                                    reportedUserId: msg.senderId,
-                                                                    reportedUserName: msg.sender,
-
-                                                                    reporterUserId: session?.user?.id ?? "",
-                                                                    reporterUserName: session?.user?.name ?? "",
-
-                                                                    reportContent: reportContent,
-                                                                    reportChat: msg.message,
-                                                                    reportDate: new Date(msg.createdAt).toISOString(),
-
-                                                                    category: reportCategory,
-                                                                    addOpinion: addOpinion || undefined,
-                                                                };
-
-                                                                console.log("신고 데이터", reportData);
-                                                                await submitReport(reportData);
-
-                                                                setIsOpen(false);
-                                                                setReportCategory("");
-                                                                setReportContent("");
-                                                                setAddOpinion("");
-                                                            } finally {
-                                                                setIsSubmitting(false);
-                                                            }
-                                                        }}
-                                                    />
+                                                    >
+                                                        <Icon24 name="notify" viewBox="0 0 24 24" className="text-[#FF5F57]" />
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
@@ -421,6 +336,105 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                     </div>
                 </DrawerContent>
             </Drawer>
+
+            {reportTarget && (
+                <TwoFunctionPopup
+                    open={isOpen}
+                    onOpenChange={(nextOpen) => {
+                        if (!nextOpen) {
+                            (document.activeElement as HTMLElement | null)?.blur();
+                            setReportTarget(null);
+                        }
+                        setIsOpen(nextOpen);
+                    }}
+                    preventOutsideClose={true}
+                    closeOnRight={false}
+                    dialogTrigger={<button type="button" className="hidden" aria-hidden />}
+                    title="사용자 신고 처리"
+                    body={
+                        <div className="flex flex-col gap-5 w-full pb-5 pt-2 max-h-[60vh] overflow-y-auto px-1 pe-3">
+                            {/* 카테고리 */}
+                            <div className="flex flex-col gap-2">
+                                <p className="text-sm font-medium text-[#04152F]">카테고리</p>
+                                <RadioComponent
+                                    options={[
+                                        { value: '부정적인 언어', label: '부정적인 언어' },
+                                        { value: '도배', label: '도배' },
+                                        { value: '광고', label: '광고' },
+                                        { value: '사기', label: '사기' },
+                                        { value: '기타', label: '기타' },
+                                    ]}
+                                    className="flex flex-col gap-3"
+                                    itemGap="gap-2"
+                                    value={reportCategory}
+                                    onValueChange={(value) => setReportCategory(value)}
+                                />
+                            </div>
+
+                            {/* 신고 내용 */}
+                            <div className="flex flex-col gap-1.5">
+                                <p className="text-sm font-medium text-[#04152F]">신고 내용</p>
+                                <Textarea placeholder="신고 사유를 입력해주세요" rows={4} className="resize-none h-[96px]" value={reportContent} onChange={(e) => setReportContent(e.target.value)} />
+                            </div>
+
+                            {/* 추가 의견 */}
+                            <div className="flex flex-col gap-1.5">
+                                <p className="text-sm font-medium text-[#04152F]">
+                                    추가 의견 <span className="text-xs text-muted-foreground">(선택)</span>
+                                </p>
+                                <Input placeholder="추가로 전달할 내용이 있다면 입력하세요" value={addOpinion} onChange={(e) => setAddOpinion(e.target.value)} />
+                            </div>
+                        </div>
+                    }
+                    leftTitle="초기화"
+                    rightTitle="적용"
+                    closeOnLeft={false}
+                    leftCallback={() => {
+                        setReportCategory("");
+                        setReportContent("");
+                        setAddOpinion("");
+                    }}
+                    rightCallback={async () => {
+                        if (isSubmitting || !reportTarget) return;
+                        setIsSubmitting(true);
+
+                        try {
+                            if (!reportCategory) { alert("카테고리를 선택해주세요."); return; }
+                            if (!reportContent.trim()) { alert("사유를 입력해주세요."); return; }
+                            if (!session?.user?.id) { alert("로그인이 필요합니다."); return; }
+
+                            if (reportContent.length > 100) { alert("내용을 100자 이내로 작성해주세요."); return; }
+                            if (addOpinion.length > 100) { alert("추가 의견을 100자 이내로 작성해주세요."); return; }
+
+                            const reportData: ReportPayload = {
+                                createdAt: Date.now(),
+                                reportedUserId: reportTarget.senderId,
+                                reportedUserName: reportTarget.sender,
+
+                                reporterUserId: session?.user?.id ?? "",
+                                reporterUserName: session?.user?.name ?? "",
+
+                                reportContent: reportContent,
+                                reportChat: reportTarget.message,
+                                reportDate: new Date(reportTarget.createdAt).toISOString(),
+
+                                category: reportCategory,
+                                addOpinion: addOpinion || undefined,
+                            };
+
+                            console.log("신고 데이터", reportData);
+                            await submitReport(reportData);
+
+                            setIsOpen(false);
+                            setReportCategory("");
+                            setReportContent("");
+                            setAddOpinion("");
+                        } finally {
+                            setIsSubmitting(false);
+                        }
+                    }}
+                />
+            )}
         </>
     );
 }
