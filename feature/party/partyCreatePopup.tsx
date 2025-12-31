@@ -4,7 +4,8 @@ import { TwoFunctionPopup } from "@/components/popup/twofunction";
 import Tag from "@/components/tag/tag";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useMemo, useState } from "react";
+import { createParty } from "@/lib/party/party";
+import { useEffect, useState } from "react";
 import { EventSearchBar } from "../event/EventSearchBar";
 import { PlaceSearchBar } from "../location/search/PlaceSearchBar";
 
@@ -13,6 +14,8 @@ export type PartyCreate = {
   max_members: string;
   description?: string;
   location?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
   date?: string;
   time?: string;
   label1?: string;
@@ -37,6 +40,8 @@ export const PartyCreatePopup = ({
     partyName: "",
     max_members: "",
     location: "",
+    locationLatitude: undefined,
+    locationLongitude: undefined,
     date: "",
     time: "",
     description: "",
@@ -55,6 +60,8 @@ export const PartyCreatePopup = ({
         partyName: initialData.partyName || "",
         max_members: initialData.max_members || "",
         location: initialData.location || "",
+        locationLatitude: initialData.locationLatitude,
+        locationLongitude: initialData.locationLongitude,
         date: initialData.date || "",
         time: initialData.time || "",
         description: initialData.description || "",
@@ -68,6 +75,8 @@ export const PartyCreatePopup = ({
         partyName: "",
         max_members: "",
         location: "",
+        locationLatitude: undefined,
+        locationLongitude: undefined,
         date: "",
         time: "",
         description: "",
@@ -85,6 +94,7 @@ export const PartyCreatePopup = ({
     create.partyName.trim() &&
       create.eventName?.trim() &&
       create.eventId &&
+      create.eventId > 0 &&
       create.max_members &&
       parseInt(create.max_members) >= 1 &&
       create.location?.trim() &&
@@ -93,12 +103,12 @@ export const PartyCreatePopup = ({
       create.description?.trim()
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!create.partyName.trim()) {
       alert("파티명을 입력해주세요.");
       return;
     }
-    if (!create.eventName?.trim() || !create.eventId) {
+    if (!create.eventName?.trim() || !create.eventId || create.eventId <= 0) {
       alert("이벤트명을 입력해주세요.");
       return;
     }
@@ -122,6 +132,19 @@ export const PartyCreatePopup = ({
       alert("파티 소개를 입력해주세요.");
       return;
     }
+    if (!isFormValid) return;
+
+    try {
+      await createParty(create);
+    } catch (error) {
+      console.error("파티 생성 실패:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "파티 생성에 실패했어요. 잠시 후 다시 시도해주세요."
+      );
+      return;
+    }
     onSave(create);
     handleCancel();
     setIsOpen(false);
@@ -132,6 +155,8 @@ export const PartyCreatePopup = ({
       partyName: "",
       max_members: "",
       location: "",
+      locationLatitude: undefined,
+      locationLongitude: undefined,
       date: "",
       time: "",
       description: "",
@@ -289,8 +314,7 @@ export const PartyCreatePopup = ({
       }}
       rightTitle="등록"
       rightCallback={() => {
-        handleSave();
-        if (isFormValid) setIsOpen(false);
+        void handleSave();
       }}
       closeOnRight={false}
       className="w-150 h-[calc(100vh-40px)]"

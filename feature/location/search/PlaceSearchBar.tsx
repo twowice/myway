@@ -59,7 +59,12 @@ export const PlaceSearchBar = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextValue = e.target.value;
     setInputValue(nextValue);
-    setCreate({ ...create, location: nextValue });
+    setCreate({
+      ...create,
+      location: nextValue,
+      locationLatitude: undefined,
+      locationLongitude: undefined,
+    });
     setIsUserEditing(true);
     if (isPlaceSelected) {
       setIsPlaceSelected(false);
@@ -73,7 +78,12 @@ export const PlaceSearchBar = ({
 
   const handleSuggestionClick = (place: PlaceResult) => {
     setInputValue(place.name);
-    setCreate({ ...create, location: place.name });
+    setCreate({
+      ...create,
+      location: place.name,
+      locationLatitude: place.lat,
+      locationLongitude: place.lng,
+    });
     setSuggestions([]);
     setShowSuggestions(false);
     setIsPlaceSelected(true);
