@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useMemo, useState } from "react";
 import { EventSearchBar } from "../event/EventSearchBar";
+import { PlaceSearchBar } from "../location/search/PlaceSearchBar";
 
 export type PartyCreate = {
   partyName: string;
@@ -215,18 +216,7 @@ export const PartyCreatePopup = ({
         />
       </div>
       {/* 위치 */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-gray-700">
-          위치
-          <span className="text-red-500">*</span>
-        </label>
-        <Input
-          type="text"
-          value={create.location}
-          onChange={(e) => setCreate({ ...create, location: e.target.value })}
-          placeholder="장소를 입력하세요."
-        />
-      </div>
+      <PlaceSearchBar create={create} setCreate={setCreate} />
       {/* 파티 소개 */}
       <div className="flex flex-col gap-2 flex-1">
         <label className="text-sm font-medium text-gray-700">
