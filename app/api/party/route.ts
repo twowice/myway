@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("parties")
       .select("*, events ( title )", { count: "exact" })
-      .neq("status", "disbanded")
+      .not("status", "in", "(disbanded,deleted)")
       .order("created_at", { ascending: false });
 
     if (!Number.isNaN(eventId) && eventId > 0) {
@@ -313,6 +313,69 @@ export async function PATCH(request: NextRequest) {
     console.error("Party update API error:", error);
     return NextResponse.json(
       { message: "파티 수정 중 오류가 발생했어요." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { message: "로그인이 필요합니다." },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const partyId = Number(searchParams.get("id"));
+
+    if (!partyId || partyId <= 0) {
+      return NextResponse.json(
+        { message: "파티 정보를 찾을 수 없어요." },
+        { status: 400 }
+      );
+    }
+
+    const { data: existingParty, error: fetchError } = await supabase
+      .from("parties")
+      .select("id, owner_id")
+      .eq("id", partyId)
+      .single();
+
+    if (fetchError || !existingParty) {
+      return NextResponse.json(
+        { message: "파티 정보를 찾을 수 없어요." },
+        { status: 404 }
+      );
+    }
+
+    if (existingParty.owner_id !== session.user.id) {
+      return NextResponse.json(
+        { message: "삭제 권한이 없습니다." },
+        { status: 403 }
+      );
+    }
+
+    const { error: deleteError } = await supabase
+      .from("parties")
+      .update({ status: "deleted" })
+      .eq("id", partyId);
+
+    if (deleteError) {
+      console.error("Party delete error:", deleteError);
+      return NextResponse.json(
+        { message: "파티 삭제에 실패했어요." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Party delete API error:", error);
+    return NextResponse.json(
+      { message: "파티 삭제 중 오류가 발생했어요." },
       { status: 500 }
     );
   }

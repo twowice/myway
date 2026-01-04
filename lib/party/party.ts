@@ -74,6 +74,24 @@ export async function updateParty(
   return response.json();
 }
 
+export async function deleteParty(
+  partyId: string
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `/api/party?id=${encodeURIComponent(partyId)}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 삭제 실패");
+  }
+
+  return response.json();
+}
+
 export async function fetchParties(
   params: FetchPartiesParams = {}
 ): Promise<FetchPartiesResponse> {

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/contexts/ToastContext';
-import { updateParty } from '@/lib/party/party';
+import { deleteParty, updateParty } from '@/lib/party/party';
 import { useEffect, useState } from 'react';
 import { EventSearchBar } from '../event/EventSearchBar';
 import { PlaceSearchBar } from '../location/search/PlaceSearchBar';
@@ -67,6 +67,10 @@ export const PartyDetailPopup = ({
    const isHost = currentParty.hostId === currentUserId;
 
    const handleApply = () => {
+      if (isHost) {
+         showToast('파티 생성자는 신청할 수 없어요.');
+         return;
+      }
       if (isFull || isApplied) return;
       console.log('파티 신청:', currentParty);
       const updatedParty = {
@@ -162,9 +166,19 @@ export const PartyDetailPopup = ({
       showToast('파티 정보가 수정되었습니다.');
    };
 
-   const handleDeleteEdit = () => {
+   const handleDeleteEdit = async () => {
       const confirmed = window.confirm('정말 이 파티를 삭제하시겠어요?');
       if (!confirmed) return;
+
+      try {
+         await deleteParty(currentParty.id);
+      } catch (error) {
+         console.error('파티 삭제 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 삭제에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
 
       onDelete?.(currentParty.id);
       showToast('파티가 삭제되었습니다.');
