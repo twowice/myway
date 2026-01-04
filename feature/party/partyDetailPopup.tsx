@@ -23,7 +23,7 @@ type PartyDetailPopupProps = {
       id: string;
       partyName: string;
       current_members: number;
-      max_members: number;
+      max_members: number | string;
       description?: string;
       location?: string;
       date?: string;
