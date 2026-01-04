@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/contexts/ToastContext';
-import { deleteParty, updateParty } from '@/lib/party/party';
+import {
+   applyParty,
+   deleteParty,
+   fetchPartyApplicationStatus,
+   updateParty,
+   withdrawParty,
+} from '@/lib/party/party';
 import { useEffect, useState } from 'react';
 import { EventSearchBar } from '../event/EventSearchBar';
 import { PlaceSearchBar } from '../location/search/PlaceSearchBar';
@@ -61,18 +67,46 @@ export const PartyDetailPopup = ({
    useEffect(() => {
       setCurrentParty(party);
       setEditedParty(party);
+      setIsApplied(false);
    }, [party]);
 
    const isFull = currentParty.current_members === currentParty.max_members;
    const isHost = currentParty.hostId === currentUserId;
 
-   const handleApply = () => {
+   useEffect(() => {
+      if (!currentUserId || !currentParty?.id || isHost) {
+         setIsApplied(false);
+         return;
+      }
+
+      const loadApplicationStatus = async () => {
+         try {
+            const result = await fetchPartyApplicationStatus(currentParty.id);
+            setIsApplied(result.applied);
+         } catch (error) {
+            console.error('파티 신청 상태 조회 실패:', error);
+         }
+      };
+
+      void loadApplicationStatus();
+   }, [currentParty.id, currentUserId, isHost]);
+
+   const handleApply = async () => {
       if (isHost) {
          showToast('파티 생성자는 신청할 수 없어요.');
          return;
       }
       if (isFull || isApplied) return;
-      console.log('파티 신청:', currentParty);
+      try {
+         await applyParty(currentParty.id);
+      } catch (error) {
+         console.error('파티 신청 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 신청에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
+
       const updatedParty = {
          ...currentParty,
          current_members: currentParty.current_members + 1,
@@ -83,9 +117,18 @@ export const PartyDetailPopup = ({
       showToast('파티 신청이 완료되었습니다.');
       onClose?.();
    };
-   const handleWithdraw = () => {
+   const handleWithdraw = async () => {
       if (!isApplied) return;
-      console.log('파티 철회:', currentParty);
+      try {
+         await withdrawParty(currentParty.id);
+      } catch (error) {
+         console.error('파티 철회 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 철회에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
+
       const updatedParty = {
          ...currentParty,
          current_members: currentParty.current_members - 1,

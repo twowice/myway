@@ -92,6 +92,56 @@ export async function deleteParty(
   return response.json();
 }
 
+export async function applyParty(
+  partyId: string
+): Promise<{ success: boolean }> {
+  const response = await fetch("/api/party/applications", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ partyId }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 신청 실패");
+  }
+
+  return response.json();
+}
+
+export async function withdrawParty(
+  partyId: string
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `/api/party/applications?partyId=${encodeURIComponent(partyId)}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 철회 실패");
+  }
+
+  return response.json();
+}
+
+export async function fetchPartyApplicationStatus(
+  partyId: string
+): Promise<{ applied: boolean }> {
+  const response = await fetch(
+    `/api/party/applications?partyId=${encodeURIComponent(partyId)}`
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "신청 상태 조회 실패");
+  }
+
+  return response.json();
+}
+
 export async function fetchParties(
   params: FetchPartiesParams = {}
 ): Promise<FetchPartiesResponse> {
