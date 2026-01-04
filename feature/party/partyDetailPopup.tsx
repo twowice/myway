@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/contexts/ToastContext';
+import { updateParty } from '@/lib/party/party';
 import { useEffect, useState } from 'react';
 import { EventSearchBar } from '../event/EventSearchBar';
 import { PlaceSearchBar } from '../location/search/PlaceSearchBar';
@@ -27,6 +28,9 @@ type PartyDetailPopupProps = {
       label1?: string;
       label2?: string;
       label3?: string;
+      eventId?: number;
+      locationLatitude?: number;
+      locationLongitude?: number;
    };
    trigger: React.ReactNode;
    currentUserId?: string;
@@ -94,8 +98,64 @@ export const PartyDetailPopup = ({
       setEditedParty(currentParty);
    };
 
-   const handleSaveEdit = () => {
-      console.log('파티 수정 저장:', editedParty);
+   const handleSaveEdit = async () => {
+      const partyName = editedParty.partyName?.trim();
+      const description = editedParty.description?.trim();
+      const maxMembers = Number(editedParty.max_members);
+      const eventId = editedParty.eventId;
+      const locationName = editedParty.location?.trim();
+      const date = editedParty.date;
+      const time = editedParty.time;
+
+      if (!partyName) {
+         showToast('파티명을 입력해주세요.');
+         return;
+      }
+      if (!eventId || eventId <= 0) {
+         showToast('이벤트명을 입력해주세요.');
+         return;
+      }
+      if (!Number.isFinite(maxMembers) || maxMembers < 1) {
+         showToast('최대 인원을 입력해주세요.');
+         return;
+      }
+      if (!locationName) {
+         showToast('장소를 입력해주세요.');
+         return;
+      }
+      if (!date || !time) {
+         showToast('날짜와 시간을 입력해주세요.');
+         return;
+      }
+      if (!description) {
+         showToast('파티 소개를 입력해주세요.');
+         return;
+      }
+
+      try {
+         await updateParty({
+            id: editedParty.id,
+            partyName,
+            description,
+            max_members: maxMembers,
+            label1: editedParty.label1,
+            label2: editedParty.label2,
+            label3: editedParty.label3,
+            eventId,
+            date,
+            time,
+            location: locationName,
+            locationLatitude: editedParty.locationLatitude,
+            locationLongitude: editedParty.locationLongitude,
+         });
+      } catch (error) {
+         console.error('파티 수정 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 수정에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
+
       setCurrentParty(editedParty);
       onEdit?.(editedParty);
       setIsEditMode(false);
@@ -219,9 +279,15 @@ export const PartyDetailPopup = ({
                      <span className="text-red-500">*</span>
                   </label>
                   <Input
-                     type="text"
-                     value={editedParty.max_members}
-                     onChange={e => setEditedParty({ ...editedParty, max_members: parseInt(e.target.value) })}
+                     type="number"
+                     value={editedParty.max_members ?? ''}
+                     onChange={e => {
+                        const value = e.target.value;
+                        setEditedParty({
+                           ...editedParty,
+                           max_members: value === '' ? '' : Number(value),
+                        });
+                     }}
                      min={currentParty.current_members}
                   />
                </>

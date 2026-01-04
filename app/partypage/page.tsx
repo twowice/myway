@@ -50,10 +50,19 @@ export default function Party() {
       max_members: party.max_members ?? 0,
       description: party.description ?? "",
       location: party.location_name ?? "",
+      locationLatitude:
+        typeof party.location_latitude === "number"
+          ? party.location_latitude
+          : undefined,
+      locationLongitude:
+        typeof party.location_longitude === "number"
+          ? party.location_longitude
+          : undefined,
       date,
       time,
       hostId: party.owner_id ? String(party.owner_id) : undefined,
       eventName: party?.events?.title ?? undefined,
+      eventId: typeof party.event_id === "number" ? party.event_id : undefined,
       label1: tags[0],
       label2: tags[1],
       label3: tags[2],
@@ -96,47 +105,38 @@ export default function Party() {
 
   const handleApply = (updatedParty: any) => {
     console.log("파티 신청 완료:", updatedParty);
-    if (selectedPartyId !== null) {
-      const localIndex = selectedPartyId - (currentPage - 1) * itemsPerPage;
-      const updatedList = [...partyList];
-      if (localIndex >= 0 && localIndex < updatedList.length) {
-        updatedList[localIndex] = updatedParty;
-      }
-      setPartyList(updatedList);
-    }
+    setPartyList((prev) =>
+      prev.map((party) =>
+        party.id === updatedParty.id ? { ...party, ...updatedParty } : party
+      )
+    );
     setSelectedParty(null);
     setSelectedPartyId(null);
   };
 
   const handleWithdraw = (updatedParty: any) => {
     console.log("파티 철회 완료:", updatedParty);
-    if (selectedPartyId !== null) {
-      const localIndex = selectedPartyId - (currentPage - 1) * itemsPerPage;
-      const updatedList = [...partyList];
-      if (localIndex >= 0 && localIndex < updatedList.length) {
-        updatedList[localIndex] = updatedParty;
-      }
-      setPartyList(updatedList);
-    }
+    setPartyList((prev) =>
+      prev.map((party) =>
+        party.id === updatedParty.id ? { ...party, ...updatedParty } : party
+      )
+    );
     setSelectedParty(null);
     setSelectedPartyId(null);
   };
 
   const handleEdit = (updatedParty: any) => {
     console.log("파티 수정:", updatedParty);
-    if (selectedPartyId !== null) {
-      const localIndex = selectedPartyId - (currentPage - 1) * itemsPerPage;
-      const updatedList = [...partyList];
-      if (localIndex >= 0 && localIndex < updatedList.length) {
-        updatedList[localIndex] = {
-          ...updatedList[localIndex],
-          ...updatedParty,
-        };
-        setSelectedParty({
-          ...updatedList[localIndex],
-        });
-      }
-      setPartyList(updatedList);
+    setPartyList((prev) =>
+      prev.map((party) =>
+        party.id === updatedParty.id ? { ...party, ...updatedParty } : party
+      )
+    );
+    if (selectedParty?.id === updatedParty.id) {
+      setSelectedParty({
+        ...selectedParty,
+        ...updatedParty,
+      });
     }
   };
 

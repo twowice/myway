@@ -41,6 +41,39 @@ export async function createParty(
   return response.json();
 }
 
+export type UpdatePartyPayload = {
+  id: string;
+  partyName?: string;
+  description?: string;
+  max_members?: string | number;
+  label1?: string;
+  label2?: string;
+  label3?: string;
+  eventId?: number;
+  date?: string;
+  time?: string;
+  location?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
+};
+
+export async function updateParty(
+  payload: UpdatePartyPayload
+): Promise<{ success: boolean }> {
+  const response = await fetch("/api/party", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 수정 실패");
+  }
+
+  return response.json();
+}
+
 export async function fetchParties(
   params: FetchPartiesParams = {}
 ): Promise<FetchPartiesResponse> {
