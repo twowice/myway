@@ -161,7 +161,7 @@ export default function Page() {
                     isPanel={isPanel}
                 />
 
-                {loading && events.length === 0 && <EventSkeletonGrid count={12} />}
+                {loading && events.length === 0 && <EventSkeletonGrid count={12} isPanel={isPanel}/>}
 
                 {!loading && events.length === 0 && !hasMore && <EmptyIcon />}
 
@@ -189,7 +189,7 @@ export default function Page() {
                     </div>
                 )}
 
-                {loading && events.length > 0 && <EventSkeletonGrid count={4} />}
+                {loading && events.length > 0 && <EventSkeletonGrid count={4} isPanel={isPanel} />}
                 {hasMore && <div ref={loadMoreRef} className="h-10" />}
             </div>
         </div>

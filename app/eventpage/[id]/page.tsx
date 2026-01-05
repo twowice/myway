@@ -9,6 +9,7 @@ import { PartyRow } from '@/components/partyrow/PartyRow'
 import NaverMapContainer from "@/components/map/NaverMapContainer";
 import { EmptyIcon } from '@/components/status/EmptyIcon';
 import { LoadingBounce } from '@/components/status/LoadingBounce';
+import { parseHomepageUrl } from '@/feature/event/url';
 
 /* ===========================
    Interface
@@ -34,7 +35,7 @@ interface EventData {
   event_images?: EventImage[];
   price?: string | null;
   insta_url?: string | null;
-} 
+}
 
 export default function Page() {
   const partyList = [
@@ -68,6 +69,7 @@ export default function Page() {
   const carousImages = images.length > 0 ? images : ["/error/no-image.svg"];
   const price = event?.price && event.price.trim() !== "" ? event.price : "요금 정보 없음";
   const insta_url = event?.insta_url ?? "https://www.instagram.com/";
+  const homepageUrl = parseHomepageUrl(event?.homepage);
 
   /* ===========================
       API Fetch
@@ -80,7 +82,7 @@ export default function Page() {
       try {
         const res = await fetch(`/api/events/${id}`);
         if (!res.ok) throw new Error("Failed to fetch event");
-        
+
         const json = await res.json();
         console.log(json.data)
 
@@ -142,11 +144,12 @@ export default function Page() {
 
       {/* 홈페이지 버튼 */}
       <div className="w-full h-[45px] bg-[var(--primary)] text-[#F1F5FA] rounded-[4px] flex items-center justify-center gap-4 cursor-pointer hover:opacity-80">
-        <a
-          href={event.homepage}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="
+        {homepageUrl && (
+          <a
+            href={homepageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
             w-full h-[45px]
             bg-[var(--primary)]
             text-[#F1F5FA]
@@ -156,9 +159,10 @@ export default function Page() {
             hover:opacity-80
             transition
           "
-        >
-          홈페이지 바로가기
-        </a>
+          >
+            홈페이지 바로가기
+          </a>
+        )}
       </div>
 
       {/* 파티 리스트 */}

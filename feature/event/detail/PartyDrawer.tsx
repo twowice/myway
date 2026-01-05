@@ -191,7 +191,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
             {/* Drawer */}
             <Drawer open={open} onOpenChange={setOpen} direction="right">
-                <DrawerContent className="right-0 left-auto h-full w-[90%] sm:w-[420px] rounded-none flex flex-col">
+                <DrawerContent className="z-[9999] right-0 left-auto h-full w-[90%] sm:w-[420px] rounded-none flex flex-col">
                     <DrawerHeader>
                         <div className="flex items-center justify-between w-full pb-[24px]">
                             <div className="flex flex-col">
