@@ -99,9 +99,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       // session update 시 (추가 정보 입력 완료 후)
       if (trigger === 'update' && session) {
-        token.isProfileComplete = session.isProfileComplete
-        if (session.name) token.name = session.name
-        if (session.email) token.email = session.email
+        token.isProfileComplete =
+          session.isProfileComplete ?? token.isProfileComplete
+        const nextName = session.user?.name ?? session.name
+        const nextEmail = session.user?.email ?? session.email
+        const nextImage = session.user?.image ?? session.image
+
+        if (nextName) token.name = nextName
+        if (nextEmail) token.email = nextEmail
+        if (nextImage) token.picture = nextImage
       }
 
       return token

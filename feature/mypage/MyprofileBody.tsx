@@ -4,11 +4,15 @@ import { supabase } from "@/lib/clientSupabase";
 import { compressProfileImage, uploadProfileImage } from "@/lib/user/profile";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { panelstore } from "@/stores/panelstore";
 
 export const MyProfileBody = () => {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
+  const { openpanel } = panelstore();
   const [gender, setGender] = useState<string>("");
+  const [initialGender, setInitialGender] = useState<string>("");
   const [profileImage, setProfileImage] = useState<string>("");
+  const [isSavingGender, setIsSavingGender] = useState(false);
 
   const uploadImage = async (file: File) => {
     try {
@@ -16,6 +20,7 @@ export const MyProfileBody = () => {
       const result = await uploadProfileImage(compressed);
       if (result.imageUrl) {
         setProfileImage(result.imageUrl);
+        await update({ user: { image: result.imageUrl } });
       }
       return result.status;
     } catch (error) {
@@ -41,7 +46,9 @@ export const MyProfileBody = () => {
       }
 
       if (!isMounted) return;
-      setGender(data?.gender ?? "");
+      const nextGender = data?.gender ?? "";
+      setGender(nextGender);
+      setInitialGender(nextGender);
       setProfileImage(data?.image_url ?? session.user.image ?? "");
     };
 
@@ -54,6 +61,35 @@ export const MyProfileBody = () => {
   const handleImageChange = (_file: File, previewUrl: string) => {
     setProfileImage(previewUrl);
   };
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    if (openpanel === "mypage") return;
+    if (!initialGender || gender === initialGender) return;
+    if (isSavingGender) return;
+
+    const saveGender = async () => {
+      try {
+        setIsSavingGender(true);
+        const response = await fetch("/api/user/gender", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gender }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data?.message ?? "성별 저장에 실패했어요.");
+        }
+        setInitialGender(gender);
+      } catch (error) {
+        console.error("성별 저장 실패:", error);
+      } finally {
+        setIsSavingGender(false);
+      }
+    };
+
+    void saveGender();
+  }, [gender, initialGender, isSavingGender, openpanel, session?.user?.id]);
 
   if (!session?.user?.id) {
     return (
