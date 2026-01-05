@@ -400,8 +400,7 @@ export const allPolicys: Policy[] = [
    {
       id: 2,
       title: '위치 기반 서비스 이용 약관',
-      detail: `
-[Myway] 위치 기반 서비스 이용 약관
+      detail: `[Myway] 위치 기반 서비스 이용 약관
 
 본 약관은 [Myway]가 제공하는 위치 기반 서비스와 관련하여 회사와 회원 간의 권리·의무를 규정합니다.
 

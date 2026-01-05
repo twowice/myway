@@ -78,7 +78,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
          // Supabase 데이터를 Notice 타입으로 변환
          const formattedNotices: Notice[] = (data || []).map(item => ({
             id: item.id,
-            type: item.type as NoticeType,
+            type: item.category as NoticeType,
             title: item.title,
             detail: item.detail,
             date: new Date(item.created_at).toLocaleDateString('ko-KR'),
@@ -138,7 +138,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                         label: '알림 설정',
                         content: (
                            <div className="flex flex-col h-full">
-                              <div className="flex-1 overflow-y-auto pr-2">
+                              <div className="overflow-y-auto">
                                  <div className="flex flex-col gap-4">
                                     <div className="text-xl flex flex-col gap-3">
                                        알림 설정
@@ -185,7 +185,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                         value: 'notice',
                         label: '공지사항',
                         content: isDetailNotice ? (
-                           <div className="h-full overflow-y-auto pr-2">{children}</div>
+                           <div className="h-full overflow-y-auto">{children}</div>
                         ) : (
                            <div className="flex flex-col h-full min-h-0">
                               <div className="flex-1 min-h-0 h-full">
@@ -196,7 +196,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                                           value: 'all',
                                           title: '전체',
                                           content: (
-                                             <div className="h-full overflow-y-auto pr-2">
+                                             <div className="h-full overflow-y-auto">
                                                 <NoticeList data={pagedNotices} />
                                              </div>
                                           ),
@@ -205,7 +205,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                                           value: 'normal',
                                           title: '일반',
                                           content: (
-                                             <div className="h-full overflow-y-auto pr-2">
+                                             <div className="h-full overflow-y-auto">
                                                 <NoticeList data={pagedNotices} />
                                              </div>
                                           ),
@@ -214,7 +214,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                                           value: 'update',
                                           title: '업데이트',
                                           content: (
-                                             <div className="h-full overflow-y-auto pr-2">
+                                             <div className="h-full overflow-y-auto">
                                                 <NoticeList data={pagedNotices} />
                                              </div>
                                           ),
@@ -223,7 +223,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                                           value: 'event',
                                           title: '이벤트',
                                           content: (
-                                             <div className="h-full overflow-y-auto pr-2">
+                                             <div className="h-full overflow-y-auto">
                                                 <NoticeList data={pagedNotices} />
                                              </div>
                                           ),
@@ -232,7 +232,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                                           value: 'policy',
                                           title: '이용정책',
                                           content: (
-                                             <div className="h-full overflow-y-auto pr-2">
+                                             <div className="h-full overflow-y-auto">
                                                 <NoticeList data={pagedNotices} />
                                              </div>
                                           ),
@@ -247,9 +247,9 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                         value: 'policy',
                         label: '이용약관 및 정책',
                         content: isDetailPolicy ? (
-                           <div className="h-full overflow-y-auto pr-2">{children}</div>
+                           <div className="h-full overflow-y-auto">{children}</div>
                         ) : (
-                           <div className="h-full overflow-y-auto pr-2">
+                           <div className="h-full overflow-y-auto">
                               <div className="flex flex-col gap-2">
                                  <Button
                                     variant={'icon-right'}
