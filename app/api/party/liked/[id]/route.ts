@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -15,7 +15,8 @@ export async function POST(
       );
     }
 
-    const partyId = Number(params.id);
+    const { id } = await params;
+    const partyId = Number(id);
     if (!partyId || partyId <= 0) {
       return NextResponse.json(
         { message: "파티 정보를 찾을 수 없어요." },
