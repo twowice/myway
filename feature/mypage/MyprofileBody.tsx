@@ -1,7 +1,10 @@
 import { RadioComponent } from "@/components/basic/radio";
 import { PhotoEditable } from "@/components/photo/photo";
-import { supabase } from "@/lib/clientSupabase";
-import { compressProfileImage, uploadProfileImage } from "@/lib/user/profile";
+import {
+  fetchMyProfile,
+  updateMyGender,
+  uploadMyProfileImage,
+} from "@/lib/mypage/profile";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { panelstore } from "@/stores/panelstore";
@@ -16,12 +19,10 @@ export const MyProfileBody = () => {
 
   const uploadImage = async (file: File) => {
     try {
-      const compressed = await compressProfileImage(file);
-      const result = await uploadProfileImage(compressed);
-      if (result.imageUrl) {
-        setProfileImage(result.imageUrl);
-        await update({ user: { image: result.imageUrl } });
-      }
+      const result = await uploadMyProfileImage(file, async (imageUrl) => {
+        setProfileImage(imageUrl);
+        await update({ user: { image: imageUrl } });
+      });
       return result.status;
     } catch (error) {
       console.error("프로필 이미지 업로드 실패:", error);
@@ -34,22 +35,18 @@ export const MyProfileBody = () => {
 
     let isMounted = true;
     const loadProfile = async () => {
-      const { data, error } = await supabase
-        .from("users")
-        .select("gender, image_url")
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-      if (error) {
+      try {
+        const data = await fetchMyProfile(
+          session.user.id,
+          session.user.image
+        );
+        if (!isMounted) return;
+        setGender(data.gender);
+        setInitialGender(data.gender);
+        setProfileImage(data.imageUrl);
+      } catch (error) {
         console.error("마이페이지 프로필 조회 실패:", error);
-        return;
       }
-
-      if (!isMounted) return;
-      const nextGender = data?.gender ?? "";
-      setGender(nextGender);
-      setInitialGender(nextGender);
-      setProfileImage(data?.image_url ?? session.user.image ?? "");
     };
 
     void loadProfile();
@@ -71,15 +68,7 @@ export const MyProfileBody = () => {
     const saveGender = async () => {
       try {
         setIsSavingGender(true);
-        const response = await fetch("/api/user/gender", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gender }),
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data?.message ?? "성별 저장에 실패했어요.");
-        }
+        await updateMyGender(gender);
         setInitialGender(gender);
       } catch (error) {
         console.error("성별 저장 실패:", error);

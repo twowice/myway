@@ -1,10 +1,11 @@
 "use client";
 
 import { PartyRow } from "@/components/partyrow/PartyRow";
+import { ComboboxComponent } from "@/components/basic/combo";
 import { PartyDetailPopup } from "@/feature/party/partyDetailPopup";
-import { supabase } from "@/lib/clientSupabase";
+import { fetchMyParties } from "@/lib/mypage/party";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type PartyItem = {
   id: string;
@@ -17,6 +18,7 @@ type PartyItem = {
   time?: string;
   hostId?: string;
   eventName?: string;
+  eventCategory?: string;
   eventId?: number;
   label1?: string;
   label2?: string;
@@ -28,9 +30,30 @@ type PartyItem = {
 export const MyPartyBody = () => {
   const { data: session } = useSession();
   const [partyList, setPartyList] = useState<PartyItem[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [loading, setLoading] = useState(false);
   const [selectedParty, setSelectedParty] = useState<PartyItem | null>(null);
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
+
+  const categoryOptions = useMemo(
+    () => [
+      { value: "all", label: "전체" },
+      { value: "A02", label: "축제" },
+      { value: "performance", label: "공연" },
+      { value: "exhibition", label: "전시" },
+      { value: "popup", label: "팝업" },
+      { value: "etc", label: "기타" },
+    ],
+    []
+  );
+
+  const normalizeCategory = (party: any) => {
+    const cat1 = party?.events?.cat1;
+    if (cat1 === "A02") {
+      return "A02";
+    }
+    return "etc";
+  };
 
   const mapParty = useCallback((party: any): PartyItem => {
     const gatheringDate = party?.gathering_date;
@@ -68,6 +91,7 @@ export const MyPartyBody = () => {
       time,
       hostId: party.owner_id ? String(party.owner_id) : undefined,
       eventName: party?.events?.title ?? undefined,
+      eventCategory: normalizeCategory(party),
       eventId: typeof party.event_id === "number" ? party.event_id : undefined,
       label1: tags[0],
       label2: tags[1],
@@ -79,52 +103,8 @@ export const MyPartyBody = () => {
     if (!session?.user?.id) return;
     try {
       setLoading(true);
-
-      const [
-        { data: ownedParties, error: ownedError },
-        { data: appliedParties, error: appliedError },
-      ] = await Promise.all([
-        supabase.from("parties").select("id").eq("owner_id", session.user.id),
-        supabase
-          .from("party_applications")
-          .select("party_id")
-          .eq("user_id", session.user.id),
-      ]);
-
-      if (ownedError) {
-        console.error("내 파티 조회 실패:", ownedError);
-      }
-      if (appliedError) {
-        console.error("신청 파티 조회 실패:", appliedError);
-      }
-
-      const partyIds = new Set<number>();
-      (ownedParties ?? []).forEach((item) => {
-        if (typeof item.id === "number") partyIds.add(item.id);
-      });
-      (appliedParties ?? []).forEach((item) => {
-        if (typeof item.party_id === "number") partyIds.add(item.party_id);
-      });
-
-      if (partyIds.size === 0) {
-        setPartyList([]);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("parties")
-        .select("*, events ( title )")
-        .in("id", Array.from(partyIds))
-        .not("status", "in", "(disbanded,deleted)")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("파티 목록 조회 실패:", error);
-        setPartyList([]);
-        return;
-      }
-
-      setPartyList((data ?? []).map(mapParty));
+      const data = await fetchMyParties();
+      setPartyList((data?.data ?? []).map(mapParty));
     } finally {
       setLoading(false);
     }
@@ -133,6 +113,11 @@ export const MyPartyBody = () => {
   useEffect(() => {
     void loadMyParties();
   }, [loadMyParties]);
+
+  const filteredParties = useMemo(() => {
+    if (categoryFilter === "all") return partyList;
+    return partyList.filter((party) => party.eventCategory === categoryFilter);
+  }, [categoryFilter, partyList]);
 
   if (!session?.user?.id) {
     return (
@@ -152,12 +137,23 @@ export const MyPartyBody = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      {partyList.length === 0 ? (
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-foreground/70">이벤트 카테고리</p>
+        <ComboboxComponent
+          options={categoryOptions}
+          value={categoryFilter}
+          onValueChange={setCategoryFilter}
+          width="w-[220px]"
+          height="h-9"
+        />
+      </div>
+
+      {filteredParties.length === 0 ? (
         <div className="flex items-center justify-center py-10 text-sm text-foreground/60">
-          활동한 파티가 없어.
+          활동한 파티가 없습니다.
         </div>
       ) : (
-        partyList.map((party, index) => {
+        filteredParties.map((party, index) => {
           const actualIndex = index;
           const isSelected = selectedPartyId === actualIndex;
           return (
