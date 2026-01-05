@@ -22,6 +22,8 @@ const NaverMapContainer = ({ lat, lng }: Props) => {
     const map = new naver.maps.Map(mapRef.current, {
       center: new naver.maps.LatLng(lat, lng),
       zoom: 15,
+      scaleControl: false,
+      logoControl: false,
     });
 
     const position = new naver.maps.LatLng(lat, lng);
