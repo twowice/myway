@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/ui/searchBar";
 import { PartyCreatePopup } from "@/feature/party/partyCreatePopup";
 import { PartyDetailPopup } from "@/feature/party/partyDetailPopup";
-import { fetchParties } from "@/lib/party/party";
+import { fetchLikedParties, fetchParties, togglePartyLike } from "@/lib/party/party";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Party() {
+  const { data: session } = useSession();
   const [partyList, setPartyList] = useState<any[]>([]);
   const [selectedParty, setSelectedParty] = useState<any>(null);
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
@@ -21,6 +23,7 @@ export default function Party() {
   const [searchInput, setSearchInput] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [likedPartyIds, setLikedPartyIds] = useState<Set<string>>(new Set());
   const itemsPerPage = 16;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
@@ -48,10 +51,19 @@ export default function Party() {
       max_members: party.max_members ?? 0,
       description: party.description ?? "",
       location: party.location_name ?? "",
+      locationLatitude:
+        typeof party.location_latitude === "number"
+          ? party.location_latitude
+          : undefined,
+      locationLongitude:
+        typeof party.location_longitude === "number"
+          ? party.location_longitude
+          : undefined,
       date,
       time,
       hostId: party.owner_id ? String(party.owner_id) : undefined,
       eventName: party?.events?.title ?? undefined,
+      eventId: typeof party.event_id === "number" ? party.event_id : undefined,
       label1: tags[0],
       label2: tags[1],
       label3: tags[2],
@@ -87,6 +99,24 @@ export default function Party() {
     void loadParties();
   }, [loadParties]);
 
+  const loadLikedParties = useCallback(async () => {
+    if (!session?.user?.id) {
+      setLikedPartyIds(new Set());
+      return;
+    }
+    try {
+      const response = await fetchLikedParties();
+      setLikedPartyIds(new Set(response.partyIds.map(String)));
+    } catch (error) {
+      console.error("좋아요 목록 조회 실패:", error);
+      setLikedPartyIds(new Set());
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    void loadLikedParties();
+  }, [loadLikedParties]);
+
   const handleCreate = (create: any) => {
     console.log("파티 생성:", create);
     void loadParties();
@@ -94,47 +124,38 @@ export default function Party() {
 
   const handleApply = (updatedParty: any) => {
     console.log("파티 신청 완료:", updatedParty);
-    if (selectedPartyId !== null) {
-      const localIndex = selectedPartyId - (currentPage - 1) * itemsPerPage;
-      const updatedList = [...partyList];
-      if (localIndex >= 0 && localIndex < updatedList.length) {
-        updatedList[localIndex] = updatedParty;
-      }
-      setPartyList(updatedList);
-    }
+    setPartyList((prev) =>
+      prev.map((party) =>
+        party.id === updatedParty.id ? { ...party, ...updatedParty } : party
+      )
+    );
     setSelectedParty(null);
     setSelectedPartyId(null);
   };
 
   const handleWithdraw = (updatedParty: any) => {
     console.log("파티 철회 완료:", updatedParty);
-    if (selectedPartyId !== null) {
-      const localIndex = selectedPartyId - (currentPage - 1) * itemsPerPage;
-      const updatedList = [...partyList];
-      if (localIndex >= 0 && localIndex < updatedList.length) {
-        updatedList[localIndex] = updatedParty;
-      }
-      setPartyList(updatedList);
-    }
+    setPartyList((prev) =>
+      prev.map((party) =>
+        party.id === updatedParty.id ? { ...party, ...updatedParty } : party
+      )
+    );
     setSelectedParty(null);
     setSelectedPartyId(null);
   };
 
   const handleEdit = (updatedParty: any) => {
     console.log("파티 수정:", updatedParty);
-    if (selectedPartyId !== null) {
-      const localIndex = selectedPartyId - (currentPage - 1) * itemsPerPage;
-      const updatedList = [...partyList];
-      if (localIndex >= 0 && localIndex < updatedList.length) {
-        updatedList[localIndex] = {
-          ...updatedList[localIndex],
-          ...updatedParty,
-        };
-        setSelectedParty({
-          ...updatedList[localIndex],
-        });
-      }
-      setPartyList(updatedList);
+    setPartyList((prev) =>
+      prev.map((party) =>
+        party.id === updatedParty.id ? { ...party, ...updatedParty } : party
+      )
+    );
+    if (selectedParty?.id === updatedParty.id) {
+      setSelectedParty({
+        ...selectedParty,
+        ...updatedParty,
+      });
     }
   };
 
@@ -158,6 +179,26 @@ export default function Party() {
     setPartyList((prev) => prev.filter((p) => p.id !== partyId));
     setSelectedParty(null);
     setSelectedPartyId(null);
+  };
+
+  const handleToggleLike = async (partyId: string) => {
+    if (!session?.user?.id) {
+      return;
+    }
+    try {
+      const result = await togglePartyLike(partyId);
+      setLikedPartyIds((prev) => {
+        const next = new Set(prev);
+        if (result.liked) {
+          next.add(partyId);
+        } else {
+          next.delete(partyId);
+        }
+        return next;
+      });
+    } catch (error) {
+      console.error("파티 좋아요 처리 실패:", error);
+    }
   };
 
   return (
@@ -228,14 +269,19 @@ export default function Party() {
                     >
                       <PartyRow
                         index={actualIndex}
+                        partyId={party.id}
                         partyName={party.partyName}
                         current_members={party.current_members}
                         max_members={party.max_members}
                         isSelected={isSelected}
+                        liked={likedPartyIds.has(party.id)}
+                        onToggleLike={handleToggleLike}
                       />
                     </div>
                   }
-                  currentUserId="currentUser"
+                  currentUserId={session?.user?.id}
+                  liked={likedPartyIds.has(party.id)}
+                  onToggleLike={handleToggleLike}
                   onApply={handleApply}
                   onWithdraw={handleWithdraw}
                   onEdit={handleEdit}

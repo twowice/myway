@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   Dialog,
   DialogClose,
@@ -79,6 +79,16 @@ export const TwoFunctionPopup = ({
   preventOutsideClose?: boolean; // 바깥 클릭으로 닫힘 방지
   open?: boolean;
 }): React.ReactElement => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <>{dialogTrigger}</>;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
