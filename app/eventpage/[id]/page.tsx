@@ -32,7 +32,7 @@ interface EventData {
   homepage?: string;
   overview?: string;
   event_images?: EventImage[];
-  price?: number | null;
+  price?: string | null;
   insta_url?: string | null;
 } 
 
@@ -66,7 +66,7 @@ export default function Page() {
   const imageUrl = event?.main_image ?? "/error/no-image.svg";
   const images = event?.event_images?.filter(img => !img.is_main).map(img => img.image_url) ?? [];
   const carousImages = images.length > 0 ? images : ["/error/no-image.svg"];
-  const price = event?.price ?? 0;
+  const price = event?.price && event.price.trim() !== "" ? event.price : "요금 정보 없음";
   const insta_url = event?.insta_url ?? "https://www.instagram.com/";
 
   /* ===========================

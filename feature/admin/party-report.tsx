@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { TableComponent } from './table';
 import { UserReportDialog } from './UserReportDialog';
 import { PartyReportData } from '@/types/userReport';
-import { allPartyReports } from '@/dummy/admin';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/clientSupabase';
 
@@ -224,8 +223,40 @@ export default function PartyReport() {
                   columns={[
                      { key: 'party_name', label: '파티 명', width: 'w-[120px]' },
                      { key: 'party_chairman_name', label: '파티장 명', width: 'w-[100px]' },
-                     { key: 'report_date', label: '신고 접수날짜', width: 'w-[130px]' },
-                     { key: 'party_dissolution_date', label: '파티 해산 날짜', width: 'w-[130px]' },
+                     {
+                        key: 'report_date',
+                        label: '신고 접수날짜',
+                        width: 'w-[150px]',
+                        render: value => {
+                           if (!value) return '-';
+                           const date = new Date(value);
+                           return date.toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false,
+                           });
+                        },
+                     },
+                     {
+                        key: 'party_dissolution_date',
+                        label: '파티 해산 날짜',
+                        width: 'w-[150px]',
+                        render: value => {
+                           if (!value) return '-';
+                           const date = new Date(value);
+                           return date.toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false,
+                           });
+                        },
+                     },
                      { key: 'reporter_name', label: '신고자 명', width: 'w-[100px]' },
                      {
                         key: 'report_category',
@@ -255,21 +286,32 @@ export default function PartyReport() {
                         key: 'sanction_type',
                         label: '제재 유형',
                         width: 'w-[100px]',
-                        render: value => (
-                           <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                 value === '파티 해산' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
-                              }`}
-                           >
-                              {value}
-                           </span>
-                        ),
+                        render: value => {
+                           let displayText = '미정';
+                           let colorClass = 'bg-gray-100 text-gray-800';
+
+                           if (value === 'party_dissolution') {
+                              displayText = '파티 해산';
+                              colorClass = 'bg-red-100 text-red-800';
+                           } else if (value === 'party_restore') {
+                              displayText = '파티 복구';
+                              colorClass = 'bg-green-100 text-green-800';
+                           }
+
+                           return (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+                                 {displayText}
+                              </span>
+                           );
+                        },
                      },
                      {
                         key: 'is_processed',
                         label: '제재관리',
                         width: 'w-[110px]',
-                        render: (value, row) => <UserReportDialog reportData={row} type="party-report" />,
+                        render: (value, row) => (
+                           <UserReportDialog reportData={row} type="party-report" onUpdate={handleUpdateReport} />
+                        ),
                      },
                   ]}
                   data={currentData}

@@ -23,6 +23,9 @@ import { cn } from "@/lib/utils";
  * @property {string} [confirmTitle='네'] - 확인 버튼의 텍스트입니다. (선택 사항, 기본값: '네')
  * @property {() => void} [cancelCallback] - 취소 버튼 클릭 시 실행될 콜백 함수입니다.
  * @property {() => void} [confirmCallback] - 확인 버튼 클릭 시 실행될 콜백 함수입니다.
+ * @property {boolean} [preventOutsideClose] - 바깥 클릭 시 닫힘 방지 여부
+ * @property {boolean} [open] - 팝업 열림 상태 제어
+ * @property {(open: boolean) => void} [onOpenChange] - 열림 상태 변경 콜백
  */
 
 /**
@@ -45,6 +48,9 @@ export const ConfirmationPopup = ({
   confirmTitle = "네",
   cancelCallback = () => {},
   confirmCallback = () => {},
+  preventOutsideClose = false,
+  open,
+  onOpenChange,
 }: {
   className?: string;
   dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
@@ -54,15 +60,24 @@ export const ConfirmationPopup = ({
   confirmTitle?: string; //수락 버튼 이름
   cancelCallback?: () => void; //취소 동작 콜백 함수
   confirmCallback?: () => void; //수락 동작 콜백 함수
+  preventOutsideClose?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }): React.ReactElement => {
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
       <DialogContent
         className={cn(
           "flex flex-col bg-white max-w-none p-4 gap-4",
           className ? "lg:max-w-none sm:max-w-none max-w-none " + className : ""
         )}
+        onInteractOutside={
+          preventOutsideClose ? (event) => event.preventDefault() : undefined
+        }
+        onPointerDownOutside={
+          preventOutsideClose ? (event) => event.preventDefault() : undefined
+        }
       >
         <DialogHeader>
           <DialogTitle>

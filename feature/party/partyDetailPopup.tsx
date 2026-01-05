@@ -7,14 +7,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/contexts/ToastContext';
+import {
+   applyParty,
+   deleteParty,
+   fetchPartyApplicationStatus,
+   updateParty,
+   withdrawParty,
+} from '@/lib/party/party';
 import { useEffect, useState } from 'react';
+import { EventSearchBar } from '../event/EventSearchBar';
+import { PlaceSearchBar } from '../location/search/PlaceSearchBar';
 
 type PartyDetailPopupProps = {
    party: {
       id: string;
       partyName: string;
       current_members: number;
-      max_members: number;
+      max_members: number | string;
       description?: string;
       location?: string;
       date?: string;
@@ -25,6 +34,9 @@ type PartyDetailPopupProps = {
       label1?: string;
       label2?: string;
       label3?: string;
+      eventId?: number;
+      locationLatitude?: number;
+      locationLongitude?: number;
    };
    trigger: React.ReactNode;
    currentUserId?: string;
@@ -33,6 +45,8 @@ type PartyDetailPopupProps = {
    onApply?: (updatedParty: any) => void;
    onWithdraw?: (updatedParty: any) => void;
    onClose?: () => void;
+   liked?: boolean;
+   onToggleLike?: (partyId: string) => void;
 };
 
 export const PartyDetailPopup = ({
@@ -44,6 +58,8 @@ export const PartyDetailPopup = ({
    onClose,
    onDelete,
    currentUserId,
+   liked = false,
+   onToggleLike,
 }: PartyDetailPopupProps) => {
    const { showToast } = useToast();
    const [isEditMode, setIsEditMode] = useState(false);
@@ -55,14 +71,46 @@ export const PartyDetailPopup = ({
    useEffect(() => {
       setCurrentParty(party);
       setEditedParty(party);
+      setIsApplied(false);
    }, [party]);
 
    const isFull = currentParty.current_members === currentParty.max_members;
    const isHost = currentParty.hostId === currentUserId;
 
-   const handleApply = () => {
+   useEffect(() => {
+      if (!currentUserId || !currentParty?.id || isHost) {
+         setIsApplied(false);
+         return;
+      }
+
+      const loadApplicationStatus = async () => {
+         try {
+            const result = await fetchPartyApplicationStatus(currentParty.id);
+            setIsApplied(result.applied);
+         } catch (error) {
+            console.error('파티 신청 상태 조회 실패:', error);
+         }
+      };
+
+      void loadApplicationStatus();
+   }, [currentParty.id, currentUserId, isHost]);
+
+   const handleApply = async () => {
+      if (isHost) {
+         showToast('파티 생성자는 신청할 수 없어요.');
+         return;
+      }
       if (isFull || isApplied) return;
-      console.log('파티 신청:', currentParty);
+      try {
+         await applyParty(currentParty.id);
+      } catch (error) {
+         console.error('파티 신청 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 신청에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
+
       const updatedParty = {
          ...currentParty,
          current_members: currentParty.current_members + 1,
@@ -73,9 +121,18 @@ export const PartyDetailPopup = ({
       showToast('파티 신청이 완료되었습니다.');
       onClose?.();
    };
-   const handleWithdraw = () => {
+   const handleWithdraw = async () => {
       if (!isApplied) return;
-      console.log('파티 철회:', currentParty);
+      try {
+         await withdrawParty(currentParty.id);
+      } catch (error) {
+         console.error('파티 철회 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 철회에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
+
       const updatedParty = {
          ...currentParty,
          current_members: currentParty.current_members - 1,
@@ -92,17 +149,83 @@ export const PartyDetailPopup = ({
       setEditedParty(currentParty);
    };
 
-   const handleSaveEdit = () => {
-      console.log('파티 수정 저장:', editedParty);
+   const handleSaveEdit = async () => {
+      const partyName = editedParty.partyName?.trim();
+      const description = editedParty.description?.trim();
+      const maxMembers = Number(editedParty.max_members);
+      const eventId = editedParty.eventId;
+      const locationName = editedParty.location?.trim();
+      const date = editedParty.date;
+      const time = editedParty.time;
+
+      if (!partyName) {
+         showToast('파티명을 입력해주세요.');
+         return;
+      }
+      if (!eventId || eventId <= 0) {
+         showToast('이벤트명을 입력해주세요.');
+         return;
+      }
+      if (!Number.isFinite(maxMembers) || maxMembers < 1) {
+         showToast('최대 인원을 입력해주세요.');
+         return;
+      }
+      if (!locationName) {
+         showToast('장소를 입력해주세요.');
+         return;
+      }
+      if (!date || !time) {
+         showToast('날짜와 시간을 입력해주세요.');
+         return;
+      }
+      if (!description) {
+         showToast('파티 소개를 입력해주세요.');
+         return;
+      }
+
+      try {
+         await updateParty({
+            id: editedParty.id,
+            partyName,
+            description,
+            max_members: maxMembers,
+            label1: editedParty.label1,
+            label2: editedParty.label2,
+            label3: editedParty.label3,
+            eventId,
+            date,
+            time,
+            location: locationName,
+            locationLatitude: editedParty.locationLatitude,
+            locationLongitude: editedParty.locationLongitude,
+         });
+      } catch (error) {
+         console.error('파티 수정 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 수정에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
+
       setCurrentParty(editedParty);
       onEdit?.(editedParty);
       setIsEditMode(false);
       showToast('파티 정보가 수정되었습니다.');
    };
 
-   const handleDeleteEdit = () => {
+   const handleDeleteEdit = async () => {
       const confirmed = window.confirm('정말 이 파티를 삭제하시겠어요?');
       if (!confirmed) return;
+
+      try {
+         await deleteParty(currentParty.id);
+      } catch (error) {
+         console.error('파티 삭제 실패:', error);
+         showToast(
+            error instanceof Error ? error.message : '파티 삭제에 실패했어요. 잠시 후 다시 시도해주세요.',
+         );
+         return;
+      }
 
       onDelete?.(currentParty.id);
       showToast('파티가 삭제되었습니다.');
@@ -135,7 +258,7 @@ export const PartyDetailPopup = ({
    const PopupBody = (
       <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
          {/* {isHost && ( */}
-         {!isEditMode && (
+         {!isEditMode && isHost && (
             <div className="flex w-full justify-end">
                <Button className="w-20" onClick={handleEdit}>
                   편집
@@ -196,18 +319,10 @@ export const PartyDetailPopup = ({
          {/* 이벤트명 */}
          <div className="flex flex-col gap-2">
             {isEditMode ? (
-               <>
-                  <label className="text-sm font-medium text-gray-700">
-                     이벤트명
-                     <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                     type="text"
-                     value={editedParty.eventName}
-                     onChange={e => setEditedParty({ ...editedParty, eventName: e.target.value })}
-                     placeholder={currentParty.eventName}
-                  />
-               </>
+               <EventSearchBar
+                  create={editedParty}
+                  setCreate={setEditedParty}
+               />
             ) : (
                <>
                   <label className="text-sm font-medium text-gray-700">이벤트명</label>
@@ -225,9 +340,15 @@ export const PartyDetailPopup = ({
                      <span className="text-red-500">*</span>
                   </label>
                   <Input
-                     type="text"
-                     value={editedParty.max_members}
-                     onChange={e => setEditedParty({ ...editedParty, max_members: parseInt(e.target.value) })}
+                     type="number"
+                     value={editedParty.max_members ?? ''}
+                     onChange={e => {
+                        const value = e.target.value;
+                        setEditedParty({
+                           ...editedParty,
+                           max_members: value === '' ? '' : Number(value),
+                        });
+                     }}
                      min={currentParty.current_members}
                   />
                </>
@@ -244,18 +365,10 @@ export const PartyDetailPopup = ({
          {/* 위치 */}
          <div className="flex flex-col gap-2">
             {isEditMode ? (
-               <>
-                  <label className="text-sm font-medium text-gray-700">
-                     위치
-                     <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                     type="text"
-                     value={editedParty.location}
-                     onChange={e => setEditedParty({ ...editedParty, location: e.target.value })}
-                     placeholder={currentParty.location}
-                  />
-               </>
+               <PlaceSearchBar
+                  create={editedParty}
+                  setCreate={setEditedParty}
+               />
             ) : (
                <>
                   <label className="text-sm font-medium text-gray-700">위치</label>
@@ -352,8 +465,15 @@ export const PartyDetailPopup = ({
          titleButton={
             !isEditMode && (
                <div className="flex gap-2">
-                  <button className="cursor-pointer" onClick={e => e.stopPropagation()}>
-                     <Icon24 name="likedef" />
+                  <button
+                     className="cursor-pointer"
+                     onClick={e => {
+                        e.stopPropagation();
+                        if (!onToggleLike) return;
+                        onToggleLike(currentParty.id);
+                     }}
+                  >
+                     <Icon24 name={liked ? 'likefill' : 'likedef'} />
                   </button>
                   <div className="flex items-center gap-2">
                      <span

@@ -21,6 +21,10 @@ import { cn } from '@/lib/utils';
  * @property {ReactNode} body - 팝업창의 본문 내용입니다. ReactNode 타입으로 다양한 컴포넌트를 전달할 수 있습니다.
  * @property {string} buttonTitle - 팝업 하단에 위치한 버튼의 텍스트입니다. (예: '확인', '닫기')
  * @property {() => void} [callback] - 하단 버튼 클릭 시 실행될 콜백 함수입니다. (선택 사항)
+ * @property {string} [width] - 팝업 너비 관련 className
+ * @property {boolean} [preventOutsideClose] - 바깥 클릭 시 닫힘 방지 여부
+ * @property {boolean} [open] - 팝업 열림 상태 제어
+ * @property {(open: boolean) => void} [onOpenChange] - 열림 상태 변경 콜백
  */
 
 /**
@@ -41,6 +45,7 @@ export const OneFunctionPopup = ({
    buttonTitle,
    callback = () => {},
    width = 'max-w-[800px]',
+   preventOutsideClose = false,
    open,
    onOpenChange,
 }: {
@@ -51,6 +56,7 @@ export const OneFunctionPopup = ({
    buttonTitle: string; //하단 버튼에 들어갈 문자열
    callback?: () => void; //버튼 클릭시 기능 동작 콜백 함수
    width?: string;
+   preventOutsideClose?: boolean;
    open?: boolean;
    onOpenChange?: (open: boolean) => void;
 }): React.ReactElement => {
@@ -63,6 +69,8 @@ export const OneFunctionPopup = ({
                className ? 'lg:max-w-none sm:max-w-none max-w-none ' + className : '',
                width,
             )}
+            onInteractOutside={preventOutsideClose ? event => event.preventDefault() : undefined}
+            onPointerDownOutside={preventOutsideClose ? event => event.preventDefault() : undefined}
          >
             <DialogHeader>
                <DialogTitle>

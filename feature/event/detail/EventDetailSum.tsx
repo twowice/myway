@@ -6,7 +6,7 @@ interface EventDetailSumProps {
     imageUrl: string;
     startDate: string;
     endDate: string;
-    price: number;
+    price: string;
     region: string;
     phone: string;
     insta_url: string;
@@ -49,7 +49,11 @@ export function EventDetailSum({ imageUrl, startDate, endDate, price, region, ph
                 </InfoRow>
 
                 <InfoRow icon="price">
-                    {price.toLocaleString()}원
+                    <span
+                        dangerouslySetInnerHTML={{
+                            __html: price.replace(/<br\s*\/?>/gi, "<br />"),
+                        }}
+                    />
                 </InfoRow>
 
                 <InfoRow icon="city">

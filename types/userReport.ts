@@ -29,6 +29,7 @@ export interface PartyReportData {
    report_content: string;
    report_date: string;
    sanction_type: string;
+   sanction_period?: string;
    party_dissolution_date?: string;
    is_processed: boolean;
    add_opinion?: string;
