@@ -228,7 +228,19 @@ export default function UserReport() {
                      {
                         key: 'report_date',
                         label: '신고 접수날짜',
-                        width: 'max-w-[120px] whitespace-normal break-words',
+                        width: 'max-w-[150px] whitespace-normal break-words',
+                        render: value => {
+                           if (!value) return '-';
+                           const date = new Date(value);
+                           return date.toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false,
+                           });
+                        },
                      },
                      {
                         key: 'sanction_period',
@@ -239,23 +251,25 @@ export default function UserReport() {
                         key: 'sanction_type',
                         label: '제재 유형',
                         width: 'max-w-[140px]',
-                        render: value => (
-                           <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                                 value === '7일 계정정지'
-                                    ? 'bg-red-100 text-red-800'
-                                    : value === '14일 계정정지'
-                                      ? 'bg-orange-100 text-orange-800'
-                                      : value === '30일 계정정지'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : value === '영구 계정정지'
-                                          ? 'bg-purple-100 text-purple-800'
-                                          : 'bg-gray-100 text-gray-800'
-                              }`}
-                           >
-                              {getSanctionTypeLabel(value)}
-                           </span>
-                        ),
+                        render: value => {
+                           let colorClass = 'bg-gray-100 text-gray-800';
+
+                           if (value === 'account_suspended_7days') {
+                              colorClass = 'bg-red-100 text-red-800';
+                           } else if (value === 'account_suspended_14days') {
+                              colorClass = 'bg-orange-100 text-orange-800';
+                           } else if (value === 'account_suspended_30days') {
+                              colorClass = 'bg-yellow-100 text-yellow-800';
+                           } else if (value === 'account_suspended_permanent') {
+                              colorClass = 'bg-purple-100 text-purple-800';
+                           }
+
+                           return (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${colorClass}`}>
+                                 {getSanctionTypeLabel(value)}
+                              </span>
+                           );
+                        },
                      },
                      { key: 'reporter_name', label: '신고자 명', width: 'w-[100px]' },
                      {
