@@ -7,9 +7,7 @@ import { EventTitle } from '@/feature/event/EventTitle';
 import { FilterHeader } from '@/feature/event/FilterHeader';
 import { EventCard } from '@/feature/event/EventCard';
 import { EmptyIcon } from '@/components/status/EmptyIcon';
-import EventPanel from '@/components/header/panels/eventpanel';
 import { useEventFilterStore } from '@/stores/eventFilterStore';
-import { panelstore } from '@/stores/panelstore';
 
 /* ===========================
    Interface
@@ -38,8 +36,7 @@ export default function Page() {
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
     const isFetchingRef = useRef(false);
 
-    const openpanel = panelstore((state) => state.openpanel);
-    const isPanel = openpanel !== null; // 패널 상태
+    const isPanel = false;
 
     /* 필터링 */
     const [keyword, setKeyword] = useState('');
@@ -145,10 +142,23 @@ export default function Page() {
 
         observer.observe(loadMoreRef.current);
         return () => observer.disconnect();
-    }, [hasMore, loading, isPanel]);
+    }, [hasMore, loading]);
 
-    const content = (
-        <div className={`w-full justify-center ${isPanel ? 'px-[16px]' : 'pt-[70px] px-[16px]'}`}>
+    /* ===========================
+        Render
+    =========================== */
+    return (
+        <div
+            className={`
+                w-full
+                justify-center
+                pt-[70px]
+                px-[16px]
+                sm:px-[32px]
+                lg:px-[80px]
+                xl:px-[100px]
+            `}
+        >
             <div className="flex flex-col space-y-[22px]">
                 <EventTitle count={total} />
 
@@ -171,7 +181,7 @@ export default function Page() {
                             grid
                             gap-x-[16px]
                             gap-y-[16px]
-                            ${isPanel ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}
+                            grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
                         `}
                     >
                         {events.map((item) => (
@@ -190,10 +200,9 @@ export default function Page() {
                 )}
 
                 {loading && events.length > 0 && <EventSkeletonGrid count={4} />}
+
                 {hasMore && <div ref={loadMoreRef} className="h-10" />}
             </div>
         </div>
     );
-
-    return <EventPanel>{content}</EventPanel>;
 }
