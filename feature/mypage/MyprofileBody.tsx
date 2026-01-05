@@ -1,6 +1,7 @@
 import { RadioComponent } from "@/components/basic/radio";
 import { PhotoEditable } from "@/components/photo/photo";
 import { supabase } from "@/lib/clientSupabase";
+import { compressProfileImage, uploadProfileImage } from "@/lib/user/profile";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
@@ -9,8 +10,18 @@ export const MyProfileBody = () => {
   const [gender, setGender] = useState<string>("");
   const [profileImage, setProfileImage] = useState<string>("");
 
-  const uploadImage = (file: File) => {
-    return 202;
+  const uploadImage = async (file: File) => {
+    try {
+      const compressed = await compressProfileImage(file);
+      const result = await uploadProfileImage(compressed);
+      if (result.imageUrl) {
+        setProfileImage(result.imageUrl);
+      }
+      return result.status;
+    } catch (error) {
+      console.error("프로필 이미지 업로드 실패:", error);
+      return 500;
+    }
   };
 
   useEffect(() => {
