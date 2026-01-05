@@ -142,6 +142,32 @@ export async function fetchPartyApplicationStatus(
   return response.json();
 }
 
+export async function fetchLikedParties(): Promise<{ partyIds: number[] }> {
+  const response = await fetch("/api/party/liked");
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "좋아요 목록 조회 실패");
+  }
+
+  return response.json();
+}
+
+export async function togglePartyLike(
+  partyId: string
+): Promise<{ liked: boolean }> {
+  const response = await fetch(`/api/party/liked/${partyId}`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "좋아요 처리 실패");
+  }
+
+  return response.json();
+}
+
 export async function fetchParties(
   params: FetchPartiesParams = {}
 ): Promise<FetchPartiesResponse> {

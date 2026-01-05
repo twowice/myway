@@ -12,14 +12,20 @@ interface PartyRowProps {
    current_members: number;
    max_members: number;
    isSelected?: boolean; //선택 상태
+   partyId?: string;
+   liked?: boolean;
+   onToggleLike?: (partyId: string) => void;
 }
 
 export function PartyRow({
    index,
+   partyId,
    partyName,
    current_members,
    max_members,
    isSelected = false, //선택 상태
+   liked = false,
+   onToggleLike,
 }: PartyRowProps) {
    return (
       <div
@@ -36,8 +42,15 @@ export function PartyRow({
                {current_members}/{max_members}
             </span>
 
-            <button className="cursor-pointer" onClick={e => e.stopPropagation()}>
-               <Icon24 name="likedef" />
+            <button
+               className="cursor-pointer"
+               onClick={e => {
+                  e.stopPropagation();
+                  if (!partyId || !onToggleLike) return;
+                  onToggleLike(partyId);
+               }}
+            >
+               <Icon24 name={liked ? 'likefill' : 'likedef'} />
             </button>
             <div onClick={e => e.stopPropagation()}>
                <TwoFunctionPopup

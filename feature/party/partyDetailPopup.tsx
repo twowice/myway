@@ -45,6 +45,8 @@ type PartyDetailPopupProps = {
    onApply?: (updatedParty: any) => void;
    onWithdraw?: (updatedParty: any) => void;
    onClose?: () => void;
+   liked?: boolean;
+   onToggleLike?: (partyId: string) => void;
 };
 
 export const PartyDetailPopup = ({
@@ -56,6 +58,8 @@ export const PartyDetailPopup = ({
    onClose,
    onDelete,
    currentUserId,
+   liked = false,
+   onToggleLike,
 }: PartyDetailPopupProps) => {
    const { showToast } = useToast();
    const [isEditMode, setIsEditMode] = useState(false);
@@ -461,8 +465,15 @@ export const PartyDetailPopup = ({
          titleButton={
             !isEditMode && (
                <div className="flex gap-2">
-                  <button className="cursor-pointer" onClick={e => e.stopPropagation()}>
-                     <Icon24 name="likedef" />
+                  <button
+                     className="cursor-pointer"
+                     onClick={e => {
+                        e.stopPropagation();
+                        if (!onToggleLike) return;
+                        onToggleLike(currentParty.id);
+                     }}
+                  >
+                     <Icon24 name={liked ? 'likefill' : 'likedef'} />
                   </button>
                   <div className="flex items-center gap-2">
                      <span

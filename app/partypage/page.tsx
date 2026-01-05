@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/ui/searchBar";
 import { PartyCreatePopup } from "@/feature/party/partyCreatePopup";
 import { PartyDetailPopup } from "@/feature/party/partyDetailPopup";
-import { fetchParties } from "@/lib/party/party";
+import { fetchLikedParties, fetchParties, togglePartyLike } from "@/lib/party/party";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -23,6 +23,7 @@ export default function Party() {
   const [searchInput, setSearchInput] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [likedPartyIds, setLikedPartyIds] = useState<Set<string>>(new Set());
   const itemsPerPage = 16;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
@@ -98,6 +99,24 @@ export default function Party() {
     void loadParties();
   }, [loadParties]);
 
+  const loadLikedParties = useCallback(async () => {
+    if (!session?.user?.id) {
+      setLikedPartyIds(new Set());
+      return;
+    }
+    try {
+      const response = await fetchLikedParties();
+      setLikedPartyIds(new Set(response.partyIds.map(String)));
+    } catch (error) {
+      console.error("좋아요 목록 조회 실패:", error);
+      setLikedPartyIds(new Set());
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    void loadLikedParties();
+  }, [loadLikedParties]);
+
   const handleCreate = (create: any) => {
     console.log("파티 생성:", create);
     void loadParties();
@@ -160,6 +179,26 @@ export default function Party() {
     setPartyList((prev) => prev.filter((p) => p.id !== partyId));
     setSelectedParty(null);
     setSelectedPartyId(null);
+  };
+
+  const handleToggleLike = async (partyId: string) => {
+    if (!session?.user?.id) {
+      return;
+    }
+    try {
+      const result = await togglePartyLike(partyId);
+      setLikedPartyIds((prev) => {
+        const next = new Set(prev);
+        if (result.liked) {
+          next.add(partyId);
+        } else {
+          next.delete(partyId);
+        }
+        return next;
+      });
+    } catch (error) {
+      console.error("파티 좋아요 처리 실패:", error);
+    }
   };
 
   return (
@@ -230,14 +269,19 @@ export default function Party() {
                     >
                       <PartyRow
                         index={actualIndex}
+                        partyId={party.id}
                         partyName={party.partyName}
                         current_members={party.current_members}
                         max_members={party.max_members}
                         isSelected={isSelected}
+                        liked={likedPartyIds.has(party.id)}
+                        onToggleLike={handleToggleLike}
                       />
                     </div>
                   }
                   currentUserId={session?.user?.id}
+                  liked={likedPartyIds.has(party.id)}
+                  onToggleLike={handleToggleLike}
                   onApply={handleApply}
                   onWithdraw={handleWithdraw}
                   onEdit={handleEdit}
