@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthSessionProvider>
             <ToastProvider>
               <Header />
-              <main className="lg:ms-20 ms-16 lg:me-20 me-16 min-h-screen">
+              <main className="lg:ms-20 ms-16 lg:me-4 me-2 min-h-screen">
                 {children}
               </main>
             </ToastProvider>
