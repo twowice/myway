@@ -12,6 +12,7 @@ import { Button } from '../button';
 import { supabase } from '@/lib/clientSupabase';
 import { BiTargetLock } from 'react-icons/bi';
 import { HiDotsVertical } from 'react-icons/hi';
+import { useEventFilterStore } from '@/stores/eventFilterStore';
 
 const REGION_NAME = {
    all: null,
@@ -113,6 +114,7 @@ const MapSection = () => {
       [fetchWeather, fetchAirQuality], // fetchWeather, fetchAirQuality가 변경될 때마다 함수 재생성 (안정적)
    );
    const isListenerAddedRef = useRef(false);
+   const setRegionFilter = useEventFilterStore(state => state.setRegion); /* EDIT BY CKH 26.01.05 */
 
    const moveMapTo = useCallback(
       (targetLat: number, targetLng: number, targetZoom: number) => {
@@ -208,7 +210,8 @@ const MapSection = () => {
                // 마커 클릭 이벤트
                naver.maps.Event.addListener(marker, 'click', () => {
                   console.log('클릭된 이벤트:', event.title, event.id);
-                  //todo eventpanel 열기
+                  //todo eventpanel 열기 ckh
+                  
                });
                markersRef.current.push(marker);
             });
@@ -439,11 +442,13 @@ const MapSection = () => {
    const pm25Level = airQuality ? getPM25Level(airQuality.pm2_5) : null;
 
    const handleRegion = (region: keyof typeof REGION_NAME) => {
+      
       // 전체 버튼 선택
       if (region === 'all') {
          // 이미 전체가 선택되어 있으면 -> 해제
          if (selectedRegion === 'all') {
             setSelectedRegion(null);
+            setRegionFilter('all'); /* EDIT BY CKH 26.01.05 */
             console.log('❌ 전체 필터 해제 - 마커 미표시');
             const { lat, lng, zoom } = INITIAL_CONFIG;
             moveMapTo(lat, lng, zoom);
@@ -451,6 +456,7 @@ const MapSection = () => {
          // 전체 선택
          else {
             setSelectedRegion('all');
+            setRegionFilter('all'); /* EDIT BY CKH 26.01.05 */
             console.log('🌏 전체 지역 선택 - 모든 마커 표시');
             const { lat, lng, zoom } = INITIAL_CONFIG;
             console.log(`📍 전체 지도로 이동: zoom=${zoom}`);
@@ -460,6 +466,7 @@ const MapSection = () => {
       // 다른 지역이 선택된 상태에서 같은 지역 다시 클릭 -> 필터 해제
       else if (selectedRegion === region) {
          setSelectedRegion(null);
+         setRegionFilter('all'); /* EDIT BY CKH 26.01.05 */
          console.log('❌ 필터 해제 - 전체 지도로 복귀, 마커 미표시');
          const { lat, lng, zoom } = INITIAL_CONFIG;
          moveMapTo(lat, lng, zoom);
@@ -467,6 +474,7 @@ const MapSection = () => {
       // 새로운 지역 선택
       else {
          setSelectedRegion(region);
+         setRegionFilter(REGION_NAME[region] ?? 'all');
          console.log(`🎯 지역 선택: ${region} (${REGION_NAME[region]})`);
          if (REGION_COORDINATES[region]) {
             const { lat, lng, zoom } = REGION_COORDINATES[region];

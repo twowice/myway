@@ -8,40 +8,50 @@ import MapCanvas from '@/components/ui/Map/mapCanvars';
 import './globals.css';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { mainmenu } from '@/components/header/headermenu';
 import { panelstore } from '@/stores/panelstore';
-import { useMemo } from 'react';
 import AuthSessionProvider from '@/components/providers/sessionprovider';
 import { ToastProvider } from '@/contexts/ToastContext';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-   const path = usePathname();
-   const { openpanel } = panelstore();
+  const path = usePathname();
+  const openpanel = panelstore(state => state.openpanel);
+  const isPanel = openpanel !== null;
 
-   // 전체 너비가 필요한 페이지들
-   const fullwidthpages = ['/loginpage', '/signup', '/admin'];
-   const isfullwidth = fullwidthpages.some(page => path.startsWith(page));
+  /** =========================
+   *  페이지 타입 판별
+   ========================= */
+  const isAdminPage = path.startsWith('/admin');
+  const isAuthPage =
+    path.startsWith('/loginpage') ||
+    path.startsWith('/signup') ||
+    path.startsWith('/testpage');
 
-   //관리자 주소를 입력해주세요
-   if (path.startsWith('/admin')) {
-      return (
-         <html lang="ko">
-            <body>
-               <AuthSessionProvider>
-                  <div className="flex min-h-screen justify-start">{children}</div>
-               </AuthSessionProvider>
-            </body>
-         </html>
-      );
-   }
+  const isEventDetailPage = path.startsWith('/eventpage/');
 
-  // 로그인/회원가입 페이지는 Header 없이 전체 화면
-  if (path.startsWith("/loginpage") || path.startsWith("/signup") || path.startsWith("/testpage")) {
+  /** =========================
+   *  관리자 페이지
+   ========================= */
+  if (isAdminPage) {
     return (
       <html lang="ko">
         <body>
           <AuthSessionProvider>
-            <main className="w-full h-screen">
+            <div className="flex min-h-screen">{children}</div>
+          </AuthSessionProvider>
+        </body>
+      </html>
+    );
+  }
+
+  /** =========================
+   *  로그인 / 회원가입
+   ========================= */
+  if (isAuthPage) {
+    return (
+      <html lang="ko">
+        <body>
+          <AuthSessionProvider>
+            <main className="w-full min-h-screen">
               {children}
             </main>
           </AuthSessionProvider>
@@ -50,39 +60,75 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-   return (
+  /** =========================
+   *  이벤트 상세 페이지 (패널 ❌, 지도 ❌)
+   ========================= */
+  if (isEventDetailPage) {
+    return (
       <html lang="ko">
-         <body>
-            <AuthSessionProvider>
-               <ToastProvider>
-                  <MapScriptLoader />
-                  <Header />
-                  <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-16 lg:ms-20 h-full">
-                     {path !== '/' && (
-                        <div
-                           className={cn(
-                              path.startsWith(mainmenu[0].href) ? 'w-full' : 'w-0',
-                              'relative z-30 overflow-auto shrink-0',
-                           )}
-                        >
-                           {children}
-                        </div>
-                     )}
-                     {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
-                     {!path.startsWith(mainmenu[0].href) && (
-                        <div
-                           className={cn(
-                              openpanel === null ? 'ms-0' : 'ms-100 lg:ms-150 md:ms-150',
-                              'absolute inset-0 z-10 w-full h-full pointer-events-none',
-                           )}
-                        >
-                           <MapSection />
-                        </div>
-                     )}
-                  </main>
-               </ToastProvider>
-            </AuthSessionProvider>
-         </body>
+        <body>
+          <AuthSessionProvider>
+            <ToastProvider>
+              <Header />
+              <main className="w-full min-h-screen">
+                {children}
+              </main>
+            </ToastProvider>
+          </AuthSessionProvider>
+        </body>
       </html>
-   );
+    );
+  }
+
+  /** =========================
+   *  기본 페이지 (패널 + 지도)
+   ========================= */
+  return (
+    <html lang="ko">
+      <body>
+        <AuthSessionProvider>
+          <ToastProvider>
+            <MapScriptLoader />
+            <Header />
+
+            <main
+               className={cn(
+                  'grow flex min-h-screen relative',
+                  isEventDetailPage
+                     ? 'overflow-y-auto'
+                     : 'overflow-hidden flex-row ms-16 lg:ms-20'
+               )}
+               >
+
+              {/* 좌측 콘텐츠 영역 */}
+              {path !== '/' && (
+                <div
+                  className={cn(
+                    'relative z-30 overflow-auto shrink-0'
+                  )}
+                >
+                  {children}
+                </div>
+              )}
+
+              {/* 지도 */}
+              {isPanel && <MapCanvas />}
+
+              {/* 지도 위 패널 */}
+              {isPanel && (
+                <div
+                  className={cn(
+                    'absolute inset-0 z-10 w-full h-full pointer-events-none',
+                    'ms-100 md:ms-150 lg:ms-150'
+                  )}
+                >
+                  <MapSection />
+                </div>
+              )}
+            </main>
+          </ToastProvider>
+        </AuthSessionProvider>
+      </body>
+    </html>
+  );
 }

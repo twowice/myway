@@ -7,6 +7,8 @@ import { FilterHeader } from '@/feature/event/FilterHeader';
 import { EventCard } from '@/feature/event/EventCard';
 import { EmptyIcon } from '@/components/status/EmptyIcon';
 import EventPanel from '@/components/header/panels/eventpanel';
+import { useEventFilterStore } from '@/stores/eventFilterStore';
+import { panelstore } from '@/stores/panelstore';
 
 /* ===========================
    Interface
@@ -34,12 +36,15 @@ export default function Page() {
     const [total, setTotal] = useState(0); // 이벤트 개수
     const loadMoreRef = useRef<HTMLDivElement | null>(null); // 하단 화면 감시용 sentinel
     const isFetchingRef = useRef(false); // 리엑트 state가 아닌 즉시 반영되는 플래그 [Observer 중복 트리거 방지 & fetch 중복 호출 차단]
-    const [isPanel, setIsPanel] = useState(true); // 패널 상태 (True면 패널 False면 페이지)
+    const openpanel = panelstore(state => state.openpanel);
+    const isPanel = openpanel !== null; // 패널 상태 (True면 패널 False면 페이지)
 
     /* 필터링 */
     const [keyword, setKeyword] = useState(""); // 입력 검색
     const [category, setCategory] = useState('A02'); // 축제, 공연, 전시 ... [DEFAULT: 축제]
-    const [region, setRegion] = useState("all"); // 서울, 대구, 부산 ...
+    // const [region, setRegion] = useState("all"); // 서울, 대구, 부산 ...
+    const region = useEventFilterStore(state => state.region);
+    const setRegion = useEventFilterStore(state => state.setRegion);
     const [month, setMonth] = useState("all"); // 1월, 2월, 3월 ...
     const handleFilterChange = (filter: { category: string; region: string; month: string }) => { // FiterHeader 에서 호출
         setCategory(filter.category);
@@ -154,13 +159,14 @@ export default function Page() {
         `}>
             <div className="flex flex-col space-y-[22px]">
                 <>
-                    <EventTitle count={total} isPanel={isPanel} onToggle={() => setIsPanel(prev => !prev)} />
+                    <EventTitle count={total} />
                     <FilterHeader 
                         onSearch={setKeyword}
                         category={category}
                         region={region}
                         month={month}
                         onFilterChange={handleFilterChange}
+                        isPanel={isPanel}
                     />
 
                     {/* 데이터 로딩중 */}

@@ -1,13 +1,16 @@
+import { panelstore } from '@/stores/panelstore';
+
 /* ===========================
     Event Title
 =========================== */
 interface EventTitleProps {
     count: number;
-    isPanel: boolean;
-    onToggle: () => void;
 }
 
-export function EventTitle({ count, isPanel, onToggle }: EventTitleProps) {
+export function EventTitle({ count }: EventTitleProps) {
+    const openpanel = panelstore(state => state.openpanel);
+    const togglepanel = panelstore(state => state.togglepanel);
+    const isPanel = openpanel !== null;
     return (
         <div
             className="
@@ -39,7 +42,7 @@ export function EventTitle({ count, isPanel, onToggle }: EventTitleProps) {
 
             {/* + / - 버튼 */}
             <button
-                onClick={onToggle}
+                onClick={() => togglepanel('event')}
                 aria-label={isPanel ? '페이지로 확장' : '패널로 축소'}
                 className="
                     mt-1 md:mt-0
