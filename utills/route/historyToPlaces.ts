@@ -1,6 +1,6 @@
 import type { RouteSearchHistory } from "@/lib/map/history";
-import type { SharedRouteResponse } from "@/lib/map/sharedRoutes";
 import type { SelectedPlace } from "@/types/map/place";
+import { SharedRouteResponse } from "@/types/map/sharedRoute";
 
 export type RoutePlaces = {
   startPlace: SelectedPlace;
