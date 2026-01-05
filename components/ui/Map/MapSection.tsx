@@ -12,6 +12,7 @@ import { Button } from '../button';
 import { supabase } from '@/lib/clientSupabase';
 import { BiTargetLock } from 'react-icons/bi';
 import { HiDotsVertical } from 'react-icons/hi';
+import { useSession } from 'next-auth/react';
 
 const REGION_NAME = {
    all: null,
@@ -83,12 +84,14 @@ const MapSection = () => {
    const isMapScriptLoaded = useMapStore(state => state.isMapScriptLoaded);
    const isInitialFetchDone = useRef(false);
    const openpanel = panelstore(state => state.openpanel);
+   const { data: session } = useSession();
 
    const { weather, fetchWeather } = useWeather();
    const { airQuality, fetchAirQuality } = useAirQuality();
    const { weeklyWeather, fetchWeeklyWeather } = useWeeklyWeather();
    const [showWeeklyModal, setShowWeeklyModal] = useState(false);
    const [selectedRegion, setSelectedRegion] = useState<keyof typeof REGION_NAME | null>(null);
+   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
    const [currentPosition, setCurrentPosition] = useState<{
       lat: number;
       lng: number;
@@ -161,7 +164,6 @@ const MapSection = () => {
       if (!map || !isMapScriptLoaded) return;
 
       async function loadMarkers() {
-         if (!map || !isMapScriptLoaded) return;
          try {
             // 기존 마커 모두 제거
             markersRef.current.forEach(marker => marker.setMap(null));
@@ -172,6 +174,10 @@ const MapSection = () => {
                console.log('필터 해제 - 마커 미표시');
                return;
             }
+
+            // ⭐️ 현재 사용자 정보 가져오기 (NextAuth 세션 사용)
+            const userId = session?.user?.id;
+            console.log('[loadMarkers] 사용자 ID:', userId);
 
             //supabase에서 이벤트 가져오기
             let query = supabase.from('events').select('*');
@@ -186,20 +192,85 @@ const MapSection = () => {
 
             const { data: events, error } = await query;
 
-            if (error || !events || events.length === 0) return;
+            if (error) {
+               console.error('❌ [loadMarkers] 이벤트 로드 실패:', error);
+               return;
+            }
 
-            // 마커 생성 (배치 처리로 성능 개선)
-            const validEvents = events.filter(
-               (event: { latitude?: number; longitude?: number }) => event.latitude && event.longitude,
-            );
+            if (!events) {
+               console.warn('⚠️ [loadMarkers] events가 null');
+               return;
+            }
 
-            validEvents.forEach((event: { latitude: number; longitude: number; title?: string; id?: number }) => {
+            if (events.length === 0) {
+               console.log(`ℹ️ [loadMarkers] 이벤트 없음 (지역: ${selectedRegion})`);
+               return;
+            }
+
+            console.log(`✅ [loadMarkers] ${events.length}개 이벤트 로드`);
+            console.log('[loadMarkers] 첫 번째 이벤트:', events[0]);
+
+            // 사용자 좋아요 목록 가져오기
+            let likedEventIds: Set<number> = new Set();
+            if (userId) {
+               console.log('[loadMarkers] 현재 사용자 ID:', userId);
+               const { data: likedEvents, error: likedError } = await supabase
+                  .from('liked_events')
+                  .select('event_id')
+                  .eq('user_id', userId);
+
+               console.log('[loadMarkers] liked_events 쿼리 결과:', { likedEvents, error: likedError });
+
+               if (likedEvents && likedEvents.length > 0) {
+                  likedEventIds = new Set(likedEvents?.map(like => Number(like.event_id)) ?? []);
+                  console.log('[loadMarkers] ✅ 좋아요한 이벤트 ID들:', Array.from(likedEventIds));
+               } else {
+                  console.log('[loadMarkers] ⚠️ 좋아요한 이벤트가 없거나 에러 발생');
+               }
+            } else {
+               console.log('[loadMarkers] ⚠️ 로그인된 사용자 없음');
+            }
+
+            console.log(`✅ [loadMarkers] ${events.length}개 이벤트 로드`);
+
+            // 마커 생성
+            let markerCount = 0;
+            events.forEach((event: any) => {
+               if (!event.latitude || !event.longitude) {
+                  console.warn('[loadMarkers] 좌표 없음:', event.title);
+                  return;
+               }
+
+               let iconUrl = '/marker/normal.png';
+
+               // 좋아요 여부 확인
+               const eventIdNum = Number(event.id);
+               const isLiked = likedEventIds.has(eventIdNum);
+
+               console.log(
+                  `[마커 생성] 이벤트 ID: ${event.id} (타입: ${typeof event.id}), Number변환: ${eventIdNum}, isLiked: ${isLiked}, 좋아요목록:`,
+                  Array.from(likedEventIds),
+               );
+
+               // 선택된 이벤트인 경우
+               if (selectedEventId === event.id) {
+                  iconUrl = '/marker/select.png';
+                  console.log(`[마커 아이콘] ${event.title} -> select.png (선택됨)`);
+               }
+               // 좋아요한 이벤트인 경우
+               else if (isLiked) {
+                  iconUrl = '/marker/like.png';
+                  console.log(`[마커 아이콘] ${event.title} -> like.png (좋아요)`);
+               } else {
+                  console.log(`[마커 아이콘] ${event.title} -> normal.png (일반)`);
+               }
+
                const marker = new naver.maps.Marker({
                   position: new naver.maps.LatLng(event.latitude, event.longitude),
                   map: map,
                   title: event.title || '이벤트',
                   icon: {
-                     url: '/marker/normal.png',
+                     url: iconUrl,
                      scaledSize: new naver.maps.Size(12, 16),
                      anchor: new naver.maps.Point(6, 16),
                   },
@@ -207,21 +278,22 @@ const MapSection = () => {
 
                // 마커 클릭 이벤트
                naver.maps.Event.addListener(marker, 'click', () => {
-                  console.log('클릭된 이벤트:', event.title, event.id);
-                  //todo eventpanel 열기
+                  console.log('[마커 클릭]', event.title, event.id);
+                  setSelectedEventId(event.id ?? null);
                });
+
                markersRef.current.push(marker);
+               markerCount++;
             });
 
-            console.log(`✅ 마커 ${markersRef.current.length}개 표시 완료`);
+            console.log(`✅ [loadMarkers] ${markerCount}개 마커 생성 완료`);
          } catch (error) {
-            console.error('마커 표시 중 오류:', error);
+            console.error('❌ [loadMarkers] 예외 발생:', error);
          }
       }
 
       loadMarkers();
-   }, [map, isMapScriptLoaded, selectedRegion]);
-
+   }, [map, isMapScriptLoaded, selectedRegion, selectedEventId, session]);
    useEffect(() => {
       if (!map || !isMapScriptLoaded) {
          console.log('[MapSection UI] 지도 인스턴스 또는 스크립트 로드 대기 중.');
