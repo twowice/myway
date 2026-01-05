@@ -41,6 +41,133 @@ export async function createParty(
   return response.json();
 }
 
+export type UpdatePartyPayload = {
+  id: string;
+  partyName?: string;
+  description?: string;
+  max_members?: string | number;
+  label1?: string;
+  label2?: string;
+  label3?: string;
+  eventId?: number;
+  date?: string;
+  time?: string;
+  location?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
+};
+
+export async function updateParty(
+  payload: UpdatePartyPayload
+): Promise<{ success: boolean }> {
+  const response = await fetch("/api/party", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 수정 실패");
+  }
+
+  return response.json();
+}
+
+export async function deleteParty(
+  partyId: string
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `/api/party?id=${encodeURIComponent(partyId)}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 삭제 실패");
+  }
+
+  return response.json();
+}
+
+export async function applyParty(
+  partyId: string
+): Promise<{ success: boolean }> {
+  const response = await fetch("/api/party/applications", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ partyId }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 신청 실패");
+  }
+
+  return response.json();
+}
+
+export async function withdrawParty(
+  partyId: string
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `/api/party/applications?partyId=${encodeURIComponent(partyId)}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "파티 철회 실패");
+  }
+
+  return response.json();
+}
+
+export async function fetchPartyApplicationStatus(
+  partyId: string
+): Promise<{ applied: boolean }> {
+  const response = await fetch(
+    `/api/party/applications?partyId=${encodeURIComponent(partyId)}`
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "신청 상태 조회 실패");
+  }
+
+  return response.json();
+}
+
+export async function fetchLikedParties(): Promise<{ partyIds: number[] }> {
+  const response = await fetch("/api/party/liked");
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "좋아요 목록 조회 실패");
+  }
+
+  return response.json();
+}
+
+export async function togglePartyLike(
+  partyId: string
+): Promise<{ liked: boolean }> {
+  const response = await fetch(`/api/party/liked/${partyId}`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "좋아요 처리 실패");
+  }
+
+  return response.json();
+}
+
 export async function fetchParties(
   params: FetchPartiesParams = {}
 ): Promise<FetchPartiesResponse> {
