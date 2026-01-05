@@ -6,6 +6,7 @@ import { EventTitle } from '@/feature/event/EventTitle';
 import { FilterHeader } from '@/feature/event/FilterHeader';
 import { EventCard } from '@/feature/event/EventCard';
 import { EmptyIcon } from '@/components/status/EmptyIcon';
+import EventPanel from '@/components/header/panels/eventpanel';
 
 /* ===========================
    Interface
@@ -33,6 +34,7 @@ export default function Page() {
     const [total, setTotal] = useState(0); // 이벤트 개수
     const loadMoreRef = useRef<HTMLDivElement | null>(null); // 하단 화면 감시용 sentinel
     const isFetchingRef = useRef(false); // 리엑트 state가 아닌 즉시 반영되는 플래그 [Observer 중복 트리거 방지 & fetch 중복 호출 차단]
+    const [isPanel, setIsPanel] = useState(true); // 패널 상태 (True면 패널 False면 페이지)
 
     /* 필터링 */
     const [keyword, setKeyword] = useState(""); // 입력 검색
@@ -54,14 +56,14 @@ export default function Page() {
         setLoading(true);
 
         try {
-             const res = await fetch(
+            const res = await fetch(
                 `/api/events?limit=12&offset=${currentOffset}` +
                 `&category=${encodeURIComponent(category)}` +
                 `&region=${encodeURIComponent(region)}` +
                 `&month=${encodeURIComponent(month)}` +
                 `&keyword=${encodeURIComponent(keyword)}`,
                 { cache: 'no-store' } // 항상 최신 데이터
-        );
+            );
 
             if (!res.ok) throw new Error("❌ Event API Request Fail")
 
@@ -69,7 +71,7 @@ export default function Page() {
             const list = json.data ?? [];
 
             setTotal(json.pagination.total);
-            
+
             // 데이터 매핑
             const mapped: EventItem[] = list.map((item: any) => {
                 const addressRegion = item.address?.split(" ") ?? [];
@@ -78,7 +80,7 @@ export default function Page() {
                     title: item.title, // 제목
                     startDate: item.start_date, // 행사 시작일
                     endDate: item.end_date, // 행사 종료일
-                    region: 
+                    region:
                         addressRegion.length >= 2
                             ? `${addressRegion[0]} ${addressRegion[1]}`
                             : addressRegion[0] ?? "", // 주소(XX시 XX구)
@@ -92,7 +94,7 @@ export default function Page() {
                 const merged = [...prev, ...mapped];
                 return Array.from(new Map(merged.map(e => [e.id, e])).values());
             });
-            
+
             // 이번 페이지가 12개면 다음페이지 존재
             setHasMore(
                 json.pagination?.hasMore ?? mapped.length === 12
@@ -134,25 +136,25 @@ export default function Page() {
 
         observer.observe(loadMoreRef.current);
         return () => observer.disconnect();
-    }, [hasMore, loading, setOffset]);
+    }, [hasMore, loading, setOffset, isPanel]);
 
-    /* ===========================
-       Render
-    =========================== */
-    return (
-        <div className="
-            pt-[70px] 
+
+    const content = (
+        <div className={`
             w-full 
             justify-center
-
-            px-[16px]
-            sm:px-[32px]
-            lg:px-[80px]
-            xl:px-[100px]
-        ">
+            
+            ${isPanel ? 'px-[16px]' : `
+                pt-[70px]
+                px-[16px]
+                sm:px-[32px]
+                lg:px-[80px]
+                xl:px-[100px]
+            `}
+        `}>
             <div className="flex flex-col space-y-[22px]">
                 <>
-                    <EventTitle count={total} />
+                    <EventTitle count={total} isPanel={isPanel} onToggle={() => setIsPanel(prev => !prev)} />
                     <FilterHeader 
                         onSearch={setKeyword}
                         category={category}
@@ -169,15 +171,14 @@ export default function Page() {
 
                     {/* 데이터 리스트 */}
                     {events.length > 0 && (
-                        <div className="
-                            grid 
-                            grid-cols-1
-                            sm:grid-cols-2
-                            lg:grid-cols-3
-                            xl:grid-cols-4
-                            gap-x-[16px]
-                            gap-y-[16px]
-                            "
+                        <div className={`
+                                grid
+                                gap-x-[16px]
+                                gap-y-[16px]
+                                ${isPanel
+                                ? 'grid-cols-1'
+                                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}
+                            `}
                         >
                             {events.map((item, idx) => (
                                 <Link
@@ -204,5 +205,10 @@ export default function Page() {
                 </>
             </div>
         </div>
-    )
+    );
+
+    /* ===========================
+       Render
+    =========================== */
+    return isPanel ? <EventPanel>{content}</EventPanel> : content;
 }
