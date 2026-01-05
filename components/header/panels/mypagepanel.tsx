@@ -4,6 +4,7 @@ import { panelstore } from "@/stores/panelstore";
 import SlidePanel from "../slidepanel";
 import Tab from "@/components/ui/tab";
 import { MyProfileBody } from "@/feature/mypage/MyprofileBody";
+import { MyPartyBody } from "@/feature/mypage/MyPartyBody";
 
 export default function MypagePanel() {
   const { openpanel, setopenpanel } = panelstore();
@@ -17,7 +18,7 @@ export default function MypagePanel() {
     {
       value: "party",
       label: "내 파티 활동",
-      content: <div className="text-sm text-foreground/70">내 파티 활동</div>,
+      content: <MyPartyBody />,
     },
     {
       value: "liked",
