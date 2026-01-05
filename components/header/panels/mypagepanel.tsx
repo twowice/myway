@@ -5,6 +5,7 @@ import SlidePanel from "../slidepanel";
 import Tab from "@/components/ui/tab";
 import { MyProfileBody } from "@/feature/mypage/MyprofileBody";
 import { MyPartyBody } from "@/feature/mypage/MyPartyBody";
+import { MyLikeBody } from "@/feature/mypage/MyLikeBody";
 
 export default function MypagePanel() {
   const { openpanel, setopenpanel } = panelstore();
@@ -23,7 +24,7 @@ export default function MypagePanel() {
     {
       value: "liked",
       label: "좋아요",
-      content: <div className="text-sm text-foreground/70">좋아요 목록</div>,
+      content: <MyLikeBody />,
     },
   ];
 

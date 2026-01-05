@@ -4,6 +4,7 @@ import { PartyRow } from "@/components/partyrow/PartyRow";
 import { ComboboxComponent } from "@/components/basic/combo";
 import { PartyDetailPopup } from "@/feature/party/partyDetailPopup";
 import { fetchMyParties } from "@/lib/mypage/party";
+import { fetchLikedParties, togglePartyLike } from "@/lib/party/party";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -32,6 +33,7 @@ export const MyPartyBody = () => {
   const [partyList, setPartyList] = useState<PartyItem[]>([]);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [loading, setLoading] = useState(false);
+  const [likedPartyIds, setLikedPartyIds] = useState<Set<string>>(new Set());
   const [selectedParty, setSelectedParty] = useState<PartyItem | null>(null);
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
 
@@ -114,6 +116,43 @@ export const MyPartyBody = () => {
     void loadMyParties();
   }, [loadMyParties]);
 
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setLikedPartyIds(new Set());
+      return;
+    }
+
+    const loadLikedParties = async () => {
+      try {
+        const response = await fetchLikedParties();
+        setLikedPartyIds(new Set(response.partyIds.map(String)));
+      } catch (error) {
+        console.error("좋아요 목록 조회 실패:", error);
+        setLikedPartyIds(new Set());
+      }
+    };
+
+    void loadLikedParties();
+  }, [session?.user?.id]);
+
+  const handleToggleLike = async (partyId: string) => {
+    if (!session?.user?.id) return;
+    try {
+      const result = await togglePartyLike(partyId);
+      setLikedPartyIds((prev) => {
+        const next = new Set(prev);
+        if (result.liked) {
+          next.add(partyId);
+        } else {
+          next.delete(partyId);
+        }
+        return next;
+      });
+    } catch (error) {
+      console.error("파티 좋아요 처리 실패:", error);
+    }
+  };
+
   const filteredParties = useMemo(() => {
     if (categoryFilter === "all") return partyList;
     return partyList.filter((party) => party.eventCategory === categoryFilter);
@@ -175,10 +214,14 @@ export const MyPartyBody = () => {
                     current_members={party.current_members}
                     max_members={party.max_members}
                     isSelected={isSelected}
+                    liked={likedPartyIds.has(party.id)}
+                    onToggleLike={handleToggleLike}
                   />
                 </div>
               }
               currentUserId={session.user.id}
+              liked={likedPartyIds.has(party.id)}
+              onToggleLike={handleToggleLike}
               onClose={() => {
                 setSelectedParty(null);
                 setSelectedPartyId(null);
