@@ -101,6 +101,7 @@ const MapSection = () => {
    const [showMoreRegions, setShowMoreRegions] = useState(false);
    const [visibleButtonCount, setVisibleButtonCount] = useState(REGION_BUTTONS.length);
    const [panelOffset, setPanelOffset] = useState(0);
+   const panelOffsetRef = useRef(0);
 
    const lastPanelOpenRef = useRef<boolean>(!!openpanel);
    const isMapInitializedRef = useRef(false);
@@ -363,9 +364,11 @@ const MapSection = () => {
       setTimeout(() => {
          const openPanelEl = document.querySelector('[data-panel-root="true"][data-panel-open="true"]') as HTMLElement;
          const panelWidth = openPanelEl?.getBoundingClientRect().width ?? 0;
-         const prevPanelWidth = panelOffset;
+         const prevPanelWidth = panelOffsetRef.current;
 
-         setPanelOffset(isPanelOpen ? panelWidth : 0);
+         const nextOffset = isPanelOpen ? panelWidth : 0;
+         setPanelOffset(nextOffset);
+         panelOffsetRef.current = nextOffset;
 
          // 패널 변화량 계산
          const panelDelta = isPanelOpen ? panelWidth : -prevPanelWidth;
@@ -377,7 +380,7 @@ const MapSection = () => {
          }
       }, 100);
       lastPanelOpenRef.current = isPanelOpen;
-   }, [map, isMapScriptLoaded, openpanel, panelOffset]);
+   }, [map, isMapScriptLoaded, openpanel]);
 
    useEffect(() => {
       const calculateVisibleButtons = () => {
