@@ -138,10 +138,10 @@ const MapSection = () => {
          console.log(`[moveMapTo] ✅ 중심 (${targetLat}, ${targetLng}) 설정 완료`);
 
          // 3. 패널 오프셋 적용
-         const openPanelEl = document.querySelector('[data-panel-root="true"][data-panel-open="true"]');
-         const currentPanelOffset = openPanelEl?.getBoundingClientRect().width ?? 0;
+         setTimeout(() => {
+            const openPanelEl = document.querySelector('[data-panel-root="true"][data-panel-open="true"]');
+            const currentPanelOffset = openPanelEl?.getBoundingClientRect().width ?? 0;
 
-         if (currentPanelOffset > 0) {
             const screenWidth = window.innerWidth;
             const visibleWidth = screenWidth - currentPanelOffset;
             const visibleCenterX = currentPanelOffset + visibleWidth / 2;
@@ -150,14 +150,10 @@ const MapSection = () => {
 
             console.log(`[moveMapTo] ✅ panBy ${pixelShift}px 실행 (패널=${currentPanelOffset}px)`);
 
-            setTimeout(() => {
-               if (map && map.panBy) {
-                  map.panBy(pixelShift, 0);
-               }
-            }, 50);
-         } else {
-            console.log(`[moveMapTo] ℹ️ 패널 없음 - panBy 건너뜀`);
-         }
+            if (map && map.panBy) {
+               map.panBy(pixelShift, 0);
+            }
+         }, 50);
       },
       [map],
    );
@@ -367,20 +363,21 @@ const MapSection = () => {
       setTimeout(() => {
          const openPanelEl = document.querySelector('[data-panel-root="true"][data-panel-open="true"]') as HTMLElement;
          const panelWidth = openPanelEl?.getBoundingClientRect().width ?? 0;
+         const prevPanelWidth = panelOffset;
 
          setPanelOffset(isPanelOpen ? panelWidth : 0);
 
-         if (isPanelOpen) {
-            // 패널 열림 -> 지도를 오른쪽 빈 공간으로 이동 (카메라는 왼쪽으로)
-            if (map.panBy) map.panBy(new naver.maps.Point(-panelWidth / 2, 0));
-         } else {
-            // 패널 닫힘 -> 원래대로 복귀 (오른쪽으로)
-            // 닫힐 때는 이전 오프셋 값을 사용하여 복귀하거나 0으로 간주
-            if (map.panBy && panelOffset > 0) map.panBy(new naver.maps.Point(panelOffset / 2, 0));
+         // 패널 변화량 계산
+         const panelDelta = isPanelOpen ? panelWidth : -prevPanelWidth;
+
+         // 패널이 열리거나 닫힐 때, 가시영역의 중심이 유지되도록 조정
+         // 패널 너비의 절반만큼 반대 방향으로 이동
+         if (map.panBy && panelDelta !== 0) {
+            map.panBy(new naver.maps.Point(-panelDelta / 2, 0));
          }
       }, 100);
       lastPanelOpenRef.current = isPanelOpen;
-   }, [map, isMapScriptLoaded, openpanel]);
+   }, [map, isMapScriptLoaded, openpanel, panelOffset]);
 
    useEffect(() => {
       const calculateVisibleButtons = () => {
@@ -432,7 +429,7 @@ const MapSection = () => {
    useEffect(() => {
       if (!currentPosition) return;
 
-      // ⭐️ 추가된 로직: 현재 좌표가 초기 좌표(전체/초기화 위치)와 거의 일치하는지 확인
+      // ⭐️ 현재 좌표가 초기 좌표(전체/초기화 위치)와 거의 일치하는지 확인
       // 부동 소수점 오차를 고려하여 약간의 차이는 허용 (Math.abs < 0.001)
       const isInitialPosition =
          Math.abs(currentPosition.lat - INITIAL_CONFIG.lat) < 0.001 &&
