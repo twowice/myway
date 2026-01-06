@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 /* ===========================
     Event Card Skeleton
 =========================== */
-function EventCardSkeleton({ isPanel }: { isPanel: boolean }) {
+export function EventCardSkeleton({ isPanel }: { isPanel: boolean }) {
   return (
     <div className="rounded-xl overflow-hidden border bg-white">
       <Skeleton className={isPanel ? "h-[260px] w-full" : "h-[180px] w-full"} />
@@ -25,8 +25,11 @@ interface EventSkeletonGridProps {
   isPanel?: boolean;
 }
 
-export function EventSkeletonGrid({ count, isPanel = false }: EventSkeletonGridProps) {
-  const finalCount = isPanel ? 1 : (count ?? 8);
+export function EventSkeletonGrid({
+  count,
+  isPanel = false,
+}: EventSkeletonGridProps) {
+  const finalCount = isPanel ? 1 : count ?? 8;
 
   return (
     <div

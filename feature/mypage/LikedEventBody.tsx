@@ -11,8 +11,8 @@ import {
 import { useSession } from "next-auth/react";
 import { ComboboxComponent } from "@/components/basic/combo";
 import { EventCard } from "@/feature/event/EventCard";
-import { EventSkeletonGrid } from "@/feature/event/EventSkeletonGrid";
 import { fetchLikedEventIds, fetchLikedEvents } from "@/lib/mypage/event";
+import { EventCardSkeleton } from "../event/EventSkeletonGrid";
 
 interface EventItem {
   id: number;
@@ -153,7 +153,13 @@ export const LikedEventBody = () => {
   }
 
   if (loading) {
-    return <EventSkeletonGrid count={12} />;
+    return (
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 4 }).map((_, idx: number) => (
+          <EventCardSkeleton key={idx} isPanel={true} />
+        ))}
+      </div>
+    );
   }
 
   const filteredEvents =
@@ -162,7 +168,10 @@ export const LikedEventBody = () => {
       : events.filter((event) => event.eventCategory === categoryFilter);
 
   return (
-    <div className="flex flex-col gap-2" onClickCapture={handleCardClickCapture}>
+    <div
+      className="flex flex-col gap-2"
+      onClickCapture={handleCardClickCapture}
+    >
       <div className="flex items-center justify-between">
         <p className="text-sm text-foreground/70">이벤트 카테고리</p>
         <ComboboxComponent
