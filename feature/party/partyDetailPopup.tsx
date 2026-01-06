@@ -48,6 +48,8 @@ type PartyDetailPopupProps = {
    liked?: boolean;
    onToggleLike?: (partyId: string) => void;
    position?: 'center' | 'top-left' | 'top-right';
+   preventOutsideClose?: boolean;
+   allowOutsideInteraction?: boolean;
 };
 
 export const PartyDetailPopup = ({
@@ -62,6 +64,8 @@ export const PartyDetailPopup = ({
    liked = false,
    onToggleLike,
    position = 'top-left',
+   preventOutsideClose = false,
+   allowOutsideInteraction = false,
 }: PartyDetailPopupProps) => {
    const { showToast } = useToast();
    const [isEditMode, setIsEditMode] = useState(false);
@@ -495,6 +499,8 @@ export const PartyDetailPopup = ({
          className="w-150 h-[calc(100vh-40px)]"
          hideOverlay={true}
          position={position}
+         preventOutsideClose={preventOutsideClose}
+         allowOutsideInteraction={allowOutsideInteraction}
          closeOnLeft={!isEditMode}
          closeOnRight={!isEditMode}
          onOpenChange={open => {

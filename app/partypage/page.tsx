@@ -216,6 +216,7 @@ export default function Party() {
                 </Button>
               }
               onSave={handleCreate}
+              allowOutsideInteraction={true}
             />
           </div>
           <SearchBar
@@ -287,6 +288,8 @@ export default function Party() {
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onClose={handleDetailClose}
+                  preventOutsideClose={true}
+                  allowOutsideInteraction={true}
                 />
               );
             })

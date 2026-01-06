@@ -29,12 +29,14 @@ type PartyCreatePopupProps = {
   trigger: React.ReactNode;
   onSave: (data: PartyCreate) => void;
   initialData?: Partial<PartyCreate>;
+  allowOutsideInteraction?: boolean;
 };
 
 export const PartyCreatePopup = ({
   trigger,
   onSave,
   initialData,
+  allowOutsideInteraction = false,
 }: PartyCreatePopupProps) => {
   const [create, setCreate] = useState<PartyCreate>({
     partyName: "",
@@ -321,6 +323,7 @@ export const PartyCreatePopup = ({
       hideOverlay={true}
       position="top-left"
       preventOutsideClose={true}
+      allowOutsideInteraction={allowOutsideInteraction}
       open={isOpen}
       onOpenChange={(open) => {
         setIsOpen(open);
