@@ -185,6 +185,12 @@ export const RouteSearchBody = ({}: {}) => {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      clearRoutePolylines();
+    };
+  }, []);
+
   const search = async () => {
     if (places.length < 2) {
       alert("출발지와 목적지를 모두 선택해주세요.");
