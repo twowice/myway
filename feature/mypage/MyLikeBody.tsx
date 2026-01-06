@@ -1,6 +1,8 @@
 "use client";
 
 import { Segment } from "@/components/tabs/segment/segment";
+import { LikedEventBody } from "@/feature/mypage/LikedEventBody";
+import { LikedPartyBody } from "@/feature/mypage/LikedPartyBody";
 
 export const MyLikeBody = () => {
   return (
@@ -9,20 +11,12 @@ export const MyLikeBody = () => {
         {
           value: "event",
           title: "이벤트",
-          content: (
-            <div className="text-sm text-foreground/70">
-              좋아요한 이벤트
-            </div>
-          ),
+          content: <LikedEventBody />,
         },
         {
           value: "party",
           title: "파티",
-          content: (
-            <div className="text-sm text-foreground/70">
-              좋아요한 파티
-            </div>
-          ),
+          content: <LikedPartyBody />,
         },
       ]}
     />

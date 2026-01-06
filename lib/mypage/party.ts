@@ -18,3 +18,17 @@ export async function fetchMyParties(): Promise<MyPartyResponse> {
 
   return response.json();
 }
+
+export async function fetchLikedMyParties(): Promise<MyPartyResponse> {
+  const response = await fetch("/api/mypage/liked-parties");
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      return { success: true, data: [] };
+    }
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "좋아요 파티 목록 조회 실패");
+  }
+
+  return response.json();
+}
