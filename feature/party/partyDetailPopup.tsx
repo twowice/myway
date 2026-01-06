@@ -47,6 +47,9 @@ type PartyDetailPopupProps = {
    onClose?: () => void;
    liked?: boolean;
    onToggleLike?: (partyId: string) => void;
+   position?: 'center' | 'top-left' | 'top-right';
+   preventOutsideClose?: boolean;
+   allowOutsideInteraction?: boolean;
 };
 
 export const PartyDetailPopup = ({
@@ -60,6 +63,9 @@ export const PartyDetailPopup = ({
    currentUserId,
    liked = false,
    onToggleLike,
+   position = 'top-left',
+   preventOutsideClose = false,
+   allowOutsideInteraction = false,
 }: PartyDetailPopupProps) => {
    const { showToast } = useToast();
    const [isEditMode, setIsEditMode] = useState(false);
@@ -150,13 +156,25 @@ export const PartyDetailPopup = ({
    };
 
    const handleSaveEdit = async () => {
-      const partyName = editedParty.partyName?.trim();
-      const description = editedParty.description?.trim();
-      const maxMembers = Number(editedParty.max_members);
-      const eventId = editedParty.eventId;
-      const locationName = editedParty.location?.trim();
-      const date = editedParty.date;
-      const time = editedParty.time;
+      const pendingTag = tagInput.trim();
+      const updatedParty = { ...editedParty };
+      if (pendingTag) {
+         if (!updatedParty.label1) {
+            updatedParty.label1 = pendingTag;
+         } else if (!updatedParty.label2) {
+            updatedParty.label2 = pendingTag;
+         } else if (!updatedParty.label3) {
+            updatedParty.label3 = pendingTag;
+         }
+      }
+
+      const partyName = updatedParty.partyName?.trim();
+      const description = updatedParty.description?.trim();
+      const maxMembers = Number(updatedParty.max_members);
+      const eventId = updatedParty.eventId;
+      const locationName = updatedParty.location?.trim();
+      const date = updatedParty.date;
+      const time = updatedParty.time;
 
       if (!partyName) {
          showToast('파티명을 입력해주세요.');
@@ -185,19 +203,19 @@ export const PartyDetailPopup = ({
 
       try {
          await updateParty({
-            id: editedParty.id,
+            id: updatedParty.id,
             partyName,
             description,
             max_members: maxMembers,
-            label1: editedParty.label1,
-            label2: editedParty.label2,
-            label3: editedParty.label3,
+            label1: updatedParty.label1,
+            label2: updatedParty.label2,
+            label3: updatedParty.label3,
             eventId,
             date,
             time,
             location: locationName,
-            locationLatitude: editedParty.locationLatitude,
-            locationLongitude: editedParty.locationLongitude,
+            locationLatitude: updatedParty.locationLatitude,
+            locationLongitude: updatedParty.locationLongitude,
          });
       } catch (error) {
          console.error('파티 수정 실패:', error);
@@ -207,8 +225,10 @@ export const PartyDetailPopup = ({
          return;
       }
 
-      setCurrentParty(editedParty);
-      onEdit?.(editedParty);
+      setCurrentParty(updatedParty);
+      setEditedParty(updatedParty);
+      setTagInput('');
+      onEdit?.(updatedParty);
       setIsEditMode(false);
       showToast('파티 정보가 수정되었습니다.');
    };
@@ -415,7 +435,7 @@ export const PartyDetailPopup = ({
                      <Input
                         placeholder="태그 입력 후 Enter (최대 3개)"
                         value={tagInput}
-                        disabled={!!editedParty.label3}
+                        disabled={!!(editedParty.label1 && editedParty.label2 && editedParty.label3)}
                         onChange={e => setTagInput(e.target.value)}
                         onKeyDown={e => {
                            if (e.key === 'Enter') {
@@ -492,7 +512,9 @@ export const PartyDetailPopup = ({
          rightCallback={isEditMode ? handleSaveEdit : isApplied || isFull ? handleCancel : handleApply}
          className="w-150 h-[calc(100vh-40px)]"
          hideOverlay={true}
-         position="top-left"
+         position={position}
+         preventOutsideClose={preventOutsideClose}
+         allowOutsideInteraction={allowOutsideInteraction}
          closeOnLeft={!isEditMode}
          closeOnRight={!isEditMode}
          onOpenChange={open => {

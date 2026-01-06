@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
  * @property {boolean} [closeOnLeft] - 왼쪽 버튼 클릭 시 닫힘 여부
  * @property {boolean} [closeOnRight] - 오른쪽 버튼 클릭 시 닫힘 여부
  * @property {boolean} [preventOutsideClose] - 바깥 클릭 시 닫힘 방지 여부
+ * @property {boolean} [allowOutsideInteraction] - 바깥 상호작용 허용 여부
  */
 
 /**
@@ -61,6 +62,7 @@ export const TwoFunctionPopup = ({
   closeOnLeft = true,
   closeOnRight = true,
   preventOutsideClose = false,
+  allowOutsideInteraction = false,
 }: {
   className?: string;
   dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
@@ -77,6 +79,7 @@ export const TwoFunctionPopup = ({
   closeOnLeft?: boolean; // 편집모드일때는닫힘 방지
   closeOnRight?: boolean; // 편집모드일때는닫힘 방지
   preventOutsideClose?: boolean; // 바깥 클릭으로 닫힘 방지
+  allowOutsideInteraction?: boolean; // 바깥 상호작용 허용
   open?: boolean;
 }): React.ReactElement => {
   const [mounted, setMounted] = useState(false);
@@ -90,7 +93,7 @@ export const TwoFunctionPopup = ({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={!allowOutsideInteraction}>
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
       <DialogContent
         className={cn(

@@ -29,12 +29,14 @@ type PartyCreatePopupProps = {
   trigger: React.ReactNode;
   onSave: (data: PartyCreate) => void;
   initialData?: Partial<PartyCreate>;
+  allowOutsideInteraction?: boolean;
 };
 
 export const PartyCreatePopup = ({
   trigger,
   onSave,
   initialData,
+  allowOutsideInteraction = false,
 }: PartyCreatePopupProps) => {
   const [create, setCreate] = useState<PartyCreate>({
     partyName: "",
@@ -104,6 +106,18 @@ export const PartyCreatePopup = ({
   );
 
   const handleSave = async () => {
+    const pendingTag = tagInput.trim();
+    const createWithTag = { ...create };
+    if (pendingTag) {
+      if (!createWithTag.label1) {
+        createWithTag.label1 = pendingTag;
+      } else if (!createWithTag.label2) {
+        createWithTag.label2 = pendingTag;
+      } else if (!createWithTag.label3) {
+        createWithTag.label3 = pendingTag;
+      }
+    }
+
     if (!create.partyName.trim()) {
       alert("파티명을 입력해주세요.");
       return;
@@ -135,7 +149,7 @@ export const PartyCreatePopup = ({
     if (!isFormValid) return;
 
     try {
-      await createParty(create);
+      await createParty(createWithTag);
     } catch (error) {
       console.error("파티 생성 실패:", error);
       alert(
@@ -145,7 +159,7 @@ export const PartyCreatePopup = ({
       );
       return;
     }
-    onSave(create);
+    onSave(createWithTag);
     handleCancel();
     setIsOpen(false);
   };
@@ -274,7 +288,7 @@ export const PartyCreatePopup = ({
             }
           }}
           placeholder="태그 입력 후 Enter (최대 3개)"
-          disabled={!!create.label3}
+          disabled={!!(create.label1 && create.label2 && create.label3)}
         />
         <div className="flex gap-2 flex-wrap">
           {create.label1 && (
@@ -321,6 +335,7 @@ export const PartyCreatePopup = ({
       hideOverlay={true}
       position="top-left"
       preventOutsideClose={true}
+      allowOutsideInteraction={allowOutsideInteraction}
       open={isOpen}
       onOpenChange={(open) => {
         setIsOpen(open);
