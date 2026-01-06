@@ -42,14 +42,13 @@ export default function Page() {
     const isPanel = openpanel !== null; // 패널 상태
 
     /* 필터링 */
-    const [keyword, setKeyword] = useState('');
+    // const [keyword, setKeyword] = useState('');
+    const keyword = useEventFilterStore((state) => state.keyword);
+    const setKeyword = useEventFilterStore((state) => state.setKeyword);
     const [category, setCategory] = useState('A02');
-
     const region = useEventFilterStore((state) => state.region);
     const setRegion = useEventFilterStore((state) => state.setRegion);
-
     const [month, setMonth] = useState('all');
-
     const handleFilterChange = (filter: { category: string; region: string; month: string }) => {
         setCategory(filter.category);
         setRegion(filter.region);
@@ -153,6 +152,7 @@ export default function Page() {
                 <EventTitle count={total} />
 
                 <FilterHeader
+                    keyword={keyword}
                     onSearch={setKeyword}
                     category={category}
                     region={region}

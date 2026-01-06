@@ -14,6 +14,7 @@ import { BiTargetLock } from 'react-icons/bi';
 import { HiDotsVertical } from 'react-icons/hi';
 import { useEventFilterStore } from '@/stores/eventFilterStore';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const REGION_NAME = {
    all: null,
@@ -118,7 +119,9 @@ const MapSection = () => {
       [fetchWeather, fetchAirQuality], // fetchWeather, fetchAirQuality가 변경될 때마다 함수 재생성 (안정적)
    );
    const isListenerAddedRef = useRef(false);
-   const setRegionFilter = useEventFilterStore(state => state.setRegion); /* EDIT BY CKH 26.01.05 */
+   const setRegionFilter = useEventFilterStore(state => state.setRegion); /* ADD BY CKH 26.01.05 */
+   const setKeywordFilter = useEventFilterStore(state => state.setKeyword); /* ADD BY CKH 26.01.06 */
+   const router = useRouter(); /* ADD BY CKH 26.01.06 */
 
    const moveMapTo = useCallback(
       (targetLat: number, targetLng: number, targetZoom: number) => {
@@ -279,7 +282,9 @@ const MapSection = () => {
                naver.maps.Event.addListener(marker, 'click', () => {
                   console.log('[마커 클릭]', event.title, event.id);
                   setSelectedEventId(event.id ?? null);
-                  //todo eventpanel 열기 ckh
+                  //todo eventpanel 열기 
+                  setKeywordFilter(event.title ?? ''); // ADD BY CKH 26.01.06
+                  router.push('/eventpage'); // ADD BY CKH 26.01.06
                });
 
                markersRef.current.push(marker);
