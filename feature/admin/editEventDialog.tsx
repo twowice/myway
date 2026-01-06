@@ -218,9 +218,9 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       }
    };
 
-   const handleHostAdd = () => {
-      setHosts(prev => [...prev, '']);
-   };
+   // const handleHostAdd = () => {
+   //    setHosts(prev => [...prev, '']);
+   // };
 
    const handleHostChange = (index: number, value: string) => {
       const newHosts = [...hosts];
@@ -228,13 +228,13 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       setHosts(newHosts);
    };
 
-   const handleHostDelete = (index: number) => {
-      if (hosts.length <= 1) {
-         alert('주최사는 최소 1개 이상 입력해야합니다.');
-         return;
-      }
-      setHosts(prev => prev.filter((_, i) => i !== index));
-   };
+   // const handleHostDelete = (index: number) => {
+   //    if (hosts.length <= 1) {
+   //       alert('주최사는 최소 1개 이상 입력해야합니다.');
+   //       return;
+   //    }
+   //    setHosts(prev => prev.filter((_, i) => i !== index));
+   // };
 
    const handleAddressSearch = () => {
       setIsAddressSearchOpen(true);
@@ -339,22 +339,6 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
                                  className="flex-1 text-sm px-4 py-2 border rounded-md pr-20"
                                  placeholder={`이벤트 주최사 ${index + 1}을 입력해주세요.`}
                               />
-                              <div className="absolute inset-y-0 right-4 flex items-center gap-2">
-                                 {index === hosts.length - 1 && (
-                                    <button type="button" className="hover:opacity-70" onClick={handleHostAdd}>
-                                       <Icon24 name="plus" />
-                                    </button>
-                                 )}
-                                 {hosts.length > 1 && (
-                                    <button
-                                       type="button"
-                                       className="hover:opacity-70"
-                                       onClick={() => handleHostDelete(index)}
-                                    >
-                                       <Icon24 name="minus" />
-                                    </button>
-                                 )}
-                              </div>
                            </div>
                         ))}
                      </div>
@@ -402,42 +386,6 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
                            value={endDate}
                            onChange={e => setEndDate(e.target.value)}
                            className="flex-1 text-sm px-4 py-2 border rounded-md"
-                        />
-                     </div>
-                  </div>
-
-                  {/* 예약 접수 */}
-                  <div className="flex flex-col gap-2 w-full">
-                     <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold">예약 접수</label>
-                        <CheckboxComponent
-                           options={[{ value: 'reservation', label: '예약접수' }]}
-                           values={isReservationEnabled ? ['reservation'] : []}
-                           onValueChange={values => {
-                              const enabled = values.includes('reservation');
-                              setIsReservationEnabled(enabled);
-                              if (!enabled) {
-                                 setReservationStartDate('');
-                                 setReservationEndDate('');
-                              }
-                           }}
-                        />
-                     </div>
-                     <div className="flex gap-2 items-center">
-                        <input
-                           type="date"
-                           value={reservationStartDate}
-                           onChange={e => setReservationStartDate(e.target.value)}
-                           disabled={!isReservationEnabled}
-                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                        />
-                        <span>~</span>
-                        <input
-                           type="date"
-                           value={reservationEndDate}
-                           disabled={!isReservationEnabled}
-                           onChange={e => setReservationEndDate(e.target.value)}
-                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                         />
                      </div>
                   </div>

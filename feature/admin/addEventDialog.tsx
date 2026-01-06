@@ -162,9 +162,9 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
       }
    };
 
-   const handleHostAdd = () => {
-      setHosts(prev => [...prev, '']);
-   };
+   // const handleHostAdd = () => {
+   //    setHosts(prev => [...prev, '']);
+   // };
 
    const handleHostChange = (index: number, value: string) => {
       setHosts(prev => {
@@ -174,13 +174,13 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
       });
    };
 
-   const handleHostDelete = (index: number) => {
-      if (hosts.length <= 1) {
-         alert('주최사는 최소 1개 이상 입력해야합니다.');
-         return;
-      }
-      setHosts(prev => prev.filter((_, i) => i !== index));
-   };
+   // const handleHostDelete = (index: number) => {
+   //    if (hosts.length <= 1) {
+   //       alert('주최사는 최소 1개 이상 입력해야합니다.');
+   //       return;
+   //    }
+   //    setHosts(prev => prev.filter((_, i) => i !== index));
+   // };
 
    const handleAddressSearch = () => {
       setIsAddressSearchOpen(true);
@@ -263,22 +263,6 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
                                  className="flex-1 text-sm px-4 py-2 border rounded-md"
                                  placeholder={`이벤트 주최사 ${index + 1} 을 입력해주세요.`}
                               />
-                              <div className="absolute inset-y-0 right-4 flex items-center gap-2">
-                                 {index === hosts.length - 1 && (
-                                    <button type="button" className="hover:opacity-70" onClick={handleHostAdd}>
-                                       <Icon24 name="plus" className="rounded-2xl" />
-                                    </button>
-                                 )}
-                                 {hosts.length > 1 && (
-                                    <button
-                                       type="button"
-                                       className="hover:opacity-70"
-                                       onClick={() => handleHostDelete(index)}
-                                    >
-                                       <Icon24 name="minus" className="rounded-2xl" />
-                                    </button>
-                                 )}
-                              </div>
                            </div>
                         ))}
                      </div>
