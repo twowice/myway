@@ -47,6 +47,7 @@ type PartyDetailPopupProps = {
    onClose?: () => void;
    liked?: boolean;
    onToggleLike?: (partyId: string) => void;
+   position?: 'center' | 'top-left' | 'top-right';
 };
 
 export const PartyDetailPopup = ({
@@ -60,6 +61,7 @@ export const PartyDetailPopup = ({
    currentUserId,
    liked = false,
    onToggleLike,
+   position = 'top-left',
 }: PartyDetailPopupProps) => {
    const { showToast } = useToast();
    const [isEditMode, setIsEditMode] = useState(false);
@@ -492,7 +494,7 @@ export const PartyDetailPopup = ({
          rightCallback={isEditMode ? handleSaveEdit : isApplied || isFull ? handleCancel : handleApply}
          className="w-150 h-[calc(100vh-40px)]"
          hideOverlay={true}
-         position="top-left"
+         position={position}
          closeOnLeft={!isEditMode}
          closeOnRight={!isEditMode}
          onOpenChange={open => {
