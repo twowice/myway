@@ -261,11 +261,10 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
                <div className="flex flex-col gap-2 w-full">
                   <label className="text-sm font-semibold">추가의견(선택)</label>
                   <textarea
-                     disabled={!isEditing}
-                     className="flex-1 text-base px-2 py-2 bg-secondary rounded-md"
-                     value={additionalComment}
-                     onChange={e => setAdditionalComment(e.target.value)}
-                     placeholder="추가 의견을 입력하세요."
+                     disabled
+                     readOnly
+                     className="flex-1 text-base px-2 py-2 bg-secondary rounded-md whitespace-pre-wrap"
+                     value={additionalComment || '-'}
                   />
                </div>
             </div>
