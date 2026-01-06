@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { panelstore } from "@/stores/panelstore";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/contexts/ToastContext";
+import WithdrawButton from "@/feature/login/withdrawbutton";
 
 export const MyProfileBody = () => {
   const { data: session, update } = useSession();
@@ -130,6 +131,7 @@ export const MyProfileBody = () => {
       <Button variant={"secondary"} onClick={handleSave}>
         저장
       </Button>
+      <WithdrawButton />
     </div>
   );
 };
