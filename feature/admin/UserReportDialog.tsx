@@ -14,10 +14,12 @@ interface UserReportDialogProps {
 
 export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }: UserReportDialogProps) {
    const reportCategoryLabels: Record<string, string> = {
-      inappropriate_language: '부정적인 언어',
-      spamming: '도배',
-      advertisement: '광고',
-      fraud: '사기',
+      cult_activity: '사이비 포교 활동',
+      unauthorized_commercial: '미허가 영리활동',
+      inappropriate_language: '부적절한 언어',
+      impersonation: '사칭 목적 파티',
+      illegal_activity: '불법 행위',
+      advertisementetc: '광고',
       etc: '기타',
    };
 
@@ -45,11 +47,25 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
       return parsed.toISOString();
    };
 
+   const formatPartyDissolutionDate = (date: string | undefined) => {
+      if (!date) return '-';
+      const parsed = new Date(date);
+      if (Number.isNaN(parsed.getTime())) return '-';
+      return parsed.toLocaleString('ko-KR', {
+         year: 'numeric',
+         month: '2-digit',
+         day: '2-digit',
+         hour: '2-digit',
+         minute: '2-digit',
+         hour12: false,
+      });
+   };
+
    const [sanctionType, setSanctionType] = useState(reportData.sanction_type || sanctionOptions[0].value);
    const [additionalComment, setAdditionalComment] = useState(reportData.add_opinion || '');
    const [sanctionPeriod, setSanctionPeriod] = useState(reportData.sanction_period || '');
    const [partyDissolutionDate, setPartyDissolutionDate] = useState(
-      normalizePartyDissolutionDate((reportData as PartyReportData).party_dissolution_date)
+      normalizePartyDissolutionDate((reportData as PartyReportData).party_dissolution_date),
    );
 
    const [isEditing, setIsEditing] = useState(!reportData.is_processed);
@@ -222,7 +238,7 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
                      <input
                         type="text"
                         className="flex-1 text-base px-2 py-2 border rounded-md"
-                        value={partyDissolutionDate}
+                        value={formatPartyDissolutionDate(partyDissolutionDate)}
                         onChange={e => setPartyDissolutionDate(e.target.value)}
                         placeholder="예: 2026-01-05"
                      />
