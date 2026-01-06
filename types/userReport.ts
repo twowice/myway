@@ -104,5 +104,6 @@ export interface NoticeDisplayData {
    category: string;
    title: string;
    created_at: string;
+   updated_at: string;
    is_top_fixed: boolean;
 }

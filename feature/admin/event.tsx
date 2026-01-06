@@ -76,6 +76,13 @@ export default function Event() {
          setLoading(false);
       }
    };
+   const formatDateToYYYYMMDD = (dateString: string): string => {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+   };
 
    const convertToDisplayData = (event: EventData): EventDisplayData => {
       const today = new Date();
@@ -142,17 +149,26 @@ export default function Event() {
             // 기간
             .filter(event => {
                if (!startDate && !endDate) return true;
-               const eventStart = new Date(event.start_date);
-               const eventEnd = new Date(event.end_date);
-               const filterStart = startDate ? new Date(startDate) : null;
-               const filterEnd = endDate ? new Date(endDate) : null;
+               const eventStartStr = formatDateToYYYYMMDD(event.start_date);
+               const eventEndStr = formatDateToYYYYMMDD(event.end_date);
 
-               if (filterStart && filterEnd) {
-                  return eventEnd >= filterStart && eventStart <= filterEnd;
+               if (startDate && endDate) {
+                  // 시작일과 종료일 모두 입력된 경우
+                  // 필터 시작일이 이벤트 시작일 이후이고, 필터 종료일이 이벤트 종료일 이전이면 포함
+                  // (필터 기간이 이벤트 기간 안에 포함됨)
+                  return startDate >= eventStartStr && endDate <= eventEndStr;
                }
 
-               if (filterStart) return eventEnd >= filterStart;
-               if (filterEnd) return eventStart <= filterEnd;
+               if (startDate) {
+                  // 시작일만 입력된 경우: 필터 시작일이 이벤트 기간 안에 있으면 포함
+                  return startDate >= eventStartStr && startDate <= eventEndStr;
+               }
+
+               if (endDate) {
+                  // 종료일만 입력된 경우: 필터 종료일이 이벤트 기간 안에 있으면 포함
+                  return endDate >= eventStartStr && endDate <= eventEndStr;
+               }
+
                return true;
             })
             // display 데이터로 변환
