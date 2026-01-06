@@ -74,6 +74,7 @@ export interface EventData {
    updated_at?: string;
    event_images?: EventImage[];
    organizer?: string;
+   status?: string;
 }
 
 export interface EventDisplayData {
@@ -103,5 +104,6 @@ export interface NoticeDisplayData {
    category: string;
    title: string;
    created_at: string;
+   updated_at: string;
    is_top_fixed: boolean;
 }

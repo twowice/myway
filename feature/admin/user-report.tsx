@@ -18,8 +18,29 @@ export default function UserReport() {
    const [categoryFilter, setCategoryFilter] = useState('all');
    const [typeFilter, setTypeFilter] = useState('all');
    const [reportDate, setReportDate] = useState('');
-   const [sortFilter, setSortFilter] = useState('user_name');
+   const [sortFilter, setSortFilter] = useState('reported_user_name');
    const [searchText, setSearchText] = useState('');
+   const reportCategoryLabels: Record<string, string> = {
+      inappropriate_language: '부정적인 언어',
+      spamming: '도배',
+      advertisement: '광고',
+      fraud: '사기',
+      etc: '기타',
+   };
+   const reportCategoryValuesByLabel: Record<string, string> = Object.fromEntries(
+      Object.entries(reportCategoryLabels).map(([value, label]) => [label, value])
+   );
+
+   const normalizeReportCategory = (value?: string | null) => {
+      if (!value) return 'etc';
+      if (reportCategoryLabels[value]) return value;
+      return reportCategoryValuesByLabel[value] ?? value;
+   };
+
+   const getReportCategoryLabel = (value?: string | null) => {
+      const normalized = normalizeReportCategory(value);
+      return reportCategoryLabels[normalized] ?? value ?? '-';
+   };
 
    useEffect(() => {
       fetchReports();
@@ -35,7 +56,12 @@ export default function UserReport() {
 
          if (error) throw error;
 
-         setReports(data || []);
+         const normalized = (data ?? []).map((report) => ({
+            ...report,
+            reporter_name: report.reporter_name ?? report.reporter_user_name ?? '',
+            report_category: normalizeReportCategory(report.report_category ?? report.category),
+         }));
+         setReports(normalized);
       } catch (error) {
          console.error('신고 조회 실패:', error);
          alert('신고 목록을 불러오는데 실패하였습니다.');
@@ -49,7 +75,7 @@ export default function UserReport() {
          account_suspended_7days: '7일 계정정지',
          account_suspended_14days: '14일 계정정지',
          account_suspended_30days: '30일 계정정지',
-         account_suspended_permmanent: '영구 계정정지',
+         account_suspended_permanent: '영구 계정정지',
          undetermined: '미정',
       };
       return labels[type] || type;
@@ -142,11 +168,11 @@ export default function UserReport() {
                      <ComboboxComponent
                         options={[
                            { value: 'all', label: '전체' },
-                           { value: '부정적인 언어', label: '부정적인 언어' },
-                           { value: '도배', label: '도배' },
-                           { value: '광고', label: '광고' },
-                           { value: '사기', label: '사기' },
-                           { value: '기타', label: '기타' },
+                           { value: 'inappropriate_language', label: '부정적인 언어' },
+                           { value: 'spamming', label: '도배' },
+                           { value: 'advertisement', label: '광고' },
+                           { value: 'fraud', label: '사기' },
+                           { value: 'etc', label: '기타' },
                         ]}
                         className="w-full"
                         value={categoryFilter}
@@ -188,8 +214,7 @@ export default function UserReport() {
                   <div className="flex-1">
                      <ComboboxComponent
                         options={[
-                           { value: 'user_name', label: '사용자 명' },
-                           { value: 'phone_number', label: '전화번호' },
+                           { value: 'reported_user_name', label: '사용자 명' },
                            { value: 'reporter_name', label: '신고자 명' },
                         ]}
                         className="w-full"
@@ -279,18 +304,18 @@ export default function UserReport() {
                         render: value => (
                            <span
                               className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                                 value === '부정적인 언어'
+                                 value === 'inappropriate_language'
                                     ? 'bg-red-100 text-red-800'
-                                    : value === '도배'
+                                    : value === 'spamming'
                                       ? 'bg-orange-100 text-orange-800'
-                                      : value === '광고'
+                                      : value === 'advertisement'
                                         ? 'bg-yellow-100 text-yellow-800'
-                                        : value === '사기'
+                                        : value === 'fraud'
                                           ? 'bg-purple-100 text-purple-800'
                                           : 'bg-gray-100 text-gray-800'
                               }`}
                            >
-                              {value}
+                              {getReportCategoryLabel(value)}
                            </span>
                         ),
                      },

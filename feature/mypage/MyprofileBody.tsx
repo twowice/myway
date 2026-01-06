@@ -8,14 +8,19 @@ import {
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { panelstore } from "@/stores/panelstore";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/contexts/ToastContext";
+import WithdrawButton from "@/feature/login/withdrawbutton";
 
 export const MyProfileBody = () => {
   const { data: session, update } = useSession();
   const { openpanel } = panelstore();
+  const { showToast } = useToast();
   const [gender, setGender] = useState<string>("");
   const [initialGender, setInitialGender] = useState<string>("");
   const [profileImage, setProfileImage] = useState<string>("");
   const [isSavingGender, setIsSavingGender] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const uploadImage = async (file: File) => {
     try {
@@ -36,10 +41,7 @@ export const MyProfileBody = () => {
     let isMounted = true;
     const loadProfile = async () => {
       try {
-        const data = await fetchMyProfile(
-          session.user.id,
-          session.user.image
-        );
+        const data = await fetchMyProfile(session.user.id, session.user.image);
         if (!isMounted) return;
         setGender(data.gender);
         setInitialGender(data.gender);
@@ -55,30 +57,46 @@ export const MyProfileBody = () => {
     };
   }, [session?.user?.id, session?.user?.image]);
 
-  const handleImageChange = (_file: File, previewUrl: string) => {
+  const handleImageChange = (file: File, previewUrl: string) => {
     setProfileImage(previewUrl);
+    setSelectedFile(file);
   };
 
-  useEffect(() => {
+  const handleSave = async () => {
     if (!session?.user?.id) return;
-    if (openpanel === "mypage") return;
-    if (!initialGender || gender === initialGender) return;
     if (isSavingGender) return;
 
-    const saveGender = async () => {
-      try {
-        setIsSavingGender(true);
+    try {
+      setIsSavingGender(true);
+
+      const needsGenderUpdate = Boolean(gender && gender !== initialGender);
+      const needsImageUpdate = Boolean(selectedFile);
+      if (!needsGenderUpdate && !needsImageUpdate) {
+        showToast("변경된 내용이 없어.");
+        return;
+      }
+
+      if (gender && gender !== initialGender) {
         await updateMyGender(gender);
         setInitialGender(gender);
-      } catch (error) {
-        console.error("성별 저장 실패:", error);
-      } finally {
-        setIsSavingGender(false);
       }
-    };
 
-    void saveGender();
-  }, [gender, initialGender, isSavingGender, openpanel, session?.user?.id]);
+      if (selectedFile) {
+        const status = await uploadImage(selectedFile);
+        if (status >= 400) {
+          showToast("프로필 저장에 실패했습니다,");
+          return;
+        }
+        setSelectedFile(null);
+      }
+      showToast("프로필이 저장에 성공했습니다.");
+    } catch (error) {
+      console.error("프로필 저장 실패:", error);
+      showToast("프로필 저장에 실패했습니다.");
+    } finally {
+      setIsSavingGender(false);
+    }
+  };
 
   if (!session?.user?.id) {
     return (
@@ -96,11 +114,7 @@ export const MyProfileBody = () => {
       <p className="text-[20px]">내 프로필</p>
       <div className="flex gap-2 flex-col">
         <p>프로필 사진</p>
-        <PhotoEditable
-          imageUrl={profileImage}
-          uploadImage={uploadImage}
-          onChange={handleImageChange}
-        />
+        <PhotoEditable imageUrl={profileImage} onChange={handleImageChange} />
       </div>
       <div className="flex gap-2 flex-col">
         <p>성별</p>
@@ -114,6 +128,10 @@ export const MyProfileBody = () => {
           onValueChange={setGender}
         />
       </div>
+      <Button variant={"secondary"} onClick={handleSave}>
+        저장
+      </Button>
+      <WithdrawButton />
     </div>
   );
 };
