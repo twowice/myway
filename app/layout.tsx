@@ -6,16 +6,25 @@ import MapScriptLoader from '@/components/ui/Map/mapScriptLoader';
 import MapCanvas from '@/components/ui/Map/mapCanvars';
 
 import './globals.css';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { mainmenu } from '@/components/header/headermenu';
 import { panelstore } from '@/stores/panelstore';
 import AuthSessionProvider from '@/components/providers/sessionprovider';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { useEffect } from 'react';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const router = useRouter();
   const { openpanel } = panelstore();
+
+  // 루트 경로 리다이렉트 추가
+  useEffect(() => {
+     if (path === '/') {
+     router.push('/eventpage');
+     }
+  }, [path, router]);
 
   // 관리자
   if (path.startsWith('/admin')) {
