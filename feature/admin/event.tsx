@@ -201,6 +201,7 @@ export default function Event() {
             content_id: Date.now(),
             phone: formData.phone || '',
             insta_url: formData.insta_url || '',
+            status: formData.eventStatus || 'non_progress',
          };
          const { data: newEvent, error: eventError } = await supabase
             .from('events')
@@ -239,9 +240,10 @@ export default function Event() {
             // 로컬 업뎃
             setEvents(prev => [eventWithImages, ...prev]);
          } else {
-            setEvents(prev => [newEvent, ...prev]);
+            setEvents(prev => [{ ...newEvent, event_images: [] }, ...prev]);
          }
          setCurrentPage(1);
+         alert('이벤트가 등록되었습니다.');
       } catch (error) {
          console.error('이벤트 등록 실패:', error);
          alert('이벤트 등록에 실패했습니다.');
@@ -260,7 +262,6 @@ export default function Event() {
 
    const handleEditEvents = async (formData: any, originalEvent: EventData) => {
       try {
-         // 이벤트 데이터 업데이트
          const eventData: Partial<EventData> = {
             title: formData.eventName,
             start_date: formData.startDate,
@@ -271,21 +272,38 @@ export default function Event() {
             homepage: formData.eventHomepage,
             overview: formData.eventIntro,
             price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
-            organizer: formData.orgainzer || '',
+            organizer: formData.organizer || '',
             phone: formData.phone || '',
             insta_url: formData.insta_url || '',
+            status: formData.eventStatus || 'non_progress',
          };
 
          const { error: eventError } = await supabase.from('events').update(eventData).eq('id', originalEvent.id);
 
          if (eventError) throw eventError;
 
-         // 기존 이미지 삭제 (CASCADE로 자동 삭제됨)
-         if (formData.eventImages && formData.eventImages.length > 0) {
-            // 기존 이미지 삭제
-            await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
+         // 기존 이미지 URL 추출
+         const oldImageUrls = originalEvent.event_images?.map(img => img.image_url) || [];
 
-            // 새 이미지 삽입
+         // Storage에서 기존 이미지 삭제
+         if (oldImageUrls.length > 0) {
+            const filePaths = oldImageUrls
+               .map(url => {
+                  const urlParts = url.split('/event_images/');
+                  return urlParts[1];
+               })
+               .filter(path => path); // undefined 제거
+
+            if (filePaths.length > 0) {
+               await supabase.storage.from('event_images').remove(filePaths);
+            }
+         }
+
+         // DB에서 기존 이미지 레코드 삭제
+         await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
+
+         // 새 이미지 삽입
+         if (formData.eventImages && formData.eventImages.length > 0) {
             const imageData: Partial<EventImage>[] = formData.eventImages.map((url: string, index: number) => ({
                event_id: originalEvent.id,
                image_url: url,
@@ -295,12 +313,8 @@ export default function Event() {
             const { error: imageError } = await supabase.from('event_images').insert(imageData);
 
             if (imageError) throw imageError;
-         } else {
-            //이미지 없으면 기존 이미지 삭제
-            await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
          }
 
-         // 전체 목록 다시 조회
          fetchEvents();
          alert('이벤트가 수정되었습니다.');
       } catch (error) {
@@ -313,6 +327,27 @@ export default function Event() {
    const handleDeleteEvents = async (eventId: number) => {
       if (!confirm('정말 삭제하시겠습니까?')) return;
       try {
+         // 1. 먼저 이벤트의 이미지 URL들을 가져오기
+         const eventToDelete = events.find(e => e.id === eventId);
+         const imageUrls = eventToDelete?.event_images?.map(img => img.image_url) || [];
+
+         // 2. Storage에서 이미지 삭제
+         if (imageUrls.length > 0) {
+            const filePaths = imageUrls.map(url => {
+               // URL에서 파일 경로 추출
+               const urlParts = url.split('/event_images/');
+               return urlParts[1]; // 'events/파일명.jpg'
+            });
+
+            const { error: storageError } = await supabase.storage.from('event_images').remove(filePaths);
+
+            if (storageError) {
+               console.error('Storage 삭제 에러:', storageError);
+               // Storage 삭제 실패해도 DB는 삭제하도록 진행
+            }
+         }
+
+         // 3. DB에서 이벤트 삭제 (CASCADE로 event_images도 자동 삭제)
          const { error: eventError } = await supabase.from('events').delete().eq('id', eventId);
 
          if (eventError) throw eventError;
@@ -329,9 +364,9 @@ export default function Event() {
       } catch (error) {
          console.error('이벤트 삭제 실패:', error);
          alert('이벤트 삭제에 실패했습니다.');
-         throw error;
       }
    };
+
    const handleCloseEdit = () => {
       setIsEditOpen(false);
       setSelectedEvent(null);

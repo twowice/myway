@@ -6,6 +6,7 @@ import { TwoFunctionPopup } from '@/components/popup/twofunction';
 import { Button } from '@/components/ui/button/button';
 import { useEffect, useState } from 'react';
 import { AddressSearchDialog } from './addressSearchDialog';
+import { supabase } from '@/lib/clientSupabase';
 
 interface EditEventProps {
    event: any | null;
@@ -112,35 +113,44 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       setRoadAddress(eventData.address || '');
       setDetailAddress(eventData.address2 || '');
 
-      // 상태
-      const today = new Date();
-      const start = new Date(eventData.start_date);
-      const end = new Date(eventData.end_date);
-
-      if (today >= start && today <= end) {
-         setEventStatus('progress');
-      } else {
-         setEventStatus('non_progress');
-      }
+      // ⭐ 상태 - DB에 저장된 값 사용 (날짜 기반 자동 계산 제거)
+      setEventStatus(eventData.status || 'non_progress');
    };
-
    /**
-    * ⭐ File을 Base64로 변환하여 바로 저장
+    * ⭐ File을 Supabase Storage에 업로드하고 URL 반환
     */
    const handleImageUpload = async (file: File): Promise<number> => {
       try {
          setUploadingImage(true);
 
-         console.log('🔄 이미지 변환 시작:', file.name);
+         console.log('🔄 이미지 업로드 시작:', file.name);
 
-         // File을 Base64로 변환
-         const base64 = await fileToBase64(file);
+         // 고유한 파일명 생성 (타임스탬프 + 랜덤 문자열)
+         const fileExt = file.name.split('.').pop();
+         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+         const filePath = `events/${fileName}`;
 
-         console.log('✅ Base64 변환 완료');
+         // Supabase Storage에 업로드
+         const { data, error } = await supabase.storage.from('event_images').upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+         });
 
-         // State에 Base64 저장
+         if (error) {
+            console.error('❌ Storage 업로드 에러:', error);
+            throw error;
+         }
+
+         // Public URL 생성
+         const { data: publicUrlData } = supabase.storage.from('event_images').getPublicUrl(filePath);
+
+         const publicUrl = publicUrlData.publicUrl;
+
+         console.log('✅ 업로드 완료, URL:', publicUrl);
+
+         // State에 URL 저장
          setEventImages(prev => {
-            const newImages = [...prev, base64];
+            const newImages = [...prev, publicUrl];
             console.log('📸 이미지 목록 업데이트:', newImages.length);
             return newImages;
          });
@@ -149,23 +159,11 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
          return 200;
       } catch (error) {
          console.error('❌ 이미지 처리 에러:', error);
-         alert('이미지 처리 중 오류가 발생했습니다.');
+         alert('이미지 업로드 중 오류가 발생했습니다.');
          return 400;
       } finally {
          setUploadingImage(false);
       }
-   };
-
-   /**
-    * File을 Base64 문자열로 변환
-    */
-   const fileToBase64 = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-         const reader = new FileReader();
-         reader.readAsDataURL(file);
-         reader.onload = () => resolve(reader.result as string);
-         reader.onerror = error => reject(error);
-      });
    };
 
    const handleEdit = async () => {
@@ -187,10 +185,11 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       console.log('이미지 목록:', eventImages);
       console.log('주최사:', hosts);
       console.log('SNS:', eventSNS);
+      console.log('🔍 이벤트 상태:', eventStatus);
 
       const formData = {
          eventName,
-         eventImages: eventImages.length > 0 ? eventImages : null,
+         eventImages: eventImages.length > 0 ? eventImages : [],
          eventIntro,
          eventHomepage,
          organizer: hosts.filter(h => h.trim())[0] || '',

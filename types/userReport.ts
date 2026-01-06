@@ -74,6 +74,7 @@ export interface EventData {
    updated_at?: string;
    event_images?: EventImage[];
    organizer?: string;
+   status?: string;
 }
 
 export interface EventDisplayData {
