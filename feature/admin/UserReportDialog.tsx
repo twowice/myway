@@ -13,6 +13,18 @@ interface UserReportDialogProps {
 }
 
 export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }: UserReportDialogProps) {
+   const reportCategoryLabels: Record<string, string> = {
+      inappropriate_language: '부정적인 언어',
+      spamming: '도배',
+      advertisement: '광고',
+      fraud: '사기',
+      etc: '기타',
+   };
+
+   const getReportCategoryLabel = (value?: string) => {
+      if (!value) return '-';
+      return reportCategoryLabels[value] ?? value;
+   };
    const userSanctionOptions = [
       { value: 'account_suspended_7days', label: '7일 계정정지' },
       { value: 'account_suspended_14days', label: '14일 계정정지' },
@@ -182,7 +194,7 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
                      type="text"
                      disabled
                      className="flex-1 text-base px-2 py-2 bg-secondary rounded-md"
-                     value={reportData.report_category}
+                     value={getReportCategoryLabel(reportData.report_category)}
                   />
                </div>
 
