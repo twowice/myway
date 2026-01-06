@@ -127,6 +127,9 @@ export default function PartyReport() {
 
    const handleUpdateReport = async (reportId: number, updateData: Partial<PartyReportData>) => {
       try {
+         const targetReport = reports.find(report => report.id === reportId);
+         const partyId = targetReport?.party_id;
+
          const { error } = await supabase
             .from('party_reports')
             .update({
@@ -136,6 +139,36 @@ export default function PartyReport() {
             .eq('id', reportId);
 
          if (error) throw error;
+
+         const sanctionType = updateData.sanction_type;
+         if (partyId && (sanctionType === 'party_dissolution' || sanctionType === 'party_restore')) {
+            if (sanctionType === 'party_dissolution') {
+               const { error: partyError } = await supabase
+                  .from('parties')
+                  .update({ status: 'disbanded' })
+                  .eq('id', partyId);
+               if (partyError) throw partyError;
+            } else {
+               const { data: party, error: partyFetchError } = await supabase
+                  .from('parties')
+                  .select('gathering_date')
+                  .eq('id', partyId)
+                  .single();
+               if (partyFetchError) throw partyFetchError;
+
+               const gatheringDate = party?.gathering_date ? new Date(party.gathering_date) : null;
+               const nextStatus =
+                  gatheringDate && !Number.isNaN(gatheringDate.getTime()) && gatheringDate < new Date()
+                     ? 'closed'
+                     : 'open';
+
+               const { error: partyUpdateError } = await supabase
+                  .from('parties')
+                  .update({ status: nextStatus })
+                  .eq('id', partyId);
+               if (partyUpdateError) throw partyUpdateError;
+            }
+         }
 
          // 로컬 상태 업데이트
          setReports(prev => prev.map(report => (report.id === reportId ? { ...report, ...updateData } : report)));
