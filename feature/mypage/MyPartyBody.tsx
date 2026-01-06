@@ -176,7 +176,7 @@ export const MyPartyBody = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-start gap-3">
         <p className="text-sm text-foreground/70">이벤트 카테고리</p>
         <ComboboxComponent
           options={categoryOptions}
