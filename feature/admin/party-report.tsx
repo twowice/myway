@@ -30,7 +30,7 @@ export default function PartyReport() {
       etc: '기타',
    };
    const reportCategoryValuesByLabel: Record<string, string> = Object.fromEntries(
-      Object.entries(reportCategoryLabels).map(([value, label]) => [label, value])
+      Object.entries(reportCategoryLabels).map(([value, label]) => [label, value]),
    );
 
    const normalizeReportCategory = (value?: string | null) => {
@@ -44,8 +44,7 @@ export default function PartyReport() {
       return reportCategoryLabels[normalized] ?? value ?? '-';
    };
 
-   const toDateKey = (value: string) =>
-      new Date(value).toLocaleDateString('sv-SE');
+   const toDateKey = (value: string) => new Date(value).toLocaleDateString('sv-SE');
 
    useEffect(() => {
       fetchReports();
@@ -60,7 +59,7 @@ export default function PartyReport() {
             .order('created_at', { ascending: false });
 
          if (error) throw error;
-         const normalized = (data ?? []).map((report) => ({
+         const normalized = (data ?? []).map(report => ({
             ...report,
             report_category: normalizeReportCategory(report.report_category),
          }));
@@ -322,7 +321,7 @@ export default function PartyReport() {
                      { key: 'reporter_name', label: '신고자 명', width: 'w-[100px]' },
                      {
                         key: 'report_category',
-                        label: '신고 사유',
+                        label: '카테고리',
                         width: 'w-[140px]',
                         render: value => (
                            <span
