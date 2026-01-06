@@ -20,6 +20,32 @@ export default function PartyReport() {
    const [partyDate, setPartyDate] = useState('');
    const [sortFilter, setSortFilter] = useState('party_name');
    const [searchText, setSearchText] = useState('');
+   const reportCategoryLabels: Record<string, string> = {
+      cult_activity: '사이비 포교 활동',
+      unauthorized_commercial: '미허가 영리활동',
+      inappropriate_language: '부적절한 언어',
+      impersonation: '사칭 목적 파티',
+      illegal_activity: '불법 행위',
+      advertisementetc: '광고',
+      etc: '기타',
+   };
+   const reportCategoryValuesByLabel: Record<string, string> = Object.fromEntries(
+      Object.entries(reportCategoryLabels).map(([value, label]) => [label, value])
+   );
+
+   const normalizeReportCategory = (value?: string | null) => {
+      if (!value) return 'etc';
+      if (reportCategoryLabels[value]) return value;
+      return reportCategoryValuesByLabel[value] ?? value;
+   };
+
+   const getReportCategoryLabel = (value?: string | null) => {
+      const normalized = normalizeReportCategory(value);
+      return reportCategoryLabels[normalized] ?? value ?? '-';
+   };
+
+   const toDateKey = (value: string) =>
+      new Date(value).toLocaleDateString('sv-SE');
 
    useEffect(() => {
       fetchReports();
@@ -34,7 +60,11 @@ export default function PartyReport() {
             .order('created_at', { ascending: false });
 
          if (error) throw error;
-         setReports(data || []);
+         const normalized = (data ?? []).map((report) => ({
+            ...report,
+            report_category: normalizeReportCategory(report.report_category),
+         }));
+         setReports(normalized);
       } catch (error) {
          console.error('파티 신고 조회 실패:', error);
          alert('파티 신고 목록을 불러오는데 실패하였습니다.');
@@ -65,9 +95,8 @@ export default function PartyReport() {
             // 신고 날짜
             .filter(party => {
                if (!partyDate) return true;
-               if (!party.party_dissolution_date) return false;
-               const partyDay = new Date(party.party_dissolution_date).toISOString().split('T')[0];
-               return partyDay === partyDate;
+               if (!party.report_date) return false;
+               return toDateKey(party.report_date) === partyDate;
             })
       );
    }, [categoryFilter, typeFilter, sortFilter, searchText, partyDate, reports]);
@@ -140,13 +169,13 @@ export default function PartyReport() {
                      <ComboboxComponent
                         options={[
                            { value: 'all', label: '전체' },
-                           { value: '사이비 포교 활동', label: '사이비 포교 활동' },
-                           { value: '미허가 영리활동', label: '미허가 영리활동' },
-                           { value: '부적절한 언어', label: '부적절한 언어' },
-                           { value: '사칭 목적 파티', label: '사칭 목적 파티' },
-                           { value: '불법 행위', label: '불법 행위' },
-                           { value: '광고', label: '광고' },
-                           { value: '기타', label: '기타' },
+                           { value: 'cult_activity', label: '사이비 포교 활동' },
+                           { value: 'unauthorized_commercial', label: '미허가 영리활동' },
+                           { value: 'inappropriate_language', label: '부적절한 언어' },
+                           { value: 'impersonation', label: '사칭 목적 파티' },
+                           { value: 'illegal_activity', label: '불법 행위' },
+                           { value: 'advertisementetc', label: '광고' },
+                           { value: 'etc', label: '기타' },
                         ]}
                         className="w-full"
                         value={categoryFilter}
@@ -161,9 +190,9 @@ export default function PartyReport() {
                      <ComboboxComponent
                         options={[
                            { value: 'all', label: '전체' },
-                           { value: '파티 해산', label: '파티 해산' },
-                           { value: '파티 복구', label: '파티 복구' },
-                           { value: '미정', label: '미정' },
+                           { value: 'party_dissolution', label: '파티 해산' },
+                           { value: 'party_restore', label: '파티 복구' },
+                           { value: 'undetermined', label: '미정' },
                         ]}
                         className="w-full"
                         value={typeFilter}
@@ -265,20 +294,20 @@ export default function PartyReport() {
                         render: value => (
                            <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                 value === '사이비 포교 활동'
+                                 value === 'cult_activity'
                                     ? 'bg-red-100 text-red-800'
-                                    : value === '미허가 영리활동'
+                                    : value === 'unauthorized_commercial'
                                       ? 'bg-orange-100 text-orange-800'
-                                      : value === '부적절한 언어'
+                                      : value === 'inappropriate_language'
                                         ? 'bg-yellow-100 text-yellow-800'
-                                        : value === '불법 행위'
+                                        : value === 'illegal_activity'
                                           ? 'bg-purple-100 text-purple-800'
-                                          : value === '광고'
+                                          : value === 'advertisementetc'
                                             ? 'bg-blue-100 text-blue-800'
                                             : 'bg-gray-100 text-gray-800'
                               }`}
                            >
-                              {value}
+                              {getReportCategoryLabel(value)}
                            </span>
                         ),
                      },
