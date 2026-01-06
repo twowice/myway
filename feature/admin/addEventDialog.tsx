@@ -77,10 +77,11 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
 
       console.log('📤 이벤트 등록 시작');
       console.log('이미지 목록:', eventImages);
+      console.log('🔍 이벤트 상태:', eventStatus);
 
       const formData = {
          eventName,
-         eventImages: eventImages.length > 0 ? eventImages : null,
+         eventImages: eventImages.length > 0 ? eventImages : [],
          eventIntro,
          eventHomepage,
          organizer: hosts.filter(h => h.trim())[0] || '',
@@ -112,22 +113,40 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
    };
 
    /**
-    * ⭐ File을 Base64로 변환하여 바로 저장
+    * ⭐ File을 Supabase Storage에 업로드하고 URL 반환
     */
    const handleImageUpload = async (file: File): Promise<number> => {
       try {
          setUploadingImage(true);
 
-         console.log('🔄 이미지 변환 시작:', file.name);
+         console.log('🔄 이미지 업로드 시작:', file.name);
 
-         // File을 Base64로 변환
-         const base64 = await fileToBase64(file);
+         // 고유한 파일명 생성 (타임스탬프 + 랜덤 문자열)
+         const fileExt = file.name.split('.').pop();
+         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+         const filePath = `events/${fileName}`;
 
-         console.log('✅ Base64 변환 완료');
+         // Supabase Storage에 업로드
+         const { data, error } = await supabase.storage.from('event_images').upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+         });
 
-         // State에 Base64 저장
+         if (error) {
+            console.error('❌ Storage 업로드 에러:', error);
+            throw error;
+         }
+
+         // Public URL 생성
+         const { data: publicUrlData } = supabase.storage.from('event_images').getPublicUrl(filePath);
+
+         const publicUrl = publicUrlData.publicUrl;
+
+         console.log('✅ 업로드 완료, URL:', publicUrl);
+
+         // State에 URL 저장
          setEventImages(prev => {
-            const newImages = [...prev, base64];
+            const newImages = [...prev, publicUrl];
             console.log('📸 이미지 목록 업데이트:', newImages.length);
             return newImages;
          });
@@ -136,28 +155,16 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
          return 200;
       } catch (error) {
          console.error('❌ 이미지 처리 에러:', error);
-         alert('이미지 처리 중 오류가 발생했습니다.');
+         alert('이미지 업로드 중 오류가 발생했습니다.');
          return 400;
       } finally {
          setUploadingImage(false);
       }
    };
 
-   /**
-    * File을 Base64 문자열로 변환
-    */
-   const fileToBase64 = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-         const reader = new FileReader();
-         reader.readAsDataURL(file);
-         reader.onload = () => resolve(reader.result as string);
-         reader.onerror = error => reject(error);
-      });
-   };
-
-   const handleHostAdd = () => {
-      setHosts(prev => [...prev, '']);
-   };
+   // const handleHostAdd = () => {
+   //    setHosts(prev => [...prev, '']);
+   // };
 
    const handleHostChange = (index: number, value: string) => {
       setHosts(prev => {
@@ -167,13 +174,13 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
       });
    };
 
-   const handleHostDelete = (index: number) => {
-      if (hosts.length <= 1) {
-         alert('주최사는 최소 1개 이상 입력해야합니다.');
-         return;
-      }
-      setHosts(prev => prev.filter((_, i) => i !== index));
-   };
+   // const handleHostDelete = (index: number) => {
+   //    if (hosts.length <= 1) {
+   //       alert('주최사는 최소 1개 이상 입력해야합니다.');
+   //       return;
+   //    }
+   //    setHosts(prev => prev.filter((_, i) => i !== index));
+   // };
 
    const handleAddressSearch = () => {
       setIsAddressSearchOpen(true);
@@ -256,22 +263,6 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
                                  className="flex-1 text-sm px-4 py-2 border rounded-md"
                                  placeholder={`이벤트 주최사 ${index + 1} 을 입력해주세요.`}
                               />
-                              <div className="absolute inset-y-0 right-4 flex items-center gap-2">
-                                 {index === hosts.length - 1 && (
-                                    <button type="button" className="hover:opacity-70" onClick={handleHostAdd}>
-                                       <Icon24 name="plus" className="rounded-2xl" />
-                                    </button>
-                                 )}
-                                 {hosts.length > 1 && (
-                                    <button
-                                       type="button"
-                                       className="hover:opacity-70"
-                                       onClick={() => handleHostDelete(index)}
-                                    >
-                                       <Icon24 name="minus" className="rounded-2xl" />
-                                    </button>
-                                 )}
-                              </div>
                            </div>
                         ))}
                      </div>
@@ -315,41 +306,6 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
                            value={endDate}
                            onChange={e => setEndDate(e.target.value)}
                            className="flex-1 text-sm px-4 py-2 border rounded-md"
-                           placeholder="연도. 월. 일"
-                        />
-                     </div>
-                  </div>
-                  <div className="flex flex-col gap-2 w-full">
-                     <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold">예약 접수</label>
-                        <CheckboxComponent
-                           options={[{ value: 'reservation', label: '예약접수' }]}
-                           onValueChange={values => {
-                              const enabled = values.includes('reservation');
-                              setIsReservationEnabled(enabled);
-                              if (!enabled) {
-                                 setReservationStartDate('');
-                                 setReservationEndDate('');
-                              }
-                           }}
-                        />
-                     </div>
-                     <div className="flex gap-2 items-center">
-                        <input
-                           type="date"
-                           value={reservationStartDate}
-                           onChange={e => setReservationStartDate(e.target.value)}
-                           disabled={!isReservationEnabled}
-                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:text-gray-400  disabled:cursor-not-allowed"
-                           placeholder="연도. 월. 일"
-                        />
-                        ~
-                        <input
-                           type="date"
-                           value={reservationEndDate}
-                           disabled={!isReservationEnabled}
-                           onChange={e => setReservationEndDate(e.target.value)}
-                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                            placeholder="연도. 월. 일"
                         />
                      </div>
@@ -442,6 +398,7 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
                            { value: 'non_progress', label: '미진행' },
                            { value: 'progress', label: '진행중' },
                         ]}
+                        value={eventStatus}
                         onValueChange={value => setEventStatus(value)}
                      />
                   </div>
