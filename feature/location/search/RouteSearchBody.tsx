@@ -382,7 +382,7 @@ export const RouteSearchBody = ({}: {}) => {
   };
 
   return (
-    <div className="bg-white p-4 w-full flex flex-col gap-6">
+    <div className="bg-white w-full flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <div className="flex flex-row justify-between">
           <h1 className="text-[24px] font-semibold">길찾기</h1>
