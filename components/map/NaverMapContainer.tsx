@@ -12,34 +12,50 @@ interface Props {
 
 const NaverMapContainer = ({ lat, lng }: Props) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const setMap = useMapStore((state) => state.setMap);
-  const setIsMapScriptLoaded = useMapStore((state) => state.setIsMapScriptLoaded );
+  const isMapScriptLoaded = useMapStore((state) => state.isMapScriptLoaded);
+  const mapInstanceRef = useRef<naver.maps.Map | null>(null);
+  const markerRef = useRef<naver.maps.Marker | null>(null);
   const html = renderToString(<Icon36 name="basicmarker" />);
   useEffect(() => {
     if (!mapRef.current) return;
-    if (!window.naver || !window.naver.maps) return;
+    if (!isMapScriptLoaded || !window.naver || !window.naver.maps) return;
 
-    const map = new naver.maps.Map(mapRef.current, {
-      center: new naver.maps.LatLng(lat, lng),
-      zoom: 15,
-      scaleControl: false,
-      logoControl: false,
-    });
+    if (!mapInstanceRef.current) {
+      mapInstanceRef.current = new naver.maps.Map(mapRef.current, {
+        center: new naver.maps.LatLng(lat, lng),
+        zoom: 15,
+        scaleControl: false,
+        logoControl: false,
+      });
+    } else {
+      mapInstanceRef.current.setCenter(new naver.maps.LatLng(lat, lng));
+    }
 
     const position = new naver.maps.LatLng(lat, lng);
-    new naver.maps.Marker({
+    if (!markerRef.current) {
+      markerRef.current = new naver.maps.Marker({
         position,
-        map,
+        map: mapInstanceRef.current,
         icon: {
-            content: html,
-            size: new naver.maps.Size(27, 36),
-            anchor: new naver.maps.Point(13.5, 36),
-        }
-    });
+          content: html,
+          size: new naver.maps.Size(27, 36),
+          anchor: new naver.maps.Point(13.5, 36),
+        },
+      });
+    } else {
+      markerRef.current.setPosition(position);
+    }
+  }, [html, isMapScriptLoaded, lat, lng]);
 
-    setMap(map);
-    setIsMapScriptLoaded(true);
-  }, [lat, lng, setMap, setIsMapScriptLoaded]);
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.destroy?.();
+        mapInstanceRef.current = null;
+      }
+      markerRef.current = null;
+    };
+  }, []);
 
   return (
     <div
