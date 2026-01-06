@@ -118,16 +118,20 @@ export default function Event() {
    }, [statusFilter, sortFilter, searchText, startDate, endDate]);
 
    const filterData = useMemo(() => {
-      const displayData = events.map(convertToDisplayData);
       return (
-         displayData
+         events
             //상태
-            .filter(event => (statusFilter === 'all' ? true : event.state === statusFilter))
+            .filter(event => {
+               if (statusFilter === 'all') return true;
+               const displayData = convertToDisplayData(event);
+               return displayData.state === statusFilter;
+            })
             //검색어 + 분류
             .filter(event => {
                if (!searchText) return true;
+               const displayData = convertToDisplayData(event);
                const field = sortFilter as keyof EventDisplayData;
-               const value = String(event[field]).toLowerCase();
+               const value = String(displayData[field]).toLowerCase();
 
                if (field === 'operating_hours') {
                   return value.replace(/:/g, '').includes(searchText.replace(/:/g, '').toLowerCase());
@@ -138,9 +142,8 @@ export default function Event() {
             // 기간
             .filter(event => {
                if (!startDate && !endDate) return true;
-               const [start, end] = event.period.split('~').map(v => v.trim());
-               const eventStart = new Date(start);
-               const eventEnd = new Date(end || start);
+               const eventStart = new Date(event.start_date);
+               const eventEnd = new Date(event.end_date);
                const filterStart = startDate ? new Date(startDate) : null;
                const filterEnd = endDate ? new Date(endDate) : null;
 
@@ -152,6 +155,8 @@ export default function Event() {
                if (filterEnd) return eventStart <= filterEnd;
                return true;
             })
+            // display 데이터로 변환
+            .map(convertToDisplayData)
       );
    }, [events, statusFilter, sortFilter, searchText, startDate, endDate]);
 
@@ -173,7 +178,7 @@ export default function Event() {
    const handleSearch = () => setCurrentPage(1);
    const handleReset = () => {
       setStatusFilter('all');
-      setSortFilter('title');
+      setSortFilter('name');
       setSearchText('');
       setStartDate('');
       setEndDate('');
