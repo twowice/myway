@@ -38,23 +38,18 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
    ];
    const sanctionOptions = type === 'user-report' ? userSanctionOptions : partySanctionOptions;
 
-   const formatPartyDissolutionDate = (date: string | undefined) => {
+   const normalizePartyDissolutionDate = (date: string | undefined) => {
       if (!date) return '';
-      return new Date(date).toLocaleString('ko-KR', {
-         year: 'numeric',
-         month: '2-digit',
-         day: '2-digit',
-         hour: '2-digit',
-         minute: '2-digit',
-         hour12: false,
-      });
+      const parsed = new Date(date);
+      if (Number.isNaN(parsed.getTime())) return '';
+      return parsed.toISOString();
    };
 
    const [sanctionType, setSanctionType] = useState(reportData.sanction_type || sanctionOptions[0].value);
    const [additionalComment, setAdditionalComment] = useState(reportData.add_opinion || '');
    const [sanctionPeriod, setSanctionPeriod] = useState(reportData.sanction_period || '');
    const [partyDissolutionDate, setPartyDissolutionDate] = useState(
-      formatPartyDissolutionDate((reportData as PartyReportData).party_dissolution_date)
+      normalizePartyDissolutionDate((reportData as PartyReportData).party_dissolution_date)
    );
 
    const [isEditing, setIsEditing] = useState(!reportData.is_processed);
@@ -63,7 +58,7 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
       setSanctionType(reportData.sanction_type || sanctionOptions[0].value);
       setAdditionalComment(reportData.add_opinion || '');
       setSanctionPeriod(reportData.sanction_period || '');
-      setPartyDissolutionDate(formatPartyDissolutionDate((reportData as PartyReportData).party_dissolution_date));
+      setPartyDissolutionDate(normalizePartyDissolutionDate((reportData as PartyReportData).party_dissolution_date));
    };
 
    const title = type === 'user-report' ? '사용자 신고 처리' : '파티 신고 처리';
@@ -99,17 +94,9 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
             setSanctionPeriod(`${today.toISOString().split('T')[0]} ~ ${endDate.toISOString().split('T')[0]}`);
          }
       } else if (type === 'party-report' && newType === 'party_dissolution') {
-         const now = new Date();
-         setPartyDissolutionDate(
-            now.toLocaleString('ko-KR', {
-               year: 'numeric',
-               month: '2-digit',
-               day: '2-digit',
-               hour: '2-digit',
-               minute: '2-digit',
-               hour12: false,
-            })
-         );
+         setPartyDissolutionDate(new Date().toISOString());
+      } else if (type === 'party-report' && newType === 'party_restore') {
+         setPartyDissolutionDate('');
       }
    };
 
@@ -133,7 +120,8 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
       if (type === 'user-report') {
          (updateData as Partial<UserReportData>).sanction_period = sanctionPeriod;
       } else if (type === 'party-report') {
-         (updateData as Partial<PartyReportData>).party_dissolution_date = partyDissolutionDate;
+         (updateData as Partial<PartyReportData>).party_dissolution_date =
+            sanctionType === 'party_dissolution' ? partyDissolutionDate || new Date().toISOString() : null;
       }
 
       console.log('=== 적용 디버깅 ===');
