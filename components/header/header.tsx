@@ -131,7 +131,6 @@ export default function Header() {
                 >
                   로그아웃
                 </button>
-                <WithdrawButton />
               </div>
             ) : (
               // 로그인 안 된 상태
