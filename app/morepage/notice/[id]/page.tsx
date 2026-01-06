@@ -59,7 +59,7 @@ export default function NoticeDetail({ params }: { params: Promise<{ id: string 
             id: data.id,
             type: data.type,
             title: data.title,
-            detail: data.detail,
+            content: data.content,
             date: new Date(data.created_at).toLocaleDateString('ko-KR'),
             isTopFixed: data.is_top_fixed,
             created_at: data.created_at,
@@ -117,7 +117,7 @@ export default function NoticeDetail({ params }: { params: Promise<{ id: string 
             <div className="flex-1 overflow-y-auto min-h-0">
                <div className="flex flex-col gap-3">
                   <NormalNoticeDetail notice={notice} />
-                  <div className="whitespace-pre-wrap pb-4">{notice.detail}</div>
+                  <div className="whitespace-pre-wrap pb-4" dangerouslySetInnerHTML={{ __html: notice.content }} />
                </div>
             </div>
          </div>

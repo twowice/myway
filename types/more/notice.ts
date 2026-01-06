@@ -4,7 +4,7 @@ export interface Notice {
    id: number;
    type: NoticeType;
    title: string;
-   detail: string;
+   content: string;
    date: string;
    isTopFixed?: boolean;
    created_at?: string;

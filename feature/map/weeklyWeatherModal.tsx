@@ -21,6 +21,8 @@ type Props = {
 
 const WeeklyWeatherModal = ({ weeklyWeather, onClose, currentPosition }: Props) => {
    const [locationName, setLocationName] = useState<string>('주간 날씨');
+   // 컴포넌트 마운트 시점의 위치를 고정
+   const [fixedPosition] = useState(currentPosition);
 
    useEffect(() => {
       // ESC로 닫기
@@ -32,12 +34,12 @@ const WeeklyWeatherModal = ({ weeklyWeather, onClose, currentPosition }: Props) 
    }, [onClose]);
 
    useEffect(() => {
-      if (!currentPosition) {
-         console.log('❌ currentPosition 없음');
+      if (!fixedPosition) {
+         console.log('❌ fixedPosition 없음');
          return;
       }
 
-      console.log('📍 currentPosition:', currentPosition);
+      console.log('📍 fixedPosition:', fixedPosition);
 
       let retryCount = 0;
       const maxRetries = 10;
@@ -62,7 +64,7 @@ const WeeklyWeatherModal = ({ weeklyWeather, onClose, currentPosition }: Props) 
                setTimeout(tryReverseGeocode, 1000); // ⭐ 1초로 증가
             } else {
                console.warn('❌ Naver Service 로드 실패 - 좌표 표시');
-               setLocationName(`${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}`);
+               setLocationName(`${fixedPosition.lat.toFixed(4)}, ${fixedPosition.lng.toFixed(4)}`);
             }
             return;
          }
@@ -72,7 +74,7 @@ const WeeklyWeatherModal = ({ weeklyWeather, onClose, currentPosition }: Props) 
          try {
             naver.maps.Service.reverseGeocode(
                {
-                  coords: new naver.maps.LatLng(currentPosition.lat, currentPosition.lng),
+                  coords: new naver.maps.LatLng(fixedPosition.lat, fixedPosition.lng),
                   orders: [naver.maps.Service.OrderType.ADDR, naver.maps.Service.OrderType.ROAD_ADDR].join(','),
                },
                function (status, response) {
@@ -111,7 +113,7 @@ const WeeklyWeatherModal = ({ weeklyWeather, onClose, currentPosition }: Props) 
 
       // 첫 시도
       tryReverseGeocode();
-   }, [currentPosition]);
+   }, [fixedPosition]);
 
    const formatDate = (dateString: string) => {
       const date = new Date(dateString);
@@ -129,13 +131,16 @@ const WeeklyWeatherModal = ({ weeklyWeather, onClose, currentPosition }: Props) 
    return (
       <div
          onClick={handleModalClick}
-         className="fixed bottom-[140px] ml-5 w-[400px] max-w-[500px] max-h-[700px] overflow-auto rounded-2xl bg-[#F1F5FA] shadow-[0_4px_20px_rgba(0,0,0,0.15)] cursor-auto pointer-events-auto"
+         className="fixed bottom-[140px] ml-5 w-100 max-w-[500px] max-h-[700px] overflow-auto rounded-2xl bg-[#F1F5FA] shadow-[0_4px_20px_rgba(0,0,0,0.15)] cursor-auto pointer-events-auto"
          style={{ zIndex: 30 }}
       >
          {/* 헤더 */}
          <div className="flex items-center justify-between p-4">
             <p className="text-xl font-bold">{locationName}</p>
-            <Button onClick={onClose} className="border-none bg-transparent text-foreground cursor-pointer">
+            <Button
+               onClick={onClose}
+               className="border-none bg-transparent text-foreground cursor-pointer w-10 hover:bg-gray-200 transition-colors duration-200"
+            >
                <Icon24 name="closeblack" />
             </Button>
          </div>

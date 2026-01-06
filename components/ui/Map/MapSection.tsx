@@ -651,13 +651,13 @@ const MapSection = () => {
          )}
 
          {/* 위치 초기화 버튼 */}
-         <Button
+         {/* <Button
             className="fixed bottom-5 right-5 pointer-events-auto cursor-pointer rounded-2xl w-10 h-10 bg-white z-50 shadow-md"
             variant={'outline'}
             onClick={handleResetPosition}
          >
             <BiTargetLock />
-         </Button>
+         </Button> */}
          {showWeeklyModal && weeklyWeather && (
             <WeeklyWeatherModal
                weeklyWeather={weeklyWeather}
