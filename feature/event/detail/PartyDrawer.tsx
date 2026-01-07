@@ -305,6 +305,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => {
+                                    if ((e.nativeEvent as any).isComposing) return;
                                     if (e.key === "Enter") {
                                         e.preventDefault();
                                         handleSend();

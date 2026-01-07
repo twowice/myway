@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { auth } from '@/lib/auth'
 
 /* ===========================
    ENV
@@ -14,14 +13,6 @@ const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SE
 =========================== */
 export async function GET() {
     try {
-        /* ===========================
-           Batch Auth
-        =========================== */
-        const session = await auth()
-         if (!session) {
-            return NextResponse.json({ message: "❌ Session error" }, { status: 401 });
-        }
-
         if (!KTO_API_KEY) throw new Error("KTO_API_KEY is missing");
 
         const numOfRows = 100;
