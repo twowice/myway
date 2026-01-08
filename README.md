@@ -1,6 +1,6 @@
-# Eventure 🎉
+# MyWay 🎉
 
-**Event + Adventure: 여행과 모험 사이, 그 경계를 잇다**
+**“이벤트와 사람 사이, 그 경계를 잇다”**
 
 오늘의 설렘이 내일의 기억이 되는 곳  
 낯선 곳에서 이어지는 우리의 이야기  
@@ -20,10 +20,10 @@
 
 | 이름   | 역할           | GitHub |
 | ------ | -------------- | ------ |
-| 최광혁 | 팀장 / 개발 구현 | [@광혁]() |
-| 박영준 | 개발 구현       | [@영준]() |
-| 김수현 | 개발 구현       | [@수현]() |
-| 옥예빈 | 개발 구현       | [@예빈]() |
+| 최광혁 | 팀장 / 실시간 채팅 및 이벤트 개발 구현 | [@광혁]() |
+| 박영준 | 인증 시스템 및 메인화면 개발 구현       | [@영준]() |
+| 김수현 | 길찾기 및 파티 개발 구현       | [@수현]() |
+| 옥예빈 | 관리자 및 더보기 개발 구현 UI/UX 총괄       | [@예빈]() |
 
 ---
 
@@ -32,7 +32,7 @@
 ### 컨셉
 > 오늘의 설렘이 내일의 기억이 되는 곳
 
-Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 모든 순간을 특별하게 만드는 플랫폼입니다.
+MyWay는 지역 이벤트 탐색부터 길찾기까지, 여행을 위한 준비를 돕는 플랫폼입니다.
 
 ### 기대효과
 
@@ -51,6 +51,8 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 ---
 
 ## 🚀 기술 스택
+
+![시스템 아키텍처](https://file.notion.so/f/f/00e9e3e3-35cc-815b-a12e-0003086879df/274f6d1e-b51e-4a83-91e3-6d7ac3688e73/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-01-07_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.39.30.png?table=block&id=2c09e3e3-35cc-8043-be11-d1a2c3c86784&spaceId=00e9e3e3-35cc-815b-a12e-0003086879df&expirationTimestamp=1767859200000&signature=7BcYJqK6BbAUETTF6wVoYPhJJxljcITKSDxwUMCF1dY&downloadName=%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA+2026-01-07+%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE+2.39.30.png)
 
 ### Frontend
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
@@ -74,8 +76,6 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 
-### AI
-![OpenAI](https://img.shields.io/badge/OpenAI_API-412991?style=for-the-badge&logo=openai&logoColor=white)
 
 ### Tools & Collaboration
 ![VSCode](https://img.shields.io/badge/VSCode-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
@@ -83,7 +83,6 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 ![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white)
 ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
-![Jira](https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white)
 
 ---
 
@@ -97,16 +96,16 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 ### 🔍 이벤트 탐색
 - 지역 기반 이벤트 검색
 - 카테고리별 필터링
+- 실시간 채팅 (Socket.io)
 
 ### 🤝 파티원 모집
 - 관심사 기반 매칭
 - 파티 생성 및 참여
-- 실시간 채팅 (Socket.io)
 
-### 📝 여행 일지
-- 이벤트 참여 기록
-- 사진 및 메모 저장
-- 타임라인 뷰
+
+### 📝 길찾기
+- 검색기록 관리
+- 대중교통 길찾기
 
 ### 💬 실시간 소통
 - 이벤트별 채팅방
@@ -117,36 +116,71 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 
 ## 📂 폴더 구조
 ```
-eventure/
-├─ app/
-│  ├─ api/
-│  │  ├─ auth/              # 인증 관련 API
-│  │  ├─ events/            # 이벤트 API
-│  │  └─ chat/              # 채팅 API
-│  ├─ (auth)/
-│  │  ├─ login/
-│  │  └─ signup/
-│  ├─ events/
-│  │  ├─ [id]/
-│  │  └─ create/
-│  ├─ party/
-│  ├─ journal/
-│  └─ dashboard/
-├─ components/
-│  ├─ ui/                   # Shadcn UI 컴포넌트
-│  ├─ auth/
-│  ├─ events/
-│  └─ chat/
-├─ lib/
-│  ├─ supabase.ts           # Supabase 클라이언트
-│  ├─ openai.ts             # OpenAI API
-│  └─ utils.ts
-├─ types/
-│  ├─ auth.ts
-│  └─ events.ts
-├─ socket/                  # Socket.io 서버
-└─ public/
-   └─ images/
+ myway/
+  ├─ app/
+  │  ├─ api/
+  │  │  ├─ auth/              # 인증 관련 API
+  │  │  ├─ events/            # 이벤트 API
+  │  │  ├─ map/               # 지도 API
+  │  │  ├─ mypage/            # 마이페이지 API
+  │  │  ├─ party/             # 파티 API
+  │  │  ├─ report/            # 신고 API
+  │  │  ├─ shared-routes/     # 공유 경로 API
+  │  │  └─ user/              # 유저 API
+  │  ├─ adminpage/
+  │  ├─ basicpage/
+  │  ├─ eventpage/
+  │  ├─ locationpage/
+  │  ├─ loginpage/
+  │  ├─ morepage/
+  │  ├─ mypage/
+  │  ├─ partypage/
+  │  ├─ test/
+  │  ├─ testpage/
+  │  ├─ layout.tsx
+  │  ├─ page.tsx
+  │  └─ globals.css
+  ├─ components/
+  │  ├─ ui/                   # Shadcn UI 컴포넌트
+  │  ├─ basic/
+  │  ├─ header/
+  │  ├─ icons/
+  │  ├─ map/
+  │  ├─ pagination/
+  │  ├─ partyrow/
+  │  ├─ photo/
+  │  ├─ popup/
+  │  ├─ providers/
+  │  ├─ searchInput/
+  │  ├─ status/
+  │  ├─ tabs/
+  │  ├─ tag/
+  │  └─ toast/
+  ├─ lib/
+  │  ├─ auth.ts
+  │  ├─ clientSupabase.ts
+  │  ├─ map/
+  │  ├─ mypage/
+  │  ├─ party/
+  │  ├─ socket.ts
+  │  ├─ supabase.ts
+  │  ├─ user/
+  │  └─ utils.ts
+  ├─ types/
+  │  ├─ map/
+  │  ├─ more/
+  │  ├─ airquality.ts
+  │  ├─ maptype.ts
+  │  ├─ next-auth.d.ts
+  │  ├─ party.d.ts
+  │  ├─ userReport.ts
+  │  ├─ weather.ts
+  │  └─ weeklyWeather.ts
+  ├─ public/
+  │  ├─ error/
+  │  ├─ marker/
+  │  └─ (기타 이미지들)
+  └─ (기타 설정 파일들)
 ```
 
 ---
@@ -389,9 +423,8 @@ npm run socket:dev
 
 ## 💡 프로젝트 비전
 
-> "Eventure는 단순한 이벤트 플랫폼을 넘어,  
+> "MyWay는 단순한 이벤트 플랫폼을 넘어,  
 > 여행의 모든 순간을 특별한 경험으로 만드는  
 > 감성 기반 여행 커뮤니티를 지향합니다."
 
 **발견은 인연이 되고, 순간은 이야기가 된다** 🎉
->>>>>>> 55751b2e04d1a31a43776c083d525ea2a091b919
