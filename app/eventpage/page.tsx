@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { EventSkeletonGrid } from '@/feature/event/EventSkeletonGrid';
 import { EventTitle } from '@/feature/event/EventTitle';
 import { FilterHeader } from '@/feature/event/FilterHeader';
@@ -11,9 +13,6 @@ import EventPanel from '@/components/header/panels/eventpanel';
 import { useEventFilterStore } from '@/stores/eventFilterStore';
 import { panelstore } from '@/stores/panelstore';
 
-/* ===========================
-   Interface
-=========================== */
 interface EventItem {
     id: number;
     region: string;
@@ -25,126 +24,116 @@ interface EventItem {
     event_images: string;
 }
 
+const LIMIT = 4;
+
+type ApiResponse = {
+    success: boolean;
+    data: any[];
+    pagination: {
+        total: number;
+        limit: number;
+        offset: number;
+        hasMore: boolean;
+        nextOffset: number | null;
+    };
+};
+
 export default function Page() {
-    /* ===========================
-        Hook
-    =========================== */
-    const [events, setEvents] = useState<EventItem[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
-    const [offset, setOffset] = useState(0);
-    const [total, setTotal] = useState(0);
-
-    const loadMoreRef = useRef<HTMLDivElement | null>(null);
-    const isFetchingRef = useRef(false);
-
     const openpanel = panelstore((state) => state.openpanel);
-    const isPanel = openpanel !== null; // 패널 상태
+    const isPanel = openpanel !== null;
 
-    /* 필터링 */
-    // const [keyword, setKeyword] = useState('');
     const keyword = useEventFilterStore((state) => state.keyword);
     const setKeyword = useEventFilterStore((state) => state.setKeyword);
-    const [category, setCategory] = useState('A02');
+
     const region = useEventFilterStore((state) => state.region);
     const setRegion = useEventFilterStore((state) => state.setRegion);
+
+    const [category, setCategory] = useState('A02');
     const [month, setMonth] = useState('all');
+
     const handleFilterChange = (filter: { category: string; region: string; month: string }) => {
         setCategory(filter.category);
         setRegion(filter.region);
         setMonth(filter.month);
     };
 
-    /* ===========================
-        API Fetch
-    =========================== */
-    const fetchEvents = async (currentOffset: number, force = false) => {
-        if (!force && (isFetchingRef.current || !hasMore)) return;
+    const fetchEventsPage = async ({ pageParam }: { pageParam: number }) => {
+        const res = await fetch(
+            `/api/events?limit=${LIMIT}&offset=${pageParam}` +
+            `&category=${encodeURIComponent(category)}` +
+            `&region=${encodeURIComponent(region)}` +
+            `&month=${encodeURIComponent(month)}` +
+            `&keyword=${encodeURIComponent(keyword)}`,
+            { cache: 'no-store' }
+        );
 
-        isFetchingRef.current = true;
-        setLoading(true);
+        if (!res.ok) throw new Error('❌ Event API Request Fail');
 
-        try {
-            const res = await fetch(
-                `/api/events?limit=12&offset=${currentOffset}` +
-                `&category=${encodeURIComponent(category)}` +
-                `&region=${encodeURIComponent(region)}` +
-                `&month=${encodeURIComponent(month)}` +
-                `&keyword=${encodeURIComponent(keyword)}`,
-                { cache: 'no-store' }
-            );
+        const json: ApiResponse = await res.json();
+        const list = json.data ?? [];
+        const mapped: EventItem[] = list.map((item: any) => {
+            const addressRegion = item.address?.split(' ') ?? [];
+            return {
+                id: item.id,
+                title: item.title,
+                startDate: item.start_date,
+                endDate: item.end_date,
+                region: addressRegion.length >= 2 ? `${addressRegion[0]} ${addressRegion[1]}` : addressRegion[0] ?? '',
+                imageUrl: item.main_image ?? '/error/no-image.svg',
+                event_images: item.event_images,
+                overview: item.overview ?? '',
+            };
+        });
 
-            if (!res.ok) throw new Error('❌ Event API Request Fail');
-
-            const json = await res.json();
-            const list = json.data ?? [];
-
-            setTotal(json.pagination.total);
-
-            const mapped: EventItem[] = list.map((item: any) => {
-                const addressRegion = item.address?.split(' ') ?? [];
-                return {
-                    id: item.id,
-                    title: item.title,
-                    startDate: item.start_date,
-                    endDate: item.end_date,
-                    region:
-                        addressRegion.length >= 2
-                            ? `${addressRegion[0]} ${addressRegion[1]}`
-                            : addressRegion[0] ?? '',
-                    imageUrl: item.main_image ?? '/error/no-image.svg',
-                    event_images: item.event_images,
-                    overview: item.overview ?? '',
-                };
-            });
-
-            setEvents((prev) => {
-                const merged = [...prev, ...mapped];
-                return Array.from(new Map(merged.map((e) => [e.id, e])).values());
-            });
-
-            setHasMore(json.pagination?.hasMore ?? mapped.length === 12);
-        } catch (e) {
-            console.error('❌ Event Data Loading Fail:', e);
-        } finally {
-            setLoading(false);
-            isFetchingRef.current = false;
-        }
+        return {
+            mapped,
+            pagination: json.pagination,
+        };
     };
 
-    /* ===========================
-        Initial Load
-    =========================== */
-    useEffect(() => {
-        setEvents([]);
-        setHasMore(true);
-        setOffset(0);
-        fetchEvents(0, true);
-    }, [keyword, category, region, month]);
+    const {
+        data,
+        isLoading,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage,
+        error,
+    } = useInfiniteQuery({
+        queryKey: ['events', { keyword, category, region, month }],
+        queryFn: ({ pageParam }) => fetchEventsPage({ pageParam }),
+        initialPageParam: 0,
+        getNextPageParam: (lastPage) =>
+            lastPage.pagination?.hasMore ? lastPage.pagination.nextOffset ?? undefined : undefined,
+    });
+
+    const pages = data?.pages ?? [];
+    const total = pages[0]?.pagination?.total ?? 0;
+
+    const events = useMemo(() => {
+        const merged = pages.flatMap((p) => p.mapped);
+        return Array.from(new Map(merged.map((e) => [e.id, e])).values());
+    }, [pages]);
+
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        if (offset === 0) return;
-        fetchEvents(offset);
-    }, [offset]);
+        if (!loadMoreRef.current) return;
+        if (!hasNextPage) return;
 
-    /* ===========================
-        Infinite Scroll Observer
-    =========================== */
-    useEffect(() => {
-        if (!loadMoreRef.current || loading || !hasMore) return;
+        const el = loadMoreRef.current;
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting && !isFetchingRef.current) {
-                    setOffset((prev) => prev + 12);
+                if (entry.isIntersecting && !isFetchingNextPage) {
+                    fetchNextPage();
                 }
             },
             { rootMargin: '200px' }
         );
 
-        observer.observe(loadMoreRef.current);
+        observer.observe(el);
         return () => observer.disconnect();
-    }, [hasMore, loading, isPanel]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage, isPanel]);
 
     const content = (
         <div className={`w-full justify-center ${isPanel ? 'px-[16px]' : 'pt-[70px] px-[16px]'}`}>
@@ -161,9 +150,11 @@ export default function Page() {
                     isPanel={isPanel}
                 />
 
-                {loading && events.length === 0 && <EventSkeletonGrid count={12} isPanel={isPanel}/>}
+                {isLoading && events.length === 0 && <EventSkeletonGrid count={12} isPanel={isPanel} />}
 
-                {!loading && events.length === 0 && !hasMore && <EmptyIcon />}
+                {!isLoading && events.length === 0 && !hasNextPage && <EmptyIcon />}
+
+                {error && <div className="text-sm text-red-500">데이터를 불러오는데 실패했어요.</div>}
 
                 {events.length > 0 && (
                     <div
@@ -189,8 +180,9 @@ export default function Page() {
                     </div>
                 )}
 
-                {loading && events.length > 0 && <EventSkeletonGrid count={4} isPanel={isPanel} />}
-                {hasMore && <div ref={loadMoreRef} className="h-10" />}
+                {isFetchingNextPage && events.length > 0 && <EventSkeletonGrid count={4} isPanel={isPanel} />}
+
+                {hasNextPage && <div ref={loadMoreRef} className="h-10" />}
             </div>
         </div>
     );

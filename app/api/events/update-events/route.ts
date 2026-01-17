@@ -8,10 +8,22 @@ const KTO_API_KEY = process.env.KTO_API_KEY;
 const BASE_URL = "http://apis.data.go.kr/B551011/KorService2/searchFestival2";
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
+function toYYYYMMDD(d: Date) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}${mm}${dd}`;
+}
+
 /* ===========================
    GET (Batch Job)
 =========================== */
 export async function GET() {
+    const today = new Date();
+    const start = new Date(today);
+    start.setMonth(start.getMonth() - 6);
+    const eventStartDate = toYYYYMMDD(start);
+
     try {
         if (!KTO_API_KEY) throw new Error("KTO_API_KEY is missing");
 
@@ -30,7 +42,7 @@ export async function GET() {
                 MobileApp: "Myway",
                 _type: "json",
                 arrange: "C",
-                eventStartDate: "20250101",
+                eventStartDate: eventStartDate,
             });
 
             const res = await fetch(`${BASE_URL}?serviceKey=${KTO_API_KEY}&${params.toString()}`);
