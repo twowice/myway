@@ -8,6 +8,7 @@ interface SearchBarProps {
    value?: string;
    className?: string;
    delay?: number; // ADD BY CKH 25.12.15
+   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
 export const SearchBar = ({

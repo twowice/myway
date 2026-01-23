@@ -131,7 +131,7 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
                      <SearchBar
                         value={searchQuery}
                         onChange={setSearchQuery}
-                        onKeyDown={e => {
+                        onKeyDown={(e) => {
                            if (e.key === 'Enter') {
                               handleSearch();
                            }
