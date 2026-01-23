@@ -141,7 +141,6 @@ export default function Page() {
                 <EventTitle count={total} />
 
                 <FilterHeader
-                    keyword={keyword}
                     onSearch={setKeyword}
                     category={category}
                     region={region}

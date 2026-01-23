@@ -7,7 +7,6 @@ import { SearchBar } from '@/components/ui/searchBar'
 import { ComboboxComponent } from '@/components/basic/combo';
 
 interface FilterHeaderProps {
-    keyword: string;
     onSearch: (value: string) => void;
     category: string;
     region: string;
@@ -16,14 +15,14 @@ interface FilterHeaderProps {
     onFilterChange: (filter: { category: string; region: string; month: string }) => void;
 }
 
-export function FilterHeader({ keyword, onSearch, category, region, month, onFilterChange, isPanel }: FilterHeaderProps) {
+export function FilterHeader({ onSearch, category, region, month, onFilterChange, isPanel }: FilterHeaderProps) {
 
     /* ===========================
         Search Function
     =========================== */
     const handleSearch = (value: string) => {
         const trimmed = value.trim();
-        if (trimmed === '' && keyword !== '') return;
+        if (trimmed === '' ) return;
         if (trimmed.length < 2) { onSearch(''); return; }
 
         onSearch(trimmed);
@@ -95,7 +94,7 @@ export function FilterHeader({ keyword, onSearch, category, region, month, onFil
                     <Button variant="secondary" className='cursor-pointer h-[41px]' onClick={() => onFilterChange({ category: 'A02', region: 'all', month: 'all' })}>전체</Button>
                 )}
             </div>
-            <SearchBar value={keyword} onChange={onSearch} onSearch={handleSearch} delay={500} />
+            <SearchBar onChange={onSearch} onSearch={handleSearch} delay={500} />
         </div>
     );
 }
