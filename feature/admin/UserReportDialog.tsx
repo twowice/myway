@@ -137,7 +137,7 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
          (updateData as Partial<UserReportData>).sanction_period = sanctionPeriod;
       } else if (type === 'party-report') {
          (updateData as Partial<PartyReportData>).party_dissolution_date =
-            sanctionType === 'party_dissolution' ? partyDissolutionDate || new Date().toISOString() : null;
+            sanctionType === 'party_dissolution' ? partyDissolutionDate || new Date().toISOString() : undefined;
       }
 
       console.log('=== 적용 디버깅 ===');

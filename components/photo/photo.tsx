@@ -28,7 +28,7 @@ export const PhotoInputContainer = ({
   autoScroll = false,
 }: {
   initImages?: string[] | null;
-  uploadImage: (file: File) => number;
+  uploadImage: (file: File) => Promise<number>;
   autoScroll?: boolean;
 }): React.ReactElement => {
   const [images, setImages] = useState<string[] | null>(initImages);
