@@ -155,7 +155,7 @@ const MapSection = () => {
             console.log(`[moveMapTo] ✅ panBy ${pixelShift}px 실행 (패널=${currentPanelOffset}px)`);
 
             if (map && map.panBy) {
-               map.panBy(pixelShift, 0);
+               map.panBy(new naver.maps.Point(pixelShift, 0));
             }
          }, 50);
       },
@@ -266,10 +266,10 @@ const MapSection = () => {
                } else {
                   console.log(`[마커 아이콘] ${event.title} -> normal.png (일반)`);
                }
-
+               if(!map) return;
                const marker = new naver.maps.Marker({
                   position: new naver.maps.LatLng(event.latitude, event.longitude),
-                  map: map,
+                  map,
                   title: event.title || '이벤트',
                   icon: {
                      url: iconUrl,

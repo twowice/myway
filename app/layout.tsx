@@ -13,6 +13,7 @@ import { panelstore } from '@/stores/panelstore';
 import AuthSessionProvider from '@/components/providers/sessionprovider';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { useEffect } from 'react';
+import Providers from './providers';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -31,9 +32,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
       <html lang="ko">
         <body>
-          <AuthSessionProvider>
-            <div className="flex min-h-screen justify-start">{children}</div>
-          </AuthSessionProvider>
+          <Providers>
+            <AuthSessionProvider>
+              <div className="flex min-h-screen justify-start">{children}</div>
+            </AuthSessionProvider>
+          </Providers>
         </body>
       </html>
     );
@@ -44,9 +47,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
       <html lang="ko">
         <body>
-          <AuthSessionProvider>
-            <main className="w-full h-screen">{children}</main>
-          </AuthSessionProvider>
+          <Providers>
+            <AuthSessionProvider>
+              <main className="w-full h-screen">{children}</main>
+            </AuthSessionProvider>
+          </Providers>
         </body>
       </html>
     );
@@ -58,14 +63,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
       <html lang="ko">
         <body>
-          <AuthSessionProvider>
-            <ToastProvider>
-              <Header />
-              <main className="lg:ms-20 ms-16 lg:me-4 me-2 min-h-screen">
-                {children}
-              </main>
-            </ToastProvider>
-          </AuthSessionProvider>
+          <Providers>
+            <AuthSessionProvider>
+              <ToastProvider>
+                <Header />
+                <main className="lg:ms-20 ms-16 lg:me-4 me-2 min-h-screen">
+                  {children}
+                </main>
+              </ToastProvider>
+            </AuthSessionProvider>
+          </Providers>
         </body>
       </html>
     );
@@ -89,37 +96,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <body>
-        <AuthSessionProvider>
-          <ToastProvider>
-            {shouldShowMap && <MapScriptLoader />}
-            <Header />
+        <Providers>
+          <AuthSessionProvider>
+            <ToastProvider>
+              {shouldShowMap && <MapScriptLoader />}
+              <Header />
 
-            <main className="grow flex min-h-screen relative overflow-hidden ms-16 lg:ms-20">
-              {/* 지도 영역: 항상 flex-1로 공간 확보 */}
-              <div className="relative flex-1 min-w-0">
-                {shouldShowMap && <MapCanvas />}
+              <main className="grow flex min-h-screen relative overflow-hidden ms-16 lg:ms-20">
+                {/* 지도 영역: 항상 flex-1로 공간 확보 */}
+                <div className="relative flex-1 min-w-0">
+                  {shouldShowMap && <MapCanvas />}
 
-                {shouldShowMap && (
-                  <div
-                    className={cn(
-                      openpanel === null ? 'ms-0' : 'ms-100 lg:ms-150 md:ms-150',
-                      'absolute inset-0 z-10 w-full h-full pointer-events-none'
-                    )}
-                  >
-                    <MapSection />
+                  {shouldShowMap && (
+                    <div
+                      className={cn(
+                        openpanel === null ? 'ms-0' : 'ms-100 lg:ms-150 md:ms-150',
+                        'absolute inset-0 z-10 w-full h-full pointer-events-none'
+                      )}
+                    >
+                      <MapSection />
+                    </div>
+                  )}
+                </div>
+
+                {/* 좌측 컨텐츠 영역 (이벤트 list에서는 w-0로 공간 차지 X) */}
+                {path !== '/' && (
+                  <div className={cn(leftWidthClass, 'relative z-30 overflow-auto shrink-0')}>
+                    {children}
                   </div>
                 )}
-              </div>
-
-              {/* 좌측 컨텐츠 영역 (이벤트 list에서는 w-0로 공간 차지 X) */}
-              {path !== '/' && (
-                <div className={cn(leftWidthClass, 'relative z-30 overflow-auto shrink-0')}>
-                  {children}
-                </div>
-              )}
-            </main>
-          </ToastProvider>
-        </AuthSessionProvider>
+              </main>
+            </ToastProvider>
+          </AuthSessionProvider>
+        </Providers>
       </body>
     </html>
   );
