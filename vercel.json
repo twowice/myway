@@ -1,8 +1,7 @@
 {
   "crons": [
-    {
-      "path": "/api/update-events",
-      "schedule": "0 18 * * *"
-    }
+    { "path": "/api/events/update-events", "schedule": "0 4 * * *" },
+    { "path": "/api/events/update-events/detail", "schedule": "0 4 * * *" },
+    { "path": "/api/events/update-events/detail2", "schedule": "0 4 * * *" }
   ]
 }

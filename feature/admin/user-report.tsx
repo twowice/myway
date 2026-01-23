@@ -18,8 +18,29 @@ export default function UserReport() {
    const [categoryFilter, setCategoryFilter] = useState('all');
    const [typeFilter, setTypeFilter] = useState('all');
    const [reportDate, setReportDate] = useState('');
-   const [sortFilter, setSortFilter] = useState('user_name');
+   const [sortFilter, setSortFilter] = useState('reported_user_name');
    const [searchText, setSearchText] = useState('');
+   const reportCategoryLabels: Record<string, string> = {
+      inappropriate_language: '부정적인 언어',
+      spamming: '도배',
+      advertisement: '광고',
+      fraud: '사기',
+      etc: '기타',
+   };
+   const reportCategoryValuesByLabel: Record<string, string> = Object.fromEntries(
+      Object.entries(reportCategoryLabels).map(([value, label]) => [label, value])
+   );
+
+   const normalizeReportCategory = (value?: string | null) => {
+      if (!value) return 'etc';
+      if (reportCategoryLabels[value]) return value;
+      return reportCategoryValuesByLabel[value] ?? value;
+   };
+
+   const getReportCategoryLabel = (value?: string | null) => {
+      const normalized = normalizeReportCategory(value);
+      return reportCategoryLabels[normalized] ?? value ?? '-';
+   };
 
    useEffect(() => {
       fetchReports();
@@ -35,11 +56,12 @@ export default function UserReport() {
 
          if (error) throw error;
 
-         const reportsWithPeriod = (data || []).map(report => ({
+         const normalized = (data ?? []).map((report) => ({
             ...report,
-            sanction_period: calculateSactionPeriod(report),
+            reporter_name: report.reporter_name ?? report.reporter_user_name ?? '',
+            report_category: normalizeReportCategory(report.report_category ?? report.category),
          }));
-         setReports(reportsWithPeriod);
+         setReports(normalized);
       } catch (error) {
          console.error('신고 조회 실패:', error);
          alert('신고 목록을 불러오는데 실패하였습니다.');
@@ -48,25 +70,17 @@ export default function UserReport() {
       }
    };
 
-   const calculateSactionPeriod = (report: UserReportData): string => {
-      if (!report.sanction_start_date || !report.sanction_end_date) {
-         return '-';
-      }
-      const start = new Date(report.sanction_start_date).toLocaleDateString('ko-KR');
-      const end = new Date(report.sanction_end_date).toLocaleDateString('ko-KR');
-      return `${start}~${end}`;
-   };
-
    const getSanctionTypeLabel = (type: string): string => {
       const labels: Record<string, string> = {
          account_suspended_7days: '7일 계정정지',
          account_suspended_14days: '14일 계정정지',
          account_suspended_30days: '30일 계정정지',
-         account_suspended_permmanent: '영구 계정정지',
+         account_suspended_permanent: '영구 계정정지',
          undetermined: '미정',
       };
       return labels[type] || type;
    };
+
    useEffect(() => {
       setCurrentPage(1);
    }, [categoryFilter, sortFilter, searchText, reportDate, typeFilter]);
@@ -113,7 +127,7 @@ export default function UserReport() {
    const handleSearch = () => setCurrentPage(1);
    const handleReset = () => {
       setCategoryFilter('all');
-      setSortFilter('user_name');
+      setSortFilter('reported_user_name');
       setTypeFilter('all');
       setSearchText('');
       setReportDate('');
@@ -122,23 +136,11 @@ export default function UserReport() {
 
    const handleUpdateReport = async (reportId: number, updateData: Partial<UserReportData>) => {
       try {
-         const { error } = await supabase
-            .from('user_reports')
-            .update({
-               ...updateData,
-               updated_at: new Date().toISOString(),
-            })
-            .eq('id', reportId);
+         const { error } = await supabase.from('user_reports').update(updateData).eq('id', reportId);
 
          if (error) throw error;
 
-         setReports(prev =>
-            prev.map(report =>
-               report.id === reportId
-                  ? { ...report, ...updateData, sanction_period: calculateSactionPeriod({ ...report, ...updateData }) }
-                  : report,
-            ),
-         );
+         setReports(prev => prev.map(report => (report.id === reportId ? { ...report, ...updateData } : report)));
          alert('제재 정보가 업데이트되었습니다.');
       } catch (error) {
          console.error('신고 업데이트 실패:', error);
@@ -166,11 +168,11 @@ export default function UserReport() {
                      <ComboboxComponent
                         options={[
                            { value: 'all', label: '전체' },
-                           { value: '부정적인 언어', label: '부정적인 언어' },
-                           { value: '도배', label: '도배' },
-                           { value: '광고', label: '광고' },
-                           { value: '사기', label: '사기' },
-                           { value: '기타', label: '기타' },
+                           { value: 'inappropriate_language', label: '부정적인 언어' },
+                           { value: 'spamming', label: '도배' },
+                           { value: 'advertisement', label: '광고' },
+                           { value: 'fraud', label: '사기' },
+                           { value: 'etc', label: '기타' },
                         ]}
                         className="w-full"
                         value={categoryFilter}
@@ -212,8 +214,7 @@ export default function UserReport() {
                   <div className="flex-1">
                      <ComboboxComponent
                         options={[
-                           { value: 'user_name', label: '사용자 명' },
-                           { value: 'phone_number', label: '전화번호' },
+                           { value: 'reported_user_name', label: '사용자 명' },
                            { value: 'reporter_name', label: '신고자 명' },
                         ]}
                         className="w-full"
@@ -244,31 +245,56 @@ export default function UserReport() {
             <div className="absolute inset-0 overflow-auto">
                <TableComponent<UserReportData>
                   columns={[
-                     { key: 'user_name', label: '사용자 명', width: 'w-[100px]' },
-                     { key: 'phone_number', label: '전화번호', width: 'w-[130px]' },
-                     { key: 'report_date', label: '신고 접수날짜', width: 'w-[120px]' },
-                     { key: 'sanction_period', label: '제재 기간', width: 'w-[170px]' },
+                     {
+                        key: 'reported_user_name',
+                        label: '사용자 명',
+                        width: 'max-w-[120px] whitespace-normal break-words',
+                     },
+                     {
+                        key: 'report_date',
+                        label: '신고 접수날짜',
+                        width: 'max-w-[150px] whitespace-normal break-words',
+                        render: value => {
+                           if (!value) return '-';
+                           const date = new Date(value);
+                           return date.toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false,
+                           });
+                        },
+                     },
+                     {
+                        key: 'sanction_period',
+                        label: '제재 기간',
+                        width: 'max-w-[180px] whitespace-normal break-words',
+                     },
                      {
                         key: 'sanction_type',
                         label: '제재 유형',
-                        width: 'w-[120px]',
-                        render: value => (
-                           <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                 value === '7일 계정정지'
-                                    ? 'bg-red-100 text-red-800'
-                                    : value === '14일 계정정지'
-                                      ? 'bg-orange-100 text-orange-800'
-                                      : value === '30일 계정정지'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : value === '영구 계정정지'
-                                          ? 'bg-purple-100 text-purple-800'
-                                          : 'bg-gray-100 text-gray-800'
-                              }`}
-                           >
-                              {value}
-                           </span>
-                        ),
+                        width: 'max-w-[140px]',
+                        render: value => {
+                           let colorClass = 'bg-gray-100 text-gray-800';
+
+                           if (value === 'account_suspended_7days') {
+                              colorClass = 'bg-red-100 text-red-800';
+                           } else if (value === 'account_suspended_14days') {
+                              colorClass = 'bg-orange-100 text-orange-800';
+                           } else if (value === 'account_suspended_30days') {
+                              colorClass = 'bg-yellow-100 text-yellow-800';
+                           } else if (value === 'account_suspended_permanent') {
+                              colorClass = 'bg-purple-100 text-purple-800';
+                           }
+
+                           return (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${colorClass}`}>
+                                 {getSanctionTypeLabel(value)}
+                              </span>
+                           );
+                        },
                      },
                      { key: 'reporter_name', label: '신고자 명', width: 'w-[100px]' },
                      {
@@ -277,19 +303,19 @@ export default function UserReport() {
                         width: 'w-[120px]',
                         render: value => (
                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                 value === '부정적인 언어'
+                              className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                                 value === 'inappropriate_language'
                                     ? 'bg-red-100 text-red-800'
-                                    : value === '도배'
+                                    : value === 'spamming'
                                       ? 'bg-orange-100 text-orange-800'
-                                      : value === '광고'
+                                      : value === 'advertisement'
                                         ? 'bg-yellow-100 text-yellow-800'
-                                        : value === '사기'
+                                        : value === 'fraud'
                                           ? 'bg-purple-100 text-purple-800'
                                           : 'bg-gray-100 text-gray-800'
                               }`}
                            >
-                              {value}
+                              {getReportCategoryLabel(value)}
                            </span>
                         ),
                      },
@@ -297,7 +323,9 @@ export default function UserReport() {
                         key: 'is_processed',
                         label: '제재관리',
                         width: 'w-[110px]',
-                        render: (value, row) => <UserReportDialog reportData={row} type="user-report" />,
+                        render: (value, row) => (
+                           <UserReportDialog reportData={row} onUpdate={handleUpdateReport} type="user-report" />
+                        ),
                      },
                   ]}
                   data={currentData}

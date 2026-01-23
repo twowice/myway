@@ -53,7 +53,19 @@ export default function Event() {
    const fetchEvents = async () => {
       try {
          setLoading(true);
-         const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+         const { data, error } = await supabase
+            .from('events')
+            .select(
+               `
+               *,
+               event_images (
+                  id,
+                  image_url,
+                  is_main
+               )
+            `,
+            )
+            .order('created_at', { ascending: false });
 
          if (error) throw error;
          setEvents(data || []);
@@ -63,6 +75,13 @@ export default function Event() {
       } finally {
          setLoading(false);
       }
+   };
+   const formatDateToYYYYMMDD = (dateString: string): string => {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
    };
 
    const convertToDisplayData = (event: EventData): EventDisplayData => {
@@ -97,6 +116,8 @@ export default function Event() {
          price: priceDisplay,
          location: event.address ? `${event.address}${event.address2 ? ' ' + event.address2 : ''}` : '-',
          state,
+         phone: event.phone || '-',
+         insta_url: event.insta_url || '-',
       };
    };
    useEffect(() => {
@@ -104,16 +125,20 @@ export default function Event() {
    }, [statusFilter, sortFilter, searchText, startDate, endDate]);
 
    const filterData = useMemo(() => {
-      const displayData = events.map(convertToDisplayData);
       return (
-         displayData
+         events
             //상태
-            .filter(event => (statusFilter === 'all' ? true : event.state === statusFilter))
+            .filter(event => {
+               if (statusFilter === 'all') return true;
+               const displayData = convertToDisplayData(event);
+               return displayData.state === statusFilter;
+            })
             //검색어 + 분류
             .filter(event => {
                if (!searchText) return true;
+               const displayData = convertToDisplayData(event);
                const field = sortFilter as keyof EventDisplayData;
-               const value = String(event[field]).toLowerCase();
+               const value = String(displayData[field]).toLowerCase();
 
                if (field === 'operating_hours') {
                   return value.replace(/:/g, '').includes(searchText.replace(/:/g, '').toLowerCase());
@@ -124,20 +149,30 @@ export default function Event() {
             // 기간
             .filter(event => {
                if (!startDate && !endDate) return true;
-               const [start, end] = event.period.split('~').map(v => v.trim());
-               const eventStart = new Date(start);
-               const eventEnd = new Date(end || start);
-               const filterStart = startDate ? new Date(startDate) : null;
-               const filterEnd = endDate ? new Date(endDate) : null;
+               const eventStartStr = formatDateToYYYYMMDD(event.start_date);
+               const eventEndStr = formatDateToYYYYMMDD(event.end_date);
 
-               if (filterStart && filterEnd) {
-                  return eventEnd >= filterStart && eventStart <= filterEnd;
+               if (startDate && endDate) {
+                  // 시작일과 종료일 모두 입력된 경우
+                  // 필터 시작일이 이벤트 시작일 이후이고, 필터 종료일이 이벤트 종료일 이전이면 포함
+                  // (필터 기간이 이벤트 기간 안에 포함됨)
+                  return startDate >= eventStartStr && endDate <= eventEndStr;
                }
 
-               if (filterStart) return eventEnd >= filterStart;
-               if (filterEnd) return eventStart <= filterEnd;
+               if (startDate) {
+                  // 시작일만 입력된 경우: 필터 시작일이 이벤트 기간 안에 있으면 포함
+                  return startDate >= eventStartStr && startDate <= eventEndStr;
+               }
+
+               if (endDate) {
+                  // 종료일만 입력된 경우: 필터 종료일이 이벤트 기간 안에 있으면 포함
+                  return endDate >= eventStartStr && endDate <= eventEndStr;
+               }
+
                return true;
             })
+            // display 데이터로 변환
+            .map(convertToDisplayData)
       );
    }, [events, statusFilter, sortFilter, searchText, startDate, endDate]);
 
@@ -159,7 +194,7 @@ export default function Event() {
    const handleSearch = () => setCurrentPage(1);
    const handleReset = () => {
       setStatusFilter('all');
-      setSortFilter('title');
+      setSortFilter('name');
       setSearchText('');
       setStartDate('');
       setEndDate('');
@@ -180,6 +215,9 @@ export default function Event() {
             price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
             organizer: formData.organizer || '',
             content_id: Date.now(),
+            phone: formData.phone || '',
+            insta_url: formData.insta_url || '',
+            status: formData.eventStatus || 'non_progress',
          };
          const { data: newEvent, error: eventError } = await supabase
             .from('events')
@@ -190,9 +228,9 @@ export default function Event() {
          if (eventError) throw eventError;
 
          if (formData.eventImages && formData.eventImages.length > 0) {
-            const imageData: Partial<EventImage>[] = formData.eventImages.map((url: string, index: number) => ({
+            const imageData: Partial<EventImage>[] = formData.eventImages.map((base64: string, index: number) => ({
                event_id: newEvent.id,
-               image_url: url,
+               image_url: base64, // Base64 문자열
                is_main: index === 0,
             }));
 
@@ -202,16 +240,26 @@ export default function Event() {
 
             const { data: eventWithImages } = await supabase
                .from('events')
-               .select(`*, event_images (*)`)
+               .select(
+                  `
+                  *,
+                  event_images (
+                     id,
+                     image_url,
+                     is_main
+                  )
+               `,
+               )
                .eq('id', newEvent.id)
                .single();
 
             // 로컬 업뎃
             setEvents(prev => [eventWithImages, ...prev]);
          } else {
-            setEvents(prev => [newEvent, ...prev]);
+            setEvents(prev => [{ ...newEvent, event_images: [] }, ...prev]);
          }
          setCurrentPage(1);
+         alert('이벤트가 등록되었습니다.');
       } catch (error) {
          console.error('이벤트 등록 실패:', error);
          alert('이벤트 등록에 실패했습니다.');
@@ -222,6 +270,7 @@ export default function Event() {
    const handleRowClick = (displayEvent: EventDisplayData) => {
       const originalEvent = events.find(e => e.id === displayEvent.id);
       if (originalEvent) {
+         console.log('📋 선택된 이벤트 (이미지 포함):', originalEvent);
          setSelectedEvent(originalEvent);
          setIsEditOpen(true);
       }
@@ -229,7 +278,6 @@ export default function Event() {
 
    const handleEditEvents = async (formData: any, originalEvent: EventData) => {
       try {
-         // 이벤트 데이터 업데이트
          const eventData: Partial<EventData> = {
             title: formData.eventName,
             start_date: formData.startDate,
@@ -240,19 +288,38 @@ export default function Event() {
             homepage: formData.eventHomepage,
             overview: formData.eventIntro,
             price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
-            organizer: formData.orgainzer || '',
+            organizer: formData.organizer || '',
+            phone: formData.phone || '',
+            insta_url: formData.insta_url || '',
+            status: formData.eventStatus || 'non_progress',
          };
 
          const { error: eventError } = await supabase.from('events').update(eventData).eq('id', originalEvent.id);
 
          if (eventError) throw eventError;
 
-         // 기존 이미지 삭제 (CASCADE로 자동 삭제됨)
-         if (formData.eventImages && formData.eventImages.length > 0) {
-            // 기존 이미지 삭제
-            await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
+         // 기존 이미지 URL 추출
+         const oldImageUrls = originalEvent.event_images?.map(img => img.image_url) || [];
 
-            // 새 이미지 삽입
+         // Storage에서 기존 이미지 삭제
+         if (oldImageUrls.length > 0) {
+            const filePaths = oldImageUrls
+               .map(url => {
+                  const urlParts = url.split('/event_images/');
+                  return urlParts[1];
+               })
+               .filter(path => path); // undefined 제거
+
+            if (filePaths.length > 0) {
+               await supabase.storage.from('event_images').remove(filePaths);
+            }
+         }
+
+         // DB에서 기존 이미지 레코드 삭제
+         await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
+
+         // 새 이미지 삽입
+         if (formData.eventImages && formData.eventImages.length > 0) {
             const imageData: Partial<EventImage>[] = formData.eventImages.map((url: string, index: number) => ({
                event_id: originalEvent.id,
                image_url: url,
@@ -262,12 +329,8 @@ export default function Event() {
             const { error: imageError } = await supabase.from('event_images').insert(imageData);
 
             if (imageError) throw imageError;
-         } else {
-            //이미지 없으면 기존 이미지 삭제
-            await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
          }
 
-         // 전체 목록 다시 조회
          fetchEvents();
          alert('이벤트가 수정되었습니다.');
       } catch (error) {
@@ -280,6 +343,27 @@ export default function Event() {
    const handleDeleteEvents = async (eventId: number) => {
       if (!confirm('정말 삭제하시겠습니까?')) return;
       try {
+         // 1. 먼저 이벤트의 이미지 URL들을 가져오기
+         const eventToDelete = events.find(e => e.id === eventId);
+         const imageUrls = eventToDelete?.event_images?.map(img => img.image_url) || [];
+
+         // 2. Storage에서 이미지 삭제
+         if (imageUrls.length > 0) {
+            const filePaths = imageUrls.map(url => {
+               // URL에서 파일 경로 추출
+               const urlParts = url.split('/event_images/');
+               return urlParts[1]; // 'events/파일명.jpg'
+            });
+
+            const { error: storageError } = await supabase.storage.from('event_images').remove(filePaths);
+
+            if (storageError) {
+               console.error('Storage 삭제 에러:', storageError);
+               // Storage 삭제 실패해도 DB는 삭제하도록 진행
+            }
+         }
+
+         // 3. DB에서 이벤트 삭제 (CASCADE로 event_images도 자동 삭제)
          const { error: eventError } = await supabase.from('events').delete().eq('id', eventId);
 
          if (eventError) throw eventError;
@@ -296,9 +380,9 @@ export default function Event() {
       } catch (error) {
          console.error('이벤트 삭제 실패:', error);
          alert('이벤트 삭제에 실패했습니다.');
-         throw error;
       }
    };
+
    const handleCloseEdit = () => {
       setIsEditOpen(false);
       setSelectedEvent(null);
@@ -373,6 +457,7 @@ export default function Event() {
                            { value: 'host', label: '주최' },
                            { value: 'period', label: '기간' },
                            { value: 'operating_hours', label: '운영시간' },
+                           { value: 'phone', label: '전화번호' },
                            { value: 'price', label: '가격' },
                            { value: 'location', label: '이벤트 장소' },
                            { value: 'state', label: '이벤트 상태' },
@@ -403,15 +488,31 @@ export default function Event() {
             <div className="absolute inset-0 overflow-auto">
                <TableComponent<EventDisplayData>
                   columns={[
-                     { key: 'name', label: '이벤트 명', align: 'left' },
-                     { key: 'host', label: '주최' },
-                     { key: 'period', label: '기간' },
-                     { key: 'operating_hours', label: '운영 시간' },
-                     { key: 'price', label: '가격' },
-                     { key: 'location', label: '이벤트 장소', align: 'left' },
+                     {
+                        key: 'name',
+                        label: '이벤트 명',
+                        align: 'left',
+                        className: 'max-w-[200px] whitespace-normal break-words',
+                     },
+                     { key: 'host', label: '주최', className: 'max-w-[120px] whitespace-normal break-words' },
+                     { key: 'period', label: '기간', className: 'max-w-[180px] whitespace-normal break-words' },
+                     {
+                        key: 'operating_hours',
+                        label: '운영시간',
+                        className: 'max-w-[100px] whitespace-normal break-words',
+                     },
+                     { key: 'phone', label: '전화번호', className: 'max-w-[120px] whitespace-normal break-words' },
+                     { key: 'price', label: '가격', className: 'max-w-[80px]' },
+                     {
+                        key: 'location',
+                        label: '이벤트 장소',
+                        align: 'left',
+                        className: 'max-w-[250px] whitespace-normal break-words',
+                     },
                      {
                         key: 'state',
                         label: '이벤트 상태',
+                        className: 'max-w-[100px]',
                         render: value => (
                            <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${

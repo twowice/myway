@@ -6,26 +6,28 @@ import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/ui/searchBar'
 import { ComboboxComponent } from '@/components/basic/combo';
 
-interface FilterHeaderProps { 
+interface FilterHeaderProps {
     onSearch: (value: string) => void;
     category: string;
     region: string;
     month: string;
-    onFilterChange: (filter: { category: string; region: string; month: string}) => void;
+    isPanel: boolean;
+    onFilterChange: (filter: { category: string; region: string; month: string }) => void;
 }
 
-export function FilterHeader({ onSearch, category, region, month, onFilterChange }: FilterHeaderProps) {
+export function FilterHeader({ onSearch, category, region, month, onFilterChange, isPanel }: FilterHeaderProps) {
 
     /* ===========================
         Search Function
     =========================== */
-    const handleSearch = (value: string) => { 
+    const handleSearch = (value: string) => {
         const trimmed = value.trim();
-        if(trimmed.length < 2) {onSearch(''); return; }
+        if (trimmed === '' ) return;
+        if (trimmed.length < 2) { onSearch(''); return; }
 
-        onSearch(trimmed); 
+        onSearch(trimmed);
     };
-        
+
     return (
         <div className='w-full flex flex-wrap gap-2 sm:gap-3 items-center '>
             <ComboboxComponent
@@ -39,32 +41,35 @@ export function FilterHeader({ onSearch, category, region, month, onFilterChange
                 value={category}
                 onValueChange={(value) => onFilterChange({ category: value, region, month })}
             />
-            <div className="w-[48%] sm:w-auto">
-                <ComboboxComponent
-                    options={[
-                        { value: 'all', label: '전국' },
-                        { value: '서울', label: '서울' },
-                        { value: '부산', label: '부산' },
-                        { value: '대구', label: '대구' },
-                        { value: '인천', label: '인천' },
-                        { value: '광주', label: '광주' },
-                        { value: '대전', label: '대전' },
-                        { value: '울산', label: '울산' },
-                        { value: '세종', label: '세종' },
-                        { value: '경기도', label: '경기도' },
-                        { value: '강원도', label: '강원도' },
-                        { value: '충청북도', label: '충청북도' },
-                        { value: '충청남도', label: '충청남도' },
-                        { value: '전라북도', label: '전라북도' },
-                        { value: '전라남도', label: '전라남도' },
-                        { value: '경상북도', label: '경상북도' },
-                        { value: '경상남도', label: '경상남도' },
-                        { value: '제주도', label: '제주도' },
-                    ]}
-                    value={region}
-                    onValueChange={(value) => onFilterChange({ category, region: value, month })}
-                />
-            </div>
+            {!isPanel && (
+                <div className="w-[48%] sm:w-auto">
+                    <ComboboxComponent
+                        options={[
+                            { value: 'all', label: '전국' },
+                            { value: '서울', label: '서울' },
+                            { value: '부산', label: '부산' },
+                            { value: '대구', label: '대구' },
+                            { value: '인천', label: '인천' },
+                            { value: '광주', label: '광주' },
+                            { value: '대전', label: '대전' },
+                            { value: '울산', label: '울산' },
+                            { value: '세종', label: '세종' },
+                            { value: '경기도', label: '경기도' },
+                            { value: '강원도', label: '강원도' },
+                            { value: '충청북도', label: '충청북도' },
+                            { value: '충청남도', label: '충청남도' },
+                            { value: '전라북도', label: '전라북도' },
+                            { value: '전라남도', label: '전라남도' },
+                            { value: '경상북도', label: '경상북도' },
+                            { value: '경상남도', label: '경상남도' },
+                            { value: '제주도', label: '제주도' },
+                        ]}
+                        value={region}
+                        onValueChange={(value) => onFilterChange({ category, region: value, month })}
+                    />
+                </div>
+            )}
+
             <div className="flex gap-2 w-[50%] sm:w-auto">
                 <ComboboxComponent
                     options={[
@@ -85,9 +90,11 @@ export function FilterHeader({ onSearch, category, region, month, onFilterChange
                     value={month}
                     onValueChange={(value) => onFilterChange({ category, region, month: value })}
                 />
-                <Button variant="secondary" className='cursor-pointer h-[41px]' onClick={() => onFilterChange({ category: 'A02', region: 'all', month: 'all' })}>전체</Button>
+                {!isPanel && (
+                    <Button variant="secondary" className='cursor-pointer h-[41px]' onClick={() => onFilterChange({ category: 'A02', region: 'all', month: 'all' })}>전체</Button>
+                )}
             </div>
-            <SearchBar onSearch={handleSearch} delay={500} />
+            <SearchBar onChange={onSearch} onSearch={handleSearch} delay={500} />
         </div>
     );
 }

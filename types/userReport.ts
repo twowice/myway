@@ -1,21 +1,20 @@
 export interface UserReportData {
    id?: number;
-   user_id: number;
-   user_name: string;
-   phone_number: string;
+   reported_user_id: number;
+   reported_user_name: string;
    reporter_id: number;
    reporter_name: string;
    report_category: string;
    report_content: string;
+   report_chat: string;
    report_date: string;
    sanction_type: string;
-   sanction_start_date?: string;
-   sanction_end_date?: string;
    sanction_period?: string;
    is_processed: boolean;
    add_opinion?: string;
    created_at?: string;
-   updated_at?: string;
+   insta_url: string;
+   organizer: string;
 }
 
 export interface PartyReportData {
@@ -30,6 +29,7 @@ export interface PartyReportData {
    report_content: string;
    report_date: string;
    sanction_type: string;
+   sanction_period?: string;
    party_dissolution_date?: string;
    is_processed: boolean;
    add_opinion?: string;
@@ -74,6 +74,7 @@ export interface EventData {
    updated_at?: string;
    event_images?: EventImage[];
    organizer?: string;
+   status?: string;
 }
 
 export interface EventDisplayData {
@@ -85,6 +86,8 @@ export interface EventDisplayData {
    price: string;
    location: string;
    state: string;
+   phone: string;
+   insta_url: string;
 }
 export interface NoticeData {
    id?: number;
@@ -101,5 +104,6 @@ export interface NoticeDisplayData {
    category: string;
    title: string;
    created_at: string;
+   updated_at: string;
    is_top_fixed: boolean;
 }

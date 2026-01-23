@@ -1,10 +1,15 @@
 // types/next-auth.d.ts
-import { DefaultSession } from "next-auth"
+import 'next-auth'
+import 'next-auth/jwt'
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
+      role: string
       id: string
+      email: string
+      name: string
+      image?: string
       isProfileComplete: boolean
     } & DefaultSession["user"]
   }
@@ -12,14 +17,17 @@ declare module "next-auth" {
   interface User {
     id: string
     email: string
-    name?: string | null
-    image?: string | null
+    name: string
+    image?: string
     isProfileComplete?: boolean
+    role?: string
   }
 }
 
-declare module "next-auth/jwt" {
+declare module 'next-auth/jwt' {
   interface JWT {
-    isProfileComplete?: boolean
+    id: string
+    isProfileComplete: boolean
+    role: string
   }
 }

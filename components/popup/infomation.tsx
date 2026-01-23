@@ -16,6 +16,12 @@ import { cn } from "@/lib/utils";
  * @property {ReactNode} dialogTrigger - 팝업창을 열기 위한 트리거 컴포넌트입니다. (예: <Button>보기</Button>)
  * @property {ReactNode} title - 팝업창의 제목으로 경로 상세에서 쓰이는 파란 글자 표현을 위해 ReactNode로 받습니다.
  * @property {ReactNode} body - 팝업창의 본문 내용입니다. ReactNode 타입으로 다양한 컴포넌트를 전달할 수 있습니다.
+ * @property {boolean} [hideOverlay] - 백드롭 숨김 여부
+ * @property {'center' | 'top-left' | 'top-right'} [position] - 팝업 위치
+ * @property {boolean} [preventOutsideClose] - 바깥 클릭 시 닫힘 방지 여부
+ * @property {boolean} [allowOutsideInteraction] - 바깥 요소 상호작용 허용 여부
+ * @property {boolean} [open] - 팝업 열림 상태 제어
+ * @property {(open: boolean) => void} [onOpenChange] - 열림 상태 변경 콜백
  */
 
 /**

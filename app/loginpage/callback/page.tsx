@@ -10,9 +10,19 @@ export default function AuthCallback() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      if (!session.user.isProfileComplete) {
+      console.log('현재 세션:', session)
+      console.log('사용자 role:', session.user.role)
+      
+      // role이 admin인 경우 adminpage로 이동
+      if (session.user.role === 'admin') {
+        router.push('/adminpage')
+      }
+      // 프로필이 완성되지 않은 경우 추가 정보 입력 페이지로 이동
+      else if (!session.user.isProfileComplete) {
         router.push('/loginpage/additionalinfo')
-      } else {
+      }
+      // 일반 사용자는 홈으로 이동
+      else {
         router.push('/')
       }
     }

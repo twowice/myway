@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from "react";
 import {
-   Dialog,
-   DialogClose,
-   DialogContent,
-   DialogFooter,
-   DialogHeader,
-   DialogTitle,
-   DialogTrigger,
-} from '../ui/dialog';
-import { Button } from '../ui/button/button';
-import { cn } from '@/lib/utils';
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Button } from "../ui/button/button";
+import { cn } from "@/lib/utils";
 
 /**
- * @typedef {object} ConfirmationPopupProps
+ * @typedef {object} TwoFunctionPopupProps
  * @property {string} className - 팝업의 전체에 적용하고 싶은 style을 받는 변수
  * @property {ReactNode} dialogTrigger - 팝업창을 열기 위한 트리거 컴포넌트입니다. (예: <Button>확인</Button>)
  * @property {string} title - 팝업창의 제목입니다.
@@ -23,6 +23,15 @@ import { cn } from '@/lib/utils';
  * @property {string} [rightTitle='네'] - 오른쪽 버튼의 텍스트입니다. (선택 사항, 기본값: '네')
  * @property {() => void} [leftCallback] - 왼쪽 버튼 클릭 시 실행될 콜백 함수입니다.
  * @property {() => void} [rightCallback] - 오른쪽 버튼 클릭 시 실행될 콜백 함수입니다.
+ * @property {ReactNode} [titleButton] - 제목 옆에 붙는 버튼/아이콘
+ * @property {boolean} [hideOverlay] - 백드롭 숨김 여부
+ * @property {'center' | 'top-left' | 'top-right'} [position] - 팝업 위치
+ * @property {boolean} [open] - 팝업 열림 상태 제어
+ * @property {(open: boolean) => void} [onOpenChange] - 열림 상태 변경 콜백
+ * @property {boolean} [closeOnLeft] - 왼쪽 버튼 클릭 시 닫힘 여부
+ * @property {boolean} [closeOnRight] - 오른쪽 버튼 클릭 시 닫힘 여부
+ * @property {boolean} [preventOutsideClose] - 바깥 클릭 시 닫힘 방지 여부
+ * @property {boolean} [allowOutsideInteraction] - 바깥 상호작용 허용 여부
  */
 
 /**
@@ -37,84 +46,115 @@ import { cn } from '@/lib/utils';
  */
 
 export const TwoFunctionPopup = ({
-   className,
-   dialogTrigger,
-   title,
-   titleButton,
-   body,
-   leftTitle = '아니오',
-   rightTitle = '네',
-   open,
-   leftCallback = () => {},
-   rightCallback = () => {},
-   hideOverlay = false,
-   position = 'center',
-   onOpenChange,
-   closeOnLeft = true,
-   closeOnRight = true,
+  className,
+  dialogTrigger,
+  title,
+  titleButton,
+  body,
+  leftTitle = "아니오",
+  rightTitle = "네",
+  open,
+  leftCallback = () => {},
+  rightCallback = () => {},
+  hideOverlay = false,
+  position = "center",
+  onOpenChange,
+  closeOnLeft = true,
+  closeOnRight = true,
+  preventOutsideClose = false,
+  allowOutsideInteraction = false,
 }: {
-   className?: string;
-   dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
-   title: string; //팝업창 제목 (좌상단 가장 큰 글자)
-   body: ReactNode; //팝업창 바디에 들어갈 컴포넌트
-   leftTitle?: string; //기능1 버튼 이름
-   rightTitle?: string; //기능2 버튼 이름
-   leftCallback?: () => void; //기능1 동작 콜백 함수
-   rightCallback?: () => void; //기능2 동작 콜백 함수
-   hideOverlay?: boolean; //백드롭
-   position?: 'center' | 'top-left' | 'top-right'; //위치
-   onOpenChange?: (open: boolean) => void;
-   titleButton?: React.ReactNode;
-   closeOnLeft?: boolean; // 편집모드일때는닫힘 방지
-   closeOnRight?: boolean; // 편집모드일때는닫힘 방지
-   open?: boolean;
+  className?: string;
+  dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
+  title: string; //팝업창 제목 (좌상단 가장 큰 글자)
+  body: ReactNode; //팝업창 바디에 들어갈 컴포넌트
+  leftTitle?: string; //기능1 버튼 이름
+  rightTitle?: string; //기능2 버튼 이름
+  leftCallback?: () => void; //기능1 동작 콜백 함수
+  rightCallback?: () => void; //기능2 동작 콜백 함수
+  hideOverlay?: boolean; //백드롭
+  position?: "center" | "top-left" | "top-right"; //위치
+  onOpenChange?: (open: boolean) => void;
+  titleButton?: React.ReactNode;
+  closeOnLeft?: boolean; // 편집모드일때는닫힘 방지
+  closeOnRight?: boolean; // 편집모드일때는닫힘 방지
+  preventOutsideClose?: boolean; // 바깥 클릭으로 닫힘 방지
+  allowOutsideInteraction?: boolean; // 바깥 상호작용 허용
+  open?: boolean;
 }): React.ReactElement => {
-   return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-         <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
-         <DialogContent
-            className={cn(
-               'flex flex-col bg-white max-w-none p-4 gap-4',
-               className ? 'lg:max-w-none sm:max-w-none max-w-none ' + className : '',
-            )}
-            hideOverlay={hideOverlay}
-            position={position}
-         >
-            <DialogHeader>
-               <DialogTitle>
-                  <div className="flex items-center gap-2">
-                     <h1 className="flex justify-start text-[20px] font-semibold">{title}</h1>
-                     {titleButton && <div className="shrink-0">{titleButton}</div>}
-                  </div>
-               </DialogTitle>
-            </DialogHeader>
-            {body}
-            <DialogFooter className="flex flex-row gap-x-10px ">
-               {closeOnLeft ? (
-                  <DialogClose asChild>
-                     <Button className="flex-1" type="button" onClick={leftCallback} variant="secondary">
-                        {leftTitle}
-                     </Button>
-                  </DialogClose>
-               ) : (
-                  <Button className="flex-1" type="button" onClick={leftCallback} variant="secondary">
-                     {leftTitle}
-                  </Button>
-               )}
+  const [mounted, setMounted] = useState(false);
 
-               {closeOnRight ? (
-                  <DialogClose asChild>
-                     <Button className="flex-1" type="button" onClick={rightCallback}>
-                        {rightTitle}
-                     </Button>
-                  </DialogClose>
-               ) : (
-                  <Button className="flex-1" type="button" onClick={rightCallback}>
-                     {rightTitle}
-                  </Button>
-               )}
-            </DialogFooter>
-         </DialogContent>
-      </Dialog>
-   );
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <>{dialogTrigger}</>;
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange} modal={!allowOutsideInteraction}>
+      <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
+      <DialogContent
+        className={cn(
+          "flex flex-col bg-white max-w-none p-4 gap-4",
+          className ? "lg:max-w-none sm:max-w-none max-w-none " + className : ""
+        )}
+        hideOverlay={hideOverlay}
+        position={position}
+        onInteractOutside={(event) => {
+          if (preventOutsideClose) {
+            event.preventDefault();
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            <div className="flex items-center gap-2">
+              <h1 className="flex justify-start text-[20px] font-semibold">
+                {title}
+              </h1>
+              {titleButton && <div className="shrink-0">{titleButton}</div>}
+            </div>
+          </DialogTitle>
+        </DialogHeader>
+        {body}
+        <DialogFooter className="flex flex-row gap-x-10px ">
+          {closeOnLeft ? (
+            <DialogClose asChild>
+              <Button
+                className="flex-1"
+                type="button"
+                onClick={leftCallback}
+                variant="secondary"
+              >
+                {leftTitle}
+              </Button>
+            </DialogClose>
+          ) : (
+            <Button
+              className="flex-1"
+              type="button"
+              onClick={leftCallback}
+              variant="secondary"
+            >
+              {leftTitle}
+            </Button>
+          )}
+
+          {closeOnRight ? (
+            <DialogClose asChild>
+              <Button className="flex-1" type="button" onClick={rightCallback}>
+                {rightTitle}
+              </Button>
+            </DialogClose>
+          ) : (
+            <Button className="flex-1" type="button" onClick={rightCallback}>
+              {rightTitle}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 };

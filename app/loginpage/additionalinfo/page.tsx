@@ -1,3 +1,4 @@
+// loginpage/additionalinfo/page.tsx
 'use client'
 
 import { useSession } from 'next-auth/react'
@@ -15,7 +16,7 @@ export default function AdditionalInfoPage() {
     birthDate: '',
   })
   const [loading, setLoading] = useState(false)
-  const [hasEmailFromProvider, setHasEmailFromProvider] = useState(false) // ✅ 추가
+  const [hasEmailFromProvider, setHasEmailFromProvider] = useState(false)
 
   // 소셜 로그인 정보를 기본값으로 설정
   useEffect(() => {
@@ -28,11 +29,11 @@ export default function AdditionalInfoPage() {
         email: email,
       }))
       
-      // ✅ 소셜 로그인에서 이메일을 받아왔는지 확인
       setHasEmailFromProvider(!!email)
     }
   }, [session])
 
+  // 권한 체크 및 리다이렉트
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/loginpage')
@@ -47,11 +48,13 @@ export default function AdditionalInfoPage() {
     setLoading(true)
 
     try {
+      console.log('Submitting with userId:', session?.user.id)  // 디버깅용
+
       const response = await fetch('/api/user/updateprofile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: session?.user.id,
+          userId: session?.user.id,  // UUID 전달
           name: formData.name,
           email: formData.email,
           gender: formData.gender,
@@ -60,18 +63,21 @@ export default function AdditionalInfoPage() {
         }),
       })
 
+      const responseData = await response.json()
+
       if (response.ok) {
+        // 세션 업데이트
         await update({ 
           isProfileComplete: true,
           name: formData.name,
           email: formData.email,
         })
         
+        // 메인 페이지로 이동
         window.location.href = '/'
       } else {
-        const errorData = await response.json()
-        console.error('서버 에러:', errorData)
-        alert('정보 저장에 실패했습니다.')
+        console.error('서버 에러:', responseData)
+        alert(`정보 저장에 실패했습니다: ${responseData.error}`)
       }
     } catch (error) {
       console.error('Error:', error)
@@ -124,7 +130,7 @@ export default function AdditionalInfoPage() {
                   ? 'bg-gray-100 cursor-not-allowed' 
                   : ''
               }`}
-              disabled={hasEmailFromProvider} // ✅ 이메일 있으면 수정 불가
+              disabled={hasEmailFromProvider}
               required
             />
             {hasEmailFromProvider && (

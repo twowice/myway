@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fetchNaverPlaceSuggestions } from "@/lib/map/search";
 import { useSearchStore } from "@/stores/map/seachstore";
-import { SelectedPlace } from "@/types/map/place";
+import { PlaceResult } from "@/types/map/place";
 import { useState, useCallback, useEffect, useRef } from "react";
 
 export const RouteSearchBar = ({
@@ -23,7 +23,7 @@ export const RouteSearchBar = ({
 
   const [placeholder] = useState(getPlaceholder());
   const [inputValue, setInputValue] = useState("");
-  const [suggestions, setSuggestions] = useState<SelectedPlace[]>([]);
+  const [suggestions, setSuggestions] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isPlaceSelected, setIsPlaceSelected] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -97,6 +97,9 @@ export const RouteSearchBar = ({
       roadAddress: place.roadAddress,
       lat: place.lat,
       lng: place.lng,
+      category: place.category,
+      link: place.link,
+      telephone: place.telephone,
     });
   };
 

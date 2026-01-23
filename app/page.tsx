@@ -8,6 +8,14 @@ export default function Home() {
       <h1>아이콘 테스트 페이지</h1>
 
       {/* 기본 사용 */}
+      <Icon24 name="seoul" />
+      <Icon24 name="suwon" />
+      <Icon24 name="incheon" />
+      <Icon24 name="gangneung" />
+      <Icon24 name="yeosu" />
+      <Icon24 name="gyeongju" />
+      <Icon24 name="busan" />
+      <Icon24 name="jeju" />
       <Icon24 name="arrow" />
       <Icon24 name="add" />
       <Icon36 name="notice36" />

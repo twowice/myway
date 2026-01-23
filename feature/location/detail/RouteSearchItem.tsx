@@ -13,6 +13,7 @@ type Props = {
   fromName: string;
   toName: string;
   departAt?: Date;
+  onShare?: () => void;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 const PATH_TYPE_LABEL: Record<number, string> = {
@@ -49,7 +50,7 @@ function makeTransitRows(path: Path) {
   const transits = path.subPath
     .filter(
       (s: any) =>
-        !(s.trafficType === 3 && s.distance === 0 && s.sectionTime === 0)
+        !((s.trafficType === 3 && s.sectionTime === 0) || s.distance === 0)
     )
     .filter(
       (s: any) =>
@@ -82,7 +83,7 @@ function makeTransitRows(path: Path) {
       stationName: s.startName ? `${s.startName}` : "",
       way: s.way ? `${s.way}행` : "",
       color: getSegmentColor(s),
-      endStation: s.endName,
+      distance: s.distance,
     };
   });
 }
@@ -95,6 +96,7 @@ export const RouteSearchItem = React.forwardRef<HTMLDivElement, Props>(
       fromName,
       toName,
       departAt = new Date(),
+      onShare,
       onClick,
       className,
       ...rest
@@ -163,11 +165,14 @@ export const RouteSearchItem = React.forwardRef<HTMLDivElement, Props>(
               rightText={r.way}
               accent
               color={r.color}
-              endStation={r.endStation}
             />
           ))}
 
-          <RouteStopoverItem leftLabel="도착" mainText={toName} />
+          <RouteStopoverItem
+            leftLabel="도착"
+            mainText={toName}
+            onShare={onShare}
+          />
         </div>
       </div>
     );

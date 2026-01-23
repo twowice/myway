@@ -55,6 +55,7 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
          if (data.places && data.places.length > 0) {
             console.log(`✅ [프론트] ${data.places.length}건 받음!`);
 
+            // API 응답 필드명 매핑
             const results: PlaceResult[] = data.places.map((place: any, index: number) => {
                const mapped = {
                   name: place.name || '',

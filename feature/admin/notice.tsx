@@ -47,24 +47,34 @@ export default function Notice() {
       }
    };
 
+   const formatDateToYYYYMMDD = (dateString: string): string => {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+   };
+
    const convertToDisplayData = (notice: NoticeData): NoticeDisplayData => {
       return {
          id: notice.id!,
          category: getCategoryLabel(notice.category),
          title: notice.title,
          created_at: new Date(notice.created_at!).toLocaleDateString('ko-KR'),
+         updated_at: notice.updated_at ? new Date(notice.updated_at).toLocaleDateString('ko-KR') : '-',
          is_top_fixed: notice.is_top_fixed,
       };
    };
 
-   const getCategoryLabel = (category: string): string => {
+   const getCategoryLabel = (category: string | null | undefined): string => {
+      if (!category) return '일반';
       const labels: Record<string, string> = {
          normal: '일반',
          update: '업데이트',
          event: '이벤트',
          policy: '이용정책',
       };
-      return labels[category] || category;
+      return labels[category] || '일반';
    };
 
    useEffect(() => {
@@ -88,7 +98,9 @@ export default function Notice() {
             // 게시날짜
             .filter(notice => {
                if (!addDate) return true;
-               const noticeDate = new Date(notice.created_at).toISOString().split('T')[0];
+               const originalNotice = notices.find(n => n.id === notice.id);
+               if (!originalNotice?.created_at) return false;
+               const noticeDate = formatDateToYYYYMMDD(originalNotice.created_at);
                return noticeDate === addDate;
             })
             // 수정날짜
@@ -96,7 +108,7 @@ export default function Notice() {
                if (!editDate) return true;
                const originalNotice = notices.find(n => n.id === notice.id);
                if (!originalNotice?.updated_at) return false;
-               const noticeEditDate = new Date(originalNotice.updated_at).toISOString().split('T')[0];
+               const noticeEditDate = formatDateToYYYYMMDD(originalNotice.updated_at);
                return noticeEditDate === editDate;
             })
       );
@@ -120,8 +132,10 @@ export default function Notice() {
    const handleSearch = () => setCurrentPage(1);
    const handleReset = () => {
       setCategoryFilter('all');
-      setSortFilter('name');
+      setSortFilter('title');
       setSearchText('');
+      setAddDate('');
+      setEditDate('');
       setCurrentPage(1);
    };
 
@@ -140,6 +154,7 @@ export default function Notice() {
 
          setNotices(prev => [newNotice, ...prev]);
          setCurrentPage(1);
+         alert('공지사항이 등록되었습니다.');
       } catch (error) {
          console.error('공지사항 등록 실패:', error);
          alert('공지사항 등록에 실패했습니다.');
@@ -175,6 +190,7 @@ export default function Notice() {
             .single();
 
          setNotices(prev => prev.map(notice => (notice.id === originalNotice.id ? updatedNotice : notice)));
+         alert('공지사항이 수정되었습니다.');
       } catch (error) {
          console.error('공지사항 수정 실패:', error);
          alert('공지사항 수정에 실패했습니다.');
@@ -195,6 +211,7 @@ export default function Notice() {
          if (currentPage > newTotalPages && newTotalPages > 0) {
             setCurrentPage(newTotalPages);
          }
+         alert('공지사항이 삭제되었습니다.');
       } catch (error) {
          console.error('공지사항 삭제 실패:', error);
          alert('공지사항 삭제에 실패했습니다.');
@@ -320,6 +337,7 @@ export default function Notice() {
                      },
                      { key: 'category', label: '카테고리' },
                      { key: 'created_at', label: '등록일' },
+                     { key: 'updated_at', label: '업데이트일' },
                   ]}
                   data={currentData}
                   onRowClick={handleRowClick}

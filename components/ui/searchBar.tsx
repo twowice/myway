@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icon24 } from '../icons/icon24';
 
 interface SearchBarProps {
@@ -22,10 +22,16 @@ export const SearchBar = ({
 
    const isControlled = controlledValue !== undefined;
    const value = isControlled ? controlledValue : internalValue;
+   const didMountRef = useRef(false); // EDIT BY CKH 26.01.06
 
    // ADD BY CKH 25.12.15
    useEffect(() => {
       if (!onSearch) return;
+      // EDIT BY CKH 26.01.06 (첫 렌더는 onSearch 호출 스킵)
+      if (!didMountRef.current) {
+         didMountRef.current = true;
+         return;
+      }
 
        const handler = setTimeout(() => {
          onSearch(value.trim());
@@ -62,7 +68,7 @@ export const SearchBar = ({
                value={value}
                onChange={handleChange}
                placeholder={placeholder}
-               className="w-full py-2 pl-12 text-base bg-primary-foreground rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#007DE4] focus:border-transparent transition-all"
+               className="w-full py-2 pl-12 pr-12 text-base bg-primary-foreground rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#007DE4] focus:border-transparent transition-all"
             />
 
             {value && (

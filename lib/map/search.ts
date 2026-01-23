@@ -1,4 +1,4 @@
-import { SearchApiResponse, SelectedPlace } from "@/types/map/place";
+import { SearchApiResponse } from "@/types/map/place";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 export async function fetchNaverPlaceSuggestions(query: string): Promise<SearchApiResponse> {

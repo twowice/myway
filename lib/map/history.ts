@@ -2,9 +2,19 @@ export type RouteSearchHistoryPayload = {
   departure_name: string;
   departure_latitude: number;
   departure_longitude: number;
+  departure_address: string;
+  departure_road_address: string;
+  departure_category: string;
+  departure_telephone?: string | null;
+  departure_link?: string | null;
   destination_name: string;
   destination_latitude: number;
   destination_longitude: number;
+  destination_address: string;
+  destination_road_address: string;
+  destination_category: string;
+  destination_telephone?: string | null;
+  destination_link?: string | null;
   total_time_seconds?: number | null;
   total_fare?: number | null;
   map_object_id?: string | null;
@@ -31,12 +41,23 @@ export async function saveRouteSearchHistory(
 export type RouteSearchHistory = {
   id: number;
   created_at: string;
+  status: "active" | "deleted";
   departure_name: string;
   departure_latitude: number;
   departure_longitude: number;
+  departure_address: string | null;
+  departure_road_address: string | null;
+  departure_category: string | null;
+  departure_telephone: string | null;
+  departure_link: string | null;
   destination_name: string;
   destination_latitude: number;
   destination_longitude: number;
+  destination_address: string | null;
+  destination_road_address: string | null;
+  destination_category: string | null;
+  destination_telephone: string | null;
+  destination_link: string | null;
   total_time_seconds: number | null;
   total_fare: number | null;
   map_object_id: string | null;
@@ -60,4 +81,19 @@ export async function fetchRouteSearchHistories(params?: {
 
   const data = await response.json();
   return data?.data ?? [];
+}
+
+export async function deleteRouteSearchHistory(id: number) {
+  const response = await fetch("/api/map/search/history", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "검색 기록 삭제 실패");
+  }
+
+  return response.json();
 }
