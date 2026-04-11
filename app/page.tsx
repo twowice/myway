@@ -1,94 +1,201 @@
 'use client';
-import { Icon24 } from '@/components/icons/icon24';
-import { Icon36 } from '@/components/icons/icon36';
 
-export default function Home() {
-  return (
-    <div style={{ padding: '50px', background: '#f0f0f0' }}>
-      <h1>아이콘 테스트 페이지</h1>
+import Link from 'next/link';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-      {/* 기본 사용 */}
-      <Icon24 name="seoul" />
-      <Icon24 name="suwon" />
-      <Icon24 name="incheon" />
-      <Icon24 name="gangneung" />
-      <Icon24 name="yeosu" />
-      <Icon24 name="gyeongju" />
-      <Icon24 name="busan" />
-      <Icon24 name="jeju" />
-      <Icon24 name="arrow" />
-      <Icon24 name="add" />
-      <Icon36 name="notice36" />
-      <Icon24 name="routedef" />
-      <Icon24 name="sharedef" />
-      <Icon24 name="pinned" />
-      <Icon24 name="likedef" />
-      <Icon24 name="likefill" className='text-red-500' />
-      <Icon24 name="minus" />
-      <Icon24 name="plus" />
-      <Icon24 name="drag" />
-      <Icon24 name="down" />
-      <Icon24 name="up" />
-      <Icon24 name="sunny" />
-      <Icon24 name="rainy" />
-      <Icon24 name="cloudy" />
-      <Icon24 name="snow" />
-      <Icon24 name="thunder" />
-      <Icon24 name="notify" />
-      <Icon24 name="closeblack" />
-      <Icon24 name="close" />
-      <Icon24 name="back" />
-      <Icon24 name="go" />
-      <Icon24 name="notice" />
-      <Icon24 name="search" />
-      <Icon24 name="trash" />
-      <Icon24 name="clock" />
-      <Icon24 name="calendar" />
-      <Icon24 name="arrow" />
-      <Icon24 name="add" />
-      <Icon24 name="talk" />
-      <Icon24 name="doubleclose" />
+import { EventSkeletonGrid } from '@/feature/event/EventSkeletonGrid';
+import { EventTitle } from '@/feature/event/EventTitle';
+import { FilterHeader } from '@/feature/event/FilterHeader';
+import { EventCard } from '@/feature/event/EventCard';
+import { EmptyIcon } from '@/components/status/EmptyIcon';
+import EventPanel from '@/components/header/panels/eventpanel';
+import { useEventFilterStore } from '@/stores/eventFilterStore';
+import { panelstore } from '@/stores/panelstore';
 
-      <Icon36 name="more" />
-      <Icon36 name="profile" />
-      <Icon36 name="event" />
-      <Icon36 name="alertexist" />
-      <Icon36 name="alert" />
-      <Icon36 name="location" />
-      <Icon36 name="price" />
-      <Icon36 name="city" />
-      <Icon36 name="phone" />
-      <Icon36 name="party" />
-      <Icon36 name="sns" />
-      <Icon36 name="bigcalendar" />
-      <Icon36 name="matching" />
-      <Icon36 name="record" />
-      <Icon36 name="bigheartdef" />
-      <Icon36 name="user" />
-      <Icon36 name="festival" />
-      <Icon36 name="basicmarker" />
+interface EventItem {
+    id: number;
+    region: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+    overview: string;
+    imageUrl: string;
+    event_images: string;
+}
 
-      <br /><br />
+type EventApiItem = {
+    id: number;
+    address?: string | null;
+    title: string;
+    start_date: string;
+    end_date: string;
+    overview?: string | null;
+    main_image?: string | null;
+    event_images: string;
+};
 
-      {/* 크기 바꾸기 */}
-      <Icon24 name="routedef" width={50} height={50} />
+const LIMIT = 4;
 
-      <br /><br />
+type ApiResponse = {
+    success: boolean;
+    data: EventApiItem[];
+    pagination: {
+        total: number;
+        limit: number;
+        offset: number;
+        hasMore: boolean;
+        nextOffset: number | null;
+    };
+};
 
-      {/* 색상 바꾸기 */}
-      <Icon24 name="routedef" className="text-red-500" />
+export default function Page() {
+    const openpanel = panelstore((state) => state.openpanel);
+    const isPanel = openpanel !== null;
 
-      <br /><br />
+    const keyword = useEventFilterStore((state) => state.keyword);
+    const setKeyword = useEventFilterStore((state) => state.setKeyword);
 
-      {/* 클릭도 되는지 테스트 */}
-      <Icon24 
-        name="routedef" 
-        width={60} 
-        className="text-blue-600 hover:text-purple-600 cursor-pointer"
-        onClick={() => alert('클릭됨!')}
-      />
+    const region = useEventFilterStore((state) => state.region);
+    const setRegion = useEventFilterStore((state) => state.setRegion);
 
-      <br /><br />
-    </div>
-  );
+    const [category, setCategory] = useState('A02');
+    const [month, setMonth] = useState('all');
+
+    const handleFilterChange = (filter: { category: string; region: string; month: string }) => {
+        setCategory(filter.category);
+        setRegion(filter.region);
+        setMonth(filter.month);
+    };
+
+    const fetchEventsPage = async ({ pageParam }: { pageParam: number }) => {
+        const res = await fetch(
+            `/api/events?limit=${LIMIT}&offset=${pageParam}` +
+            `&category=${encodeURIComponent(category)}` +
+            `&region=${encodeURIComponent(region)}` +
+            `&month=${encodeURIComponent(month)}` +
+            `&keyword=${encodeURIComponent(keyword)}`,
+            { cache: 'no-store' }
+        );
+
+        if (!res.ok) throw new Error('❌ Event API Request Fail');
+
+        const json: ApiResponse = await res.json();
+        const list = json.data ?? [];
+        const mapped: EventItem[] = list.map((item) => {
+            const addressRegion = item.address?.split(' ') ?? [];
+            return {
+                id: item.id,
+                title: item.title,
+                startDate: item.start_date,
+                endDate: item.end_date,
+                region: addressRegion.length >= 2 ? `${addressRegion[0]} ${addressRegion[1]}` : addressRegion[0] ?? '',
+                imageUrl: item.main_image ?? '/error/no-image.svg',
+                event_images: item.event_images,
+                overview: item.overview ?? '',
+            };
+        });
+
+        return {
+            mapped,
+            pagination: json.pagination,
+        };
+    };
+
+    const {
+        data,
+        isLoading,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage,
+        error,
+    } = useInfiniteQuery({
+        queryKey: ['events', { keyword, category, region, month }],
+        queryFn: ({ pageParam }) => fetchEventsPage({ pageParam }),
+        initialPageParam: 0,
+        getNextPageParam: (lastPage) =>
+            lastPage.pagination?.hasMore ? lastPage.pagination.nextOffset ?? undefined : undefined,
+    });
+
+    const pages = useMemo(() => data?.pages ?? [], [data?.pages]);
+    const total = pages[0]?.pagination?.total ?? 0;
+
+    const events = useMemo(() => {
+        const merged = pages.flatMap((p) => p.mapped);
+        return Array.from(new Map(merged.map((e) => [e.id, e])).values());
+    }, [pages]);
+
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!loadMoreRef.current) return;
+        if (!hasNextPage) return;
+
+        const el = loadMoreRef.current;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && !isFetchingNextPage) {
+                    fetchNextPage();
+                }
+            },
+            { rootMargin: '200px' }
+        );
+
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage, isPanel]);
+
+    const content = (
+        <div className={`w-full justify-center ${isPanel ? 'px-[16px]' : 'pt-[70px] px-[16px]'}`}>
+            <div className="flex flex-col space-y-[22px]">
+                <EventTitle count={total} />
+
+                <FilterHeader
+                    onSearch={setKeyword}
+                    category={category}
+                    region={region}
+                    month={month}
+                    onFilterChange={handleFilterChange}
+                    isPanel={isPanel}
+                />
+
+                {isLoading && events.length === 0 && <EventSkeletonGrid count={12} isPanel={isPanel} />}
+
+                {!isLoading && events.length === 0 && !hasNextPage && <EmptyIcon />}
+
+                {error && <div className="text-sm text-red-500">데이터를 불러오는데 실패했어요.</div>}
+
+                {events.length > 0 && (
+                    <div
+                        className={`
+                            grid
+                            gap-x-[16px]
+                            gap-y-[16px]
+                            ${isPanel ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}
+                        `}
+                    >
+                        {events.map((item) => (
+                            <Link key={item.id} href={`/eventpage/${item.id}`} className="block cursor-pointer">
+                                <EventCard
+                                    id={item.id}
+                                    region={item.region}
+                                    title={item.title}
+                                    startDate={item.startDate}
+                                    endDate={item.endDate}
+                                    imageUrl={item.imageUrl}
+                                />
+                            </Link>
+                        ))}
+                    </div>
+                )}
+
+                {isFetchingNextPage && events.length > 0 && <EventSkeletonGrid count={4} isPanel={isPanel} />}
+
+                {hasNextPage && <div ref={loadMoreRef} className="h-10" />}
+            </div>
+        </div>
+    );
+
+    return <EventPanel>{content}</EventPanel>;
 }

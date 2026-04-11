@@ -39,6 +39,13 @@ const REGION_NAME = {
 
 const INITIAL_CONFIG = { lat: 35.870435, lng: 125.1255026, zoom: 7 };
 
+type MapEvent = {
+   id: number;
+   latitude: number;
+   longitude: number;
+   title?: string | null;
+};
+
 const REGION_COORDINATES = {
    all: INITIAL_CONFIG,
    seoul: { lat: 37.5665, lng: 126.978, zoom: 11 },
@@ -237,7 +244,7 @@ const MapSection = () => {
 
             // 마커 생성
             let markerCount = 0;
-            events.forEach((event: any) => {
+            events.forEach((event: MapEvent) => {
                if (!event.latitude || !event.longitude) {
                   console.warn('[loadMarkers] 좌표 없음:', event.title);
                   return;
@@ -284,7 +291,7 @@ const MapSection = () => {
                   setSelectedEventId(event.id ?? null);
                   //todo eventpanel 열기 
                   setKeywordFilter(event.title ?? ''); // ADD BY CKH 26.01.06
-                  router.push('/eventpage'); // ADD BY CKH 26.01.06
+                  router.push('/'); // ADD BY CKH 26.01.06
                });
 
                markersRef.current.push(marker);
