@@ -1,12 +1,11 @@
 "use client";
 
 import { PartyRow } from "@/components/partyrow/PartyRow";
-import { ComboboxComponent } from "@/components/basic/combo";
 import { PartyDetailPopup } from "@/feature/party/partyDetailPopup";
 import { fetchLikedMyParties } from "@/lib/mypage/party";
 import { fetchLikedParties, togglePartyLike } from "@/lib/party/party";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type PartyItem = {
   id: string;
@@ -19,7 +18,6 @@ type PartyItem = {
   time?: string;
   hostId?: string;
   eventName?: string;
-  eventCategory?: string;
   eventId?: number;
   label1?: string;
   label2?: string;
@@ -31,31 +29,10 @@ type PartyItem = {
 export const LikedPartyBody = () => {
   const { data: session } = useSession();
   const [partyList, setPartyList] = useState<PartyItem[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState("all");
   const [loading, setLoading] = useState(false);
   const [likedPartyIds, setLikedPartyIds] = useState<Set<string>>(new Set());
   const [selectedParty, setSelectedParty] = useState<PartyItem | null>(null);
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
-
-  const categoryOptions = useMemo(
-    () => [
-      { value: "all", label: "전체" },
-      { value: "A02", label: "축제" },
-      { value: "performance", label: "공연" },
-      { value: "exhibition", label: "전시" },
-      { value: "popup", label: "팝업" },
-      { value: "etc", label: "기타" },
-    ],
-    []
-  );
-
-  const normalizeCategory = (party: any) => {
-    const cat1 = party?.events?.cat1;
-    if (cat1 === "A02") {
-      return "A02";
-    }
-    return "etc";
-  };
 
   const mapParty = useCallback((party: any): PartyItem => {
     const gatheringDate = party?.gathering_date;
@@ -93,7 +70,6 @@ export const LikedPartyBody = () => {
       time,
       hostId: party.owner_id ? String(party.owner_id) : undefined,
       eventName: party?.events?.title ?? undefined,
-      eventCategory: normalizeCategory(party),
       eventId: typeof party.event_id === "number" ? party.event_id : undefined,
       label1: tags[0],
       label2: tags[1],
@@ -162,11 +138,6 @@ export const LikedPartyBody = () => {
     }
   };
 
-  const filteredParties = useMemo(() => {
-    if (categoryFilter === "all") return partyList;
-    return partyList.filter((party) => party.eventCategory === categoryFilter);
-  }, [categoryFilter, partyList]);
-
   if (!session?.user?.id) {
     return (
       <div className="rounded-md bg-primary-foreground p-4 text-sm text-foreground/70">
@@ -185,23 +156,12 @@ export const LikedPartyBody = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-start gap-3">
-        <p className="text-sm text-foreground/70">이벤트 카테고리</p>
-        <ComboboxComponent
-          options={categoryOptions}
-          value={categoryFilter}
-          onValueChange={setCategoryFilter}
-          width="w-[220px]"
-          height="h-9"
-        />
-      </div>
-
-      {filteredParties.length === 0 ? (
+      {partyList.length === 0 ? (
         <div className="flex items-center justify-center py-10 text-sm text-foreground/60">
           좋아요한 파티가 없습니다.
         </div>
       ) : (
-        filteredParties.map((party, index) => {
+        partyList.map((party, index) => {
           const actualIndex = index;
           const isSelected = selectedPartyId === actualIndex;
           return (

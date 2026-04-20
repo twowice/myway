@@ -9,10 +9,9 @@ interface EventDetailSumProps {
     price: string;
     region: string;
     phone: string;
-    insta_url: string;
 }
 
-export function EventDetailSum({ imageUrl, startDate, endDate, price, region, phone, insta_url }: EventDetailSumProps) {
+export function EventDetailSum({ imageUrl, startDate, endDate, price, region, phone }: EventDetailSumProps) {
     return (
         <div className="
             flex
@@ -22,16 +21,30 @@ export function EventDetailSum({ imageUrl, startDate, endDate, price, region, ph
             md:gap-8
             items-start
         ">
-            <div className='flex justify-center md:justify-start w-full md:w-auto'>
-                <img src={imageUrl} alt="event image" width={302} height={428} className="
-                object-cover
-                rounded-xl
-                w-[300px]
-                h-[280px]
-                md:w-[402px]
-                md:h-[428px]
-                lg:w-[502px]
-                lg:h-[428px]"/>
+            <div
+                className="
+                    flex
+                    justify-center
+                    md:justify-start
+                    w-full
+
+                    h-[280px]
+                    md:h-[428px]
+                    overflow-hidden
+                    rounded-xl
+                    shrink
+                "
+                >
+                <img
+                    src={imageUrl}
+                    alt="event image"
+                    className="
+                    block
+                    w-full
+                    h-full
+                    object-cover
+                    "
+                />
             </div>
 
             <div className="
@@ -62,17 +75,6 @@ export function EventDetailSum({ imageUrl, startDate, endDate, price, region, ph
 
                 <InfoRow icon="phone">
                     {phone}
-                </InfoRow>
-
-                <InfoRow icon="sns">
-                    <a
-                        href={insta_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline hover:opacity-80 break-all"
-                    >
-                        인스타 바로가기
-                    </a>
                 </InfoRow>
             </div>
         </div>

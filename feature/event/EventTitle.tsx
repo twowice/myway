@@ -40,7 +40,7 @@ export function EventTitle({ count }: EventTitleProps) {
           md:text-[32px]
         "
       >
-        전국 이벤트 콘텐츠
+        전국 축제 콘텐츠
       </p>
 
       {/* 카운트 */}

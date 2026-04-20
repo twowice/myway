@@ -1,7 +1,10 @@
 "use client";
 
-import { Icon24 } from '@/components/icons/icon24';
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+import { Icon24 } from "@/components/icons/icon24";
+import { fetchEventLikeStatus, toggleEventLike } from "@/lib/event/event";
 
 interface EventDetailTitleProps {
     id: string;
@@ -13,59 +16,63 @@ interface EventDetailTitleProps {
 }
 
 export function EventDetailTitle({ id, region, title, startDate, endDate }: EventDetailTitleProps) {
-
+    const { status } = useSession();
     const [liked, setLiked] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
+        if (status === "loading") return;
+
+        if (status !== "authenticated") {
+            setLiked(false);
+            setLoading(false);
+            return;
+        }
+
         const fetchLikeStatus = async () => {
             try {
-                const res = await fetch(`/api/events/${id}/like`);
-                if (!res.ok) return;
-
-                const data = await res.json();
+                const data = await fetchEventLikeStatus(id);
                 setLiked(data.liked);
-
-            } catch (e) { console.error("❌ Event Like Status Fail:", e); }
-            finally { setLoading(false); }
+            } catch (e) {
+                console.error("Event Like Status Fail:", e);
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchLikeStatus();
-    }, [id])
+    }, [id, status]);
 
-    /* ===========================
-        API Fetch
-    =========================== */
     const eventLike = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (isProcessing) return; // 연타 방지
+        if (status !== "authenticated") return;
+        if (isProcessing) return;
+
         setIsProcessing(true);
 
         const prevLiked = liked;
         setLiked(!prevLiked);
 
         try {
-            const res = await fetch(`/api/events/${id}/like`, {
-                method: "POST",
-            });
-
-            if (!res.ok) throw new Error("Like API fail");
-            const data = await res.json();
+            const data = await toggleEventLike(id);
             setLiked(data.liked);
-
-        } catch (e) { console.error("❌ Event Like Fail:", e); setLiked(prevLiked); }
-        finally { setIsProcessing(false); }
-    }
+        } catch (e) {
+            console.error("Event Like Fail:", e);
+            setLiked(prevLiked);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     return (
         <div className="flex flex-col gap-1 md:gap-2">
             <span className="
                 text-lg
-                md:text-2xl
-                lg:text-[32px]
+                md:text-xl
+                lg:text-xl
                 font-normal
                 text-[var(--primary)]">
                 {region}
@@ -95,7 +102,7 @@ export function EventDetailTitle({ id, region, title, startDate, endDate }: Even
                     <button
                         onClick={eventLike}
                         disabled={isProcessing}
-                        className='
+                        className="
                         w-9 h-9
                         md:w-10 md:h-10
                         bg-white/70
@@ -107,7 +114,7 @@ export function EventDetailTitle({ id, region, title, startDate, endDate }: Even
                         justify-center
                         shrink-0
                         hover:bg-white
-                        transition'>
+                        transition">
                         {liked ? (
                             <Icon24 name="likefill" className="text-red-500" />
                         ) : (
@@ -117,5 +124,5 @@ export function EventDetailTitle({ id, region, title, startDate, endDate }: Even
                 )}
             </div>
         </div>
-    )
+    );
 }

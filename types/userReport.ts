@@ -54,14 +54,9 @@ export interface EventData {
    playtime?: string;
    address?: string;
    address2?: string;
-   area_code?: string;
-   sigungu_code?: string;
    latitude?: number;
    longitude?: number;
    phone?: string;
-   cat1?: string;
-   cat2?: string;
-   cat3?: string;
    lcls1?: string;
    lcls2?: string;
    lcls3?: string;

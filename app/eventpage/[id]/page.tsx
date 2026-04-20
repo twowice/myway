@@ -5,77 +5,30 @@ import { useSession } from 'next-auth/react';
 import { EventDetailTitle } from '@/feature/event/detail/EventDetailTitle';
 import { EventDetailSum } from '@/feature/event/detail/EventDetailSum';
 import { PartyDrawer } from '@/feature/event/detail/PartyDrawer';
-import { ImageCarousel } from '@/feature/event/detail/ImageCarousel';
 import { PartyRow } from '@/components/partyrow/PartyRow'
 import NaverMapContainer from "@/components/map/NaverMapContainer";
 import { EmptyIcon } from '@/components/status/EmptyIcon';
 import { LoadingBounce } from '@/components/status/LoadingBounce';
 import { parseHomepageUrl } from '@/feature/event/url';
+import { fetchEventDetail, mapEventPartyItem } from '@/lib/event/event';
 import { fetchLikedParties, fetchParties, togglePartyLike } from '@/lib/party/party';
 import { PartyDetailPopup } from '@/feature/party/partyDetailPopup';
-
-/* ===========================
-   Interface
-=========================== */
-interface EventImage {
-  image_url: string;
-  is_main: boolean;
-}
-
-interface EventData {
-  id: number;
-  title: string;
-  start_date: string;
-  end_date: string;
-  address: string;
-  address2: string;
-  latitude: number;
-  longitude: number;
-  phone: string;
-  main_image: string;
-  homepage?: string;
-  overview?: string;
-  event_images?: EventImage[];
-  price?: string | null;
-  insta_url?: string | null;
-}
-
-interface PartyListItem {
-  id: string;
-  partyName: string;
-  current_members: number;
-  max_members: number;
-  description?: string;
-  location?: string;
-  date?: string;
-  time?: string;
-  hostId?: string;
-  eventName?: string;
-  eventId?: number;
-  locationLatitude?: number;
-  locationLongitude?: number;
-  label1?: string;
-  label2?: string;
-  label3?: string;
-}
+import type { EventDetail, EventPartyListItem } from '@/types/event';
 
 export default function Page() {
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
-  const [event, setEvent] = useState<EventData | null>(null);
+  const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [partyList, setPartyList] = useState<PartyListItem[]>([]);
+  const [partyList, setPartyList] = useState<EventPartyListItem[]>([]);
   const [partyLoading, setPartyLoading] = useState(true);
   const [likedPartyIds, setLikedPartyIds] = useState<Set<string>>(new Set());
-  const [selectedParty, setSelectedParty] = useState<PartyListItem | null>(null);
+  const [selectedParty, setSelectedParty] = useState<EventPartyListItem | null>(null);
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
 
   const region = event?.address.split(" ") ?? [];
   const imageUrl = event?.main_image ?? "/error/no-image.svg";
-  const images = event?.event_images?.filter(img => !img.is_main).map(img => img.image_url) ?? [];
-  const carousImages = images.length > 0 ? images : ["/error/no-image.svg"];
   const price = event?.price && event.price.trim() !== "" ? event.price : "요금 정보 없음";
-  const insta_url = event?.insta_url ?? "https://www.instagram.com/";
   const homepageUrl = parseHomepageUrl(event?.homepage);
 
   /* ===========================
@@ -87,13 +40,8 @@ export default function Page() {
     const fetchEvent = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/events/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch event");
-
-        const json = await res.json();
-        console.log(json.data)
-
-        setEvent(json.data);
+        const eventDetail = await fetchEventDetail(id);
+        setEvent(eventDetail);
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
     };
@@ -147,69 +95,12 @@ export default function Page() {
       return;
     }
 
-    const mapParty = (party: unknown): PartyListItem => {
-      const data = party as {
-        id?: number;
-        name?: string;
-        current_members?: number;
-        max_members?: number;
-        description?: string;
-        location_name?: string;
-        location_latitude?: number;
-        location_longitude?: number;
-        gathering_date?: string;
-        owner_id?: string;
-        tags?: string[];
-        event_id?: number;
-        events?: { title?: string };
-      };
-      const gatheringDate = data.gathering_date;
-      let date: string | undefined;
-      let time: string | undefined;
-      if (typeof gatheringDate === "string" && gatheringDate.includes("T")) {
-        const [datePart, timePart] = gatheringDate.split("T");
-        date = datePart;
-        const cleanTime = timePart
-          .replace("Z", "")
-          .split(".")[0]
-          .split("+")[0]
-          .slice(0, 5);
-        time = cleanTime;
-      }
-      const tags = Array.isArray(data.tags) ? data.tags : [];
-
-      return {
-        id: String(data.id ?? ""),
-        partyName: data.name ?? "",
-        current_members: data.current_members ?? 0,
-        max_members: data.max_members ?? 0,
-        description: data.description ?? "",
-        location: data.location_name ?? "",
-        date,
-        time,
-        hostId: data.owner_id ? String(data.owner_id) : undefined,
-        eventName: data.events?.title ?? event?.title,
-        eventId: typeof data.event_id === "number" ? data.event_id : undefined,
-        locationLatitude:
-          typeof data.location_latitude === "number"
-            ? data.location_latitude
-            : undefined,
-        locationLongitude:
-          typeof data.location_longitude === "number"
-            ? data.location_longitude
-            : undefined,
-        label1: tags[0],
-        label2: tags[1],
-        label3: tags[2],
-      };
-    };
-
     const fetchPartyList = async () => {
       setPartyLoading(true);
       try {
         const response = await fetchParties({ eventId });
         const parties = Array.isArray(response.data) ? response.data : [];
-        setPartyList(parties.map(mapParty));
+        setPartyList(parties.map((party) => mapEventPartyItem(party, event?.title)));
       } catch (error) {
         console.error("파티 목록 조회 실패:", error);
         setPartyList([]);
@@ -221,7 +112,7 @@ export default function Page() {
     fetchPartyList();
   }, [event?.title, id]);
 
-  const handleApply = (updatedParty: PartyListItem) => {
+  const handleApply = (updatedParty: EventPartyListItem) => {
     setPartyList((prev) =>
       prev.map((party) =>
         party.id === updatedParty.id ? { ...party, ...updatedParty } : party
@@ -231,7 +122,7 @@ export default function Page() {
     setSelectedPartyId(null);
   };
 
-  const handleWithdraw = (updatedParty: PartyListItem) => {
+  const handleWithdraw = (updatedParty: EventPartyListItem) => {
     setPartyList((prev) =>
       prev.map((party) =>
         party.id === updatedParty.id ? { ...party, ...updatedParty } : party
@@ -241,7 +132,7 @@ export default function Page() {
     setSelectedPartyId(null);
   };
 
-  const handleEdit = (updatedParty: PartyListItem) => {
+  const handleEdit = (updatedParty: EventPartyListItem) => {
     setPartyList((prev) =>
       prev.map((party) =>
         party.id === updatedParty.id ? { ...party, ...updatedParty } : party
@@ -258,7 +149,7 @@ export default function Page() {
     setSelectedPartyId(null);
   };
 
-  const handleSelect = (party: PartyListItem, index: number) => {
+  const handleSelect = (party: EventPartyListItem, index: number) => {
     setSelectedParty(party);
     setSelectedPartyId(index);
   };
@@ -272,7 +163,7 @@ export default function Page() {
   if (!event) return <EmptyIcon />;
 
   return (
-    <div className="flex flex-col space-y-4 md:space-y-6 lg:space-y-[22px] pb-[80px] pt-[70px] px-[16px] sm:px-[32px] lg:px-[80px] xl:px-[100px]">
+    <div className="w-full max-w-[960px] mx-auto flex flex-col space-y-4 md:space-y-6 lg:space-y-[22px] pb-[80px] pt-[70px] px-[16px] sm:px-[24px] lg:px-[32px]">
       {/* 타이틀 */}
       <EventDetailTitle
         id={id}
@@ -282,9 +173,6 @@ export default function Page() {
         endDate={event.end_date}
         imageUrl={imageUrl}
       />
-
-      {/* 이미지 */}
-      <ImageCarousel images={carousImages} />
 
       {/* 설명 */}
       <p className="text-sm md:text-base text-gray-700 leading-relaxed pb-[80px] pt-[10px]">
@@ -303,7 +191,6 @@ export default function Page() {
         price={price}
         region={event.address}
         phone={event.phone}
-        insta_url={insta_url}
       />
 
       {/* 지도 */}

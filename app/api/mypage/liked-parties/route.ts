@@ -35,7 +35,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("parties")
-      .select("*, events ( title, cat1 )")
+      .select("*, events ( title )")
       .in("id", partyIds)
       .not("status", "in", "(disbanded,deleted)")
       .order("created_at", { ascending: false });

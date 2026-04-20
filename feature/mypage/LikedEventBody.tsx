@@ -9,7 +9,6 @@ import {
   type MouseEvent,
 } from "react";
 import { useSession } from "next-auth/react";
-import { ComboboxComponent } from "@/components/basic/combo";
 import { EventCard } from "@/feature/event/EventCard";
 import { fetchLikedEventIds, fetchLikedEvents } from "@/lib/mypage/event";
 import { EventCardSkeleton } from "../event/EventSkeletonGrid";
@@ -21,7 +20,6 @@ interface EventItem {
   startDate: string;
   endDate: string;
   imageUrl: string;
-  eventCategory?: string;
 }
 
 export const LikedEventBody = () => {
@@ -29,27 +27,6 @@ export const LikedEventBody = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [likedEventIds, setLikedEventIds] = useState<number[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState("all");
-
-  const categoryOptions = useMemo(
-    () => [
-      { value: "all", label: "전체" },
-      { value: "A02", label: "축제" },
-      { value: "performance", label: "공연" },
-      { value: "exhibition", label: "전시" },
-      { value: "popup", label: "팝업" },
-      { value: "etc", label: "기타" },
-    ],
-    []
-  );
-
-  const normalizeCategory = (event: any) => {
-    const cat1 = event?.cat1;
-    if (cat1 === "A02") {
-      return "A02";
-    }
-    return "etc";
-  };
 
   const loadLikedEvents = useCallback(
     async (silent = false) => {
@@ -74,7 +51,6 @@ export const LikedEventBody = () => {
                 ? `${addressRegion[0]} ${addressRegion[1]}`
                 : addressRegion[0] ?? "",
             imageUrl: item.main_image ?? "/error/no-image.svg",
-            eventCategory: normalizeCategory(item),
           };
         });
         setEvents(mapped);
@@ -162,33 +138,17 @@ export const LikedEventBody = () => {
     );
   }
 
-  const filteredEvents =
-    categoryFilter === "all"
-      ? events
-      : events.filter((event) => event.eventCategory === categoryFilter);
-
   return (
     <div
       className="flex flex-col gap-2"
       onClickCapture={handleCardClickCapture}
     >
-      <div className="flex items-center justify-start gap-3">
-        <p className="text-sm text-foreground/70">이벤트 카테고리</p>
-        <ComboboxComponent
-          options={categoryOptions}
-          value={categoryFilter}
-          onValueChange={setCategoryFilter}
-          width="w-[220px]"
-          height="h-9"
-        />
-      </div>
-
-      {filteredEvents.length === 0 ? (
+      {events.length === 0 ? (
         <div className="flex items-center justify-center py-10 text-sm text-foreground/60">
           좋아요한 이벤트가 없습니다.
         </div>
       ) : (
-        filteredEvents.map((item) => (
+        events.map((item) => (
           <Link
             key={item.id}
             href={`/eventpage/${item.id}`}

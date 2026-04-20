@@ -1,55 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-
+import { EmptyIcon } from '@/components/status/EmptyIcon';
+import EventPanel from '@/components/header/panels/eventpanel';
+import { EventCard } from '@/feature/event/EventCard';
 import { EventSkeletonGrid } from '@/feature/event/EventSkeletonGrid';
 import { EventTitle } from '@/feature/event/EventTitle';
 import { FilterHeader } from '@/feature/event/FilterHeader';
-import { EventCard } from '@/feature/event/EventCard';
-import { EmptyIcon } from '@/components/status/EmptyIcon';
-import EventPanel from '@/components/header/panels/eventpanel';
+import { fetchEventsPage } from '@/lib/event/event';
+import { fetchLikedEventIds } from '@/lib/mypage/event';
 import { useEventFilterStore } from '@/stores/eventFilterStore';
 import { panelstore } from '@/stores/panelstore';
 
-interface EventItem {
-    id: number;
-    region: string;
-    title: string;
-    startDate: string;
-    endDate: string;
-    overview: string;
-    imageUrl: string;
-    event_images: string;
-}
-
-type EventApiItem = {
-    id: number;
-    address?: string | null;
-    title: string;
-    start_date: string;
-    end_date: string;
-    overview?: string | null;
-    main_image?: string | null;
-    event_images: string;
-};
-
 const LIMIT = 4;
 
-type ApiResponse = {
-    success: boolean;
-    data: EventApiItem[];
-    pagination: {
-        total: number;
-        limit: number;
-        offset: number;
-        hasMore: boolean;
-        nextOffset: number | null;
-    };
-};
-
 export default function Page() {
+    const { status } = useSession();
     const openpanel = panelstore((state) => state.openpanel);
     const isPanel = openpanel !== null;
 
@@ -68,40 +37,6 @@ export default function Page() {
         setMonth(filter.month);
     };
 
-    const fetchEventsPage = async ({ pageParam }: { pageParam: number }) => {
-        const res = await fetch(
-            `/api/events?limit=${LIMIT}&offset=${pageParam}` +
-            `&category=${encodeURIComponent(category)}` +
-            `&region=${encodeURIComponent(region)}` +
-            `&month=${encodeURIComponent(month)}` +
-            `&keyword=${encodeURIComponent(keyword)}`,
-            { cache: 'no-store' }
-        );
-
-        if (!res.ok) throw new Error('❌ Event API Request Fail');
-
-        const json: ApiResponse = await res.json();
-        const list = json.data ?? [];
-        const mapped: EventItem[] = list.map((item) => {
-            const addressRegion = item.address?.split(' ') ?? [];
-            return {
-                id: item.id,
-                title: item.title,
-                startDate: item.start_date,
-                endDate: item.end_date,
-                region: addressRegion.length >= 2 ? `${addressRegion[0]} ${addressRegion[1]}` : addressRegion[0] ?? '',
-                imageUrl: item.main_image ?? '/error/no-image.svg',
-                event_images: item.event_images,
-                overview: item.overview ?? '',
-            };
-        });
-
-        return {
-            mapped,
-            pagination: json.pagination,
-        };
-    };
-
     const {
         data,
         isLoading,
@@ -111,7 +46,15 @@ export default function Page() {
         error,
     } = useInfiniteQuery({
         queryKey: ['events', { keyword, category, region, month }],
-        queryFn: ({ pageParam }) => fetchEventsPage({ pageParam }),
+        queryFn: ({ pageParam }) =>
+            fetchEventsPage({
+                limit: LIMIT,
+                offset: pageParam,
+                category,
+                region,
+                month,
+                keyword,
+            }),
         initialPageParam: 0,
         getNextPageParam: (lastPage) =>
             lastPage.pagination?.hasMore ? lastPage.pagination.nextOffset ?? undefined : undefined,
@@ -122,8 +65,17 @@ export default function Page() {
 
     const events = useMemo(() => {
         const merged = pages.flatMap((p) => p.mapped);
-        return Array.from(new Map(merged.map((e) => [e.id, e])).values());
+        return Array.from(new Map(merged.map((event) => [event.id, event])).values());
     }, [pages]);
+
+    const { data: likedEventIds = [] } = useQuery({
+        queryKey: ['liked-event-ids'],
+        queryFn: fetchLikedEventIds,
+        enabled: status === 'authenticated',
+        select: (data) => data.eventIds,
+    });
+
+    const likedEventIdSet = useMemo(() => new Set(likedEventIds), [likedEventIds]);
 
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -184,6 +136,7 @@ export default function Page() {
                                     startDate={item.startDate}
                                     endDate={item.endDate}
                                     imageUrl={item.imageUrl}
+                                    initialLiked={likedEventIdSet.has(item.id)}
                                 />
                             </Link>
                         ))}

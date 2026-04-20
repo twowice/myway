@@ -42,7 +42,6 @@ export async function GET() {
         start_date,
         end_date,
         address,
-        cat1,
         event_images (
           image_url,
           is_main
