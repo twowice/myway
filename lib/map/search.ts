@@ -1,17 +1,17 @@
 import { SearchApiResponse } from "@/types/map/place";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const MIN_SEARCH_QUERY_LENGTH = 2;
+
 export async function fetchNaverPlaceSuggestions(query: string): Promise<SearchApiResponse> {
-    if (!query.trim()) {
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery.length < MIN_SEARCH_QUERY_LENGTH) {
         return { addresses: [] };
     }
 
     try {
-        const apiUrl = new URL(
-            `${API_URL}/api/map/search`,
-            window.location.origin
-        );
-        apiUrl.searchParams.append("query", query);
+        const apiUrl = new URL("/api/map/search", window.location.origin);
+        apiUrl.searchParams.append("query", trimmedQuery);
 
         const response = await fetch(apiUrl.toString(), {
             method: "GET",
@@ -20,16 +20,16 @@ export async function fetchNaverPlaceSuggestions(query: string): Promise<SearchA
             },
         });
 
+        const data = await response.json().catch(() => null);
+
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error("API Route 에러 응답:", response.status, errorData);
+            console.error("API Route 에러 응답:", response.status, data);
             throw new Error(
-                `API Route 오류: ${errorData.error || "알 수 없는 오류"}`
+                `API Route 오류: ${data?.error || "알 수 없는 오류"}`
             );
         }
 
-        const data: SearchApiResponse = await response.json();
-        return data;
+        return data ?? { addresses: [] };
     } catch (error: any) {
         console.error("장소 검색 에러 (lib/map/search):", error.message);
         throw error;

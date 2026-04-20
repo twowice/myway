@@ -69,6 +69,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <AppDocument>
         <AppProviders>
           <ToastProvider>
+            <MapScriptLoader />
             <Header />
             <main className="lg:ms-20 ms-16 lg:me-4 me-2 min-h-screen">{children}</main>
           </ToastProvider>

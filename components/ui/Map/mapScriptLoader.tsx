@@ -27,7 +27,7 @@ export default function MapScriptLoader() {
                id="naver-map-sdk"
                strategy="beforeInteractive"
                type="text/javascript"
-               src={`https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${process.env.NEXT_PUBLIC_NCP_CLIENT_ID}&submodules=geocoder`}
+               src={`https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${process.env.NEXT_PUBLIC_NCP_CLIENT_ID}&submodules=geocoder`}
                onReady={handleScriptReady}
                onError={e => {
                   console.error('[MapScriptLoader] 네이버 지도 스크립트 로드 실패:', e);

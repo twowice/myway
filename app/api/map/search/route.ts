@@ -6,6 +6,19 @@ const NAVER_SEARCH_SECRET = process.env.NAVER_CLIENT_SEARCH_SECRET;
 const NAVER_MAP_API_KEY_ID = process.env.NEXT_PUBLIC_NCP_CLIENT_ID;
 const NAVER_MAP_API_KEY = process.env.NEXT_PUBLIC_NCP_CLIENT_SECRET;
 
+const MIN_SEARCH_QUERY_LENGTH = 2;
+
+const parseJsonSafely = async (response: Response) => {
+    const text = await response.text();
+    if (!text) return null;
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        return null;
+    }
+};
+
 const fetchGeocoding = async (query: string) => {
     if (!NAVER_MAP_API_KEY_ID || !NAVER_MAP_API_KEY) {
         return null;
@@ -23,14 +36,13 @@ const fetchGeocoding = async (query: string) => {
         },
     });
 
+    const geocodeData = await parseJsonSafely(geocodeResponse);
+
     if (!geocodeResponse.ok) {
-        const errorText = await geocodeResponse.text().catch(() => '');
-        console.warn(`[Next.js API Route] Geocoding API 에러 응답: ${geocodeResponse.status}`);
-        console.warn(`[Next.js API Route] Geocoding API 에러 전문: ${errorText}`);
+        console.warn('[Next.js API Route] Geocoding API 에러 응답:', geocodeResponse.status, geocodeData);
         return null;
     }
 
-    const geocodeData = await geocodeResponse.json();
     const address = geocodeData?.addresses?.[0];
     if (!address) return null;
 
@@ -61,6 +73,7 @@ const fetchLocalSearch = async (query: string, coords?: { lat: number; lng: numb
     const naverApiUrl = new URL('https://openapi.naver.com/v1/search/local.json');
     naverApiUrl.searchParams.append('query', query);
     naverApiUrl.searchParams.append('display', '5');
+
     if (coords) {
         naverApiUrl.searchParams.append('coordinate', `${coords.lng},${coords.lat}`);
     }
@@ -73,26 +86,25 @@ const fetchLocalSearch = async (query: string, coords?: { lat: number; lng: numb
         },
     });
 
-    if (!naverApiResponse.ok) {
-        const errorText = await naverApiResponse.text();
-        console.error(`[Next.js API Route] 네이버 Search API 에러 응답: ${naverApiResponse.status}`);
-        console.error(`[Next.js API Route] 네이버 Search API 에러 전문: ${errorText}`);
+    const naverApiData = await parseJsonSafely(naverApiResponse);
 
-        let errorMessage = '알 수 없는 오류';
-        try {
-            const errorJson = JSON.parse(errorText);
-            errorMessage = errorJson.errorMessage || errorJson.message || errorJson.errorCode || errorMessage;
-        } catch (parseError) {
-        }
+    if (!naverApiResponse.ok) {
+        console.error('[Next.js API Route] 네이버 Search API 에러 응답:', naverApiResponse.status, naverApiData);
+
+        const errorMessage =
+            naverApiData?.errorMessage ||
+            naverApiData?.message ||
+            naverApiData?.errorCode ||
+            '알 수 없는 오류';
 
         throw new Error(`네이버 Search API 오류: ${errorMessage}`);
     }
 
-    const naverApiData = await naverApiResponse.json();
+    const items = Array.isArray(naverApiData?.items) ? naverApiData.items : [];
 
-    const filteredPlaces: PlaceResult[] = naverApiData.items.map((item: any) => {
-        const cleanedTitle = item.title.replace(/<[^>]*>?/g, '');
-        const cleanedCategory = item.category.replace(/<[^>]*>?/g, '').replace(/>/g, ' > ');
+    const filteredPlaces: PlaceResult[] = items.map((item: any) => {
+        const cleanedTitle = item.title?.replace(/<[^>]*>?/g, '') ?? '';
+        const cleanedCategory = item.category?.replace(/<[^>]*>?/g, '').replace(/>/g, ' > ') ?? '';
 
         const lat = Number(item.mapy) / 1e7;
         const lng = Number(item.mapx) / 1e7;
@@ -101,8 +113,8 @@ const fetchLocalSearch = async (query: string, coords?: { lat: number; lng: numb
             name: cleanedTitle,
             address: item.address,
             roadAddress: item.roadAddress,
-            lat: !isNaN(lat) ? lat : 0,
-            lng: !isNaN(lng) ? lng : 0,
+            lat: Number.isFinite(lat) ? lat : 0,
+            lng: Number.isFinite(lng) ? lng : 0,
             category: cleanedCategory,
             telephone: item.telephone,
             link: item.link,
@@ -114,15 +126,19 @@ const fetchLocalSearch = async (query: string, coords?: { lat: number; lng: numb
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('query');
+    const query = searchParams.get('query')?.trim() ?? '';
 
     if (!query) {
         return NextResponse.json({ error: '검색 쿼리가 필요합니다.' }, { status: 400 });
     }
 
+    if (query.length < MIN_SEARCH_QUERY_LENGTH) {
+        return NextResponse.json({ addresses: [] });
+    }
+
     try {
         if (!NAVER_SEARCH_ID || !NAVER_SEARCH_SECRET) {
-            console.error("네이버 Search API 키(NAVER_CLIENT_SEARCH_ID, NAVER_CLIENT_SEARCH_SECRET)가 설정되지 않았습니다.");
+            console.error('네이버 Search API 키가 설정되지 않았습니다.');
             return NextResponse.json({ error: '서버 설정 오류: API 키 없음' }, { status: 500 });
         }
 
@@ -137,7 +153,6 @@ export async function GET(request: Request) {
         }
 
         return NextResponse.json({ addresses: localResults });
-
     } catch (error: any) {
         console.error('[Next.js API Route] 장소 검색 처리 중 내부 오류:', error.message);
         return NextResponse.json({ error: '장소 검색 중 서버 내부 오류가 발생했습니다.' }, { status: 500 });

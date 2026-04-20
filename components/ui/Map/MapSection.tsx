@@ -511,12 +511,12 @@ const MapSection = () => {
       tryReverseGeocode();
    }, [currentPosition]);
 
-   const handleWeatherClick = () => {
+   const handleWeatherClick = async () => {
       if (showWeeklyModal) {
          setShowWeeklyModal(false);
       } else {
          if (currentPosition) {
-            fetchWeeklyWeather(currentPosition.lat, currentPosition.lng);
+            await fetchWeeklyWeather(currentPosition.lat, currentPosition.lng);
             setShowWeeklyModal(true);
          }
       }
@@ -673,8 +673,8 @@ const MapSection = () => {
          {showWeeklyModal && weeklyWeather && (
             <WeeklyWeatherModal
                weeklyWeather={weeklyWeather}
+               locationName={locationName}
                onClose={() => setShowWeeklyModal(false)}
-               currentPosition={currentPosition}
             />
          )}
       </div>

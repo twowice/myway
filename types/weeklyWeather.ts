@@ -24,7 +24,7 @@ export const useWeeklyWeather = () => {
             maxTemp: data.daily.temperature_2m_max[index],
             minTemp: data.daily.temperature_2m_min[index],
             weathercode: data.daily.weathercode[index],
-            precipition: data.daily.precipitation_sum[index],
+            precipitation: data.daily.precipitation_sum[index],
          }));
 
          setWeeklyWeather(dailyData);

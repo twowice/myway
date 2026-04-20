@@ -73,7 +73,6 @@ export type EventDetail = {
   overview?: string;
   event_images?: EventImage[];
   price?: string | null;
-  insta_url?: string | null;
 };
 
 export type EventDetailApiResponse = {
