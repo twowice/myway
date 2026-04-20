@@ -18,7 +18,7 @@ export function EventTitle({ count }: EventTitleProps) {
   const handleToggleView = () => {
     if (isDetailPage) {
       // 페이지형 → 패널형
-      router.push('/eventpage');
+      router.push('/');
     } else {
       // 패널형 → 페이지형
       router.push('/eventpage/detail');
@@ -40,7 +40,7 @@ export function EventTitle({ count }: EventTitleProps) {
           md:text-[32px]
         "
       >
-        전국 이벤트 콘텐츠
+        전국 축제 콘텐츠
       </p>
 
       {/* 카운트 */}

@@ -44,7 +44,7 @@ export async function GET(_request: NextRequest) {
 
     const { data, error } = await supabase
       .from("parties")
-      .select("*, events ( title, cat1 )")
+      .select("*, events ( title )")
       .in("id", Array.from(partyIds))
       .not("status", "in", "(disbanded,deleted)")
       .order("created_at", { ascending: false });

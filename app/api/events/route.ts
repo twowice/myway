@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
     const limit = Number(searchParams.get("limit") ?? 12);
     const offset = Number(searchParams.get("offset") ?? 0);
 
-    const category = searchParams.get("category"); // cat1
     const region = searchParams.get("region");     // address prefix
     const month = searchParams.get("month");       // start_date range
     const keyword = searchParams.get("keyword");   // title ilike
@@ -25,14 +24,9 @@ export async function GET(request: NextRequest) {
           end_date,
           address,
           address2,
-          area_code,
-          sigungu_code,
           latitude,
           longitude,
           phone,
-          cat1,
-          cat2,
-          cat3,
           lcls1,
           lcls2,
           lcls3,
@@ -44,14 +38,9 @@ export async function GET(request: NextRequest) {
         `,
         { count: "exact" }
       )
-      .or(`end_date.is.null,end_date.gte.${todayYMD}`)
+      // .or(`end_date.is.null,end_date.gte.${todayYMD}`)
       .order("start_date", { ascending: false })
       .range(offset, offset + limit - 1);
-
-    // 카테고리 필터
-    if (category && category !== "all") {
-      query = query.eq("cat1", category);
-    }
 
     // 지역 필터
     if (region && region !== "all") {

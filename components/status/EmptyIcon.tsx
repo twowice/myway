@@ -10,7 +10,7 @@ export function EmptyIcon() {
                 </svg>
 
             </div>
-            <p className="text-[16px] font-medium text-gray-500">콘텐츠를 준비중입니다 (_ _)</p>
+            <p className="text-[16px] font-medium text-gray-500">콘텐츠 준비중</p>
         </div>
     );
 }

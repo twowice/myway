@@ -30,17 +30,6 @@ export function FilterHeader({ onSearch, category, region, month, onFilterChange
 
     return (
         <div className='w-full flex flex-wrap gap-2 sm:gap-3 items-center '>
-            <ComboboxComponent
-                options={[
-                    { value: 'A02', label: '축제' },
-                    { value: 'performance', label: '공연' },
-                    { value: 'exhibition', label: '전시' },
-                    { value: 'popup', label: '팝업' },
-                    { value: 'etc', label: '기타' },
-                ]}
-                value={category}
-                onValueChange={(value) => onFilterChange({ category: value, region, month })}
-            />
             {!isPanel && (
                 <div className="w-[48%] sm:w-auto">
                     <ComboboxComponent
@@ -70,7 +59,7 @@ export function FilterHeader({ onSearch, category, region, month, onFilterChange
                 </div>
             )}
 
-            <div className="flex gap-2 w-[50%] sm:w-auto">
+            <div className="flex w-full min-w-0 gap-2 sm:w-auto sm:flex-1">
                 <ComboboxComponent
                     options={[
                         { value: 'all', label: '월별' },
@@ -88,13 +77,14 @@ export function FilterHeader({ onSearch, category, region, month, onFilterChange
                         { value: '12월', label: '12월' },
                     ]}
                     value={month}
+                    width="w-[104px] sm:w-[200px]"
                     onValueChange={(value) => onFilterChange({ category, region, month: value })}
                 />
                 {!isPanel && (
-                    <Button variant="secondary" className='cursor-pointer h-[41px]' onClick={() => onFilterChange({ category: 'A02', region: 'all', month: 'all' })}>전체</Button>
+                    <Button variant="secondary" className='cursor-pointer h-[41px] shrink-0' onClick={() => onFilterChange({ category: 'A02', region: 'all', month: 'all' })}>전체</Button>
                 )}
+                <SearchBar className="min-w-0 flex-1" onChange={onSearch} onSearch={handleSearch} delay={500} />
             </div>
-            <SearchBar onChange={onSearch} onSearch={handleSearch} delay={500} />
         </div>
     );
 }
