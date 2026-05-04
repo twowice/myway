@@ -1,17 +1,21 @@
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 
-const publicPaths = ['/loginpage']
+const authRequiredPaths = ['/loginpage/additionalinfo']
+const protectedPaths = ['/adminpage', '/mypage', '/partypage']
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
 
-  const isPublicPath = publicPaths.some((path) =>
+  const requiresAuth = authRequiredPaths.some((path) =>
+    pathname === path || pathname.startsWith(`${path}/`)
+  )
+  const isProtectedPath = protectedPaths.some((path) =>
     pathname === path || pathname.startsWith(`${path}/`)
   )
 
-  if (isPublicPath) {
+  if (!requiresAuth && !isProtectedPath) {
     return NextResponse.next()
   }
 
@@ -19,7 +23,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL('/loginpage', req.nextUrl.origin))
   }
 
-  if (!session.user.isProfileComplete) {
+  if (isProtectedPath && !session.user.isProfileComplete) {
     return NextResponse.redirect(
       new URL('/loginpage/additionalinfo', req.nextUrl.origin)
     )

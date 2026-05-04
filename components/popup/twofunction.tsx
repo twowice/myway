@@ -97,7 +97,7 @@ export const TwoFunctionPopup = ({
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
       <DialogContent
         className={cn(
-          "flex flex-col bg-white max-w-none p-4 gap-4",
+          "flex flex-col bg-white max-w-none p-4 gap-4 z-[10000]",
           className ? "lg:max-w-none sm:max-w-none max-w-none " + className : ""
         )}
         hideOverlay={hideOverlay}
