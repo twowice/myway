@@ -109,8 +109,11 @@ export default function Header() {
           {/* 로그인/로그아웃 영역 */}
           <div className="p-2 border-t border-gray-200 shrink-0">
             {status === 'loading' ? (
-              <div className="w-full py-3 text-center text-sm text-gray-400">
-                로딩중...
+              <div className="flex h-[92px] w-full items-center justify-center py-3">
+                <span
+                  aria-label="세션 확인 중"
+                  className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary"
+                />
               </div>
             ) : session ? (
               // 로그인된 상태

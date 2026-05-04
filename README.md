@@ -392,8 +392,6 @@ KAKAO_CLIENT_ID=your-kakao-id
 KAKAO_CLIENT_SECRET=your-kakao-secret
 NAVER_CLIENT_ID=your-naver-id
 NAVER_CLIENT_SECRET=your-naver-secret
-GOOGLE_CLIENT_ID=your-google-id
-GOOGLE_CLIENT_SECRET=your-google-secret
 
 # OpenAI
 OPENAI_API_KEY=your-openai-api-key
