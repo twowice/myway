@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
 
             if (data.items && data.items.length > 0) {
                allItems.push(...data.items);
-            } else {
             }
          } catch (fetchError) {
             console.error(`💥 [페이지 ${page + 1}] fetch 예외:`, fetchError);

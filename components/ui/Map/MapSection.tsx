@@ -221,9 +221,7 @@ const MapSection = () => {
 
                if (likedEvents && likedEvents.length > 0) {
                   likedEventIds = new Set(likedEvents?.map(like => Number(like.event_id)) ?? []);
-               } else {
                }
-            } else {
             }
 
 
@@ -249,7 +247,6 @@ const MapSection = () => {
                // 좋아요한 이벤트인 경우
                else if (isLiked) {
                   iconUrl = '/marker/like.png';
-               } else {
                }
                if(!map) return;
                const marker = new naver.maps.Marker({
@@ -310,7 +307,6 @@ const MapSection = () => {
             Math.abs(currentPosition.lng - newLng) > 0.0001
          ) {
             fetchMapData(newLat, newLng); // ⭐️ 3. 지도 이동 조건 충족 시 fetchMapData 호출
-         } else {
          }
       });
 

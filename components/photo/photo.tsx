@@ -207,6 +207,7 @@ export const PhotoEditable = ({
       const responseStatus = await uploadImage(file);
       handleUploadError(responseStatus);
     } catch (error) {
+      console.error("[PhotoInput] 에러가 발생했습니다:", error);
     }
   };
 
