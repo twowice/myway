@@ -123,7 +123,6 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       try {
          setUploadingImage(true);
 
-         console.log('🔄 이미지 업로드 시작:', file.name);
 
          // 고유한 파일명 생성 (타임스탬프 + 랜덤 문자열)
          const fileExt = file.name.split('.').pop();
@@ -146,16 +145,13 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
 
          const publicUrl = publicUrlData.publicUrl;
 
-         console.log('✅ 업로드 완료, URL:', publicUrl);
 
          // State에 URL 저장
          setEventImages(prev => {
             const newImages = [...prev, publicUrl];
-            console.log('📸 이미지 목록 업데이트:', newImages.length);
             return newImages;
          });
 
-         console.log('✅ 이미지 추가 완료!');
          return 200;
       } catch (error) {
          console.error('❌ 이미지 처리 에러:', error);
@@ -181,11 +177,6 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
          return;
       }
 
-      console.log('📤 이벤트 수정 시작');
-      console.log('이미지 목록:', eventImages);
-      console.log('주최사:', hosts);
-      console.log('SNS:', eventSNS);
-      console.log('🔍 이벤트 상태:', eventStatus);
 
       const formData = {
          eventName,

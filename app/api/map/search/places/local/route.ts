@@ -32,7 +32,6 @@ export async function GET(request: Request) {
       naverApiUrl.searchParams.append('query', query);
       naverApiUrl.searchParams.append('display', '20');
 
-      console.log(`[Next.js API Route] 네이버 Search API 호출 대상 URL: ${naverApiUrl.toString()}`);
 
       const naverApiResponse = await fetch(naverApiUrl.toString(), {
          method: 'GET',

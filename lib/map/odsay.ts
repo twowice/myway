@@ -9,7 +9,6 @@ export async function getLoadlane(mapObject: string) {
             window.location.origin
         );
 
-        console.log(`[getLoadlane] API Url: ${apiUrl}`)
 
         const response = await fetch(apiUrl.toString(), {
             method: "GET",

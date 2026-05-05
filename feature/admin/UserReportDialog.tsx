@@ -117,7 +117,6 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
    };
 
    const handleCancel = () => {
-      console.log('수정 취소: 초기 상태로 되돌림');
       resetStates();
    };
 
@@ -140,18 +139,11 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
             sanctionType === 'party_dissolution' ? partyDissolutionDate || new Date().toISOString() : undefined;
       }
 
-      console.log('=== 적용 디버깅 ===');
-      console.log('type:', type);
-      console.log('sanctionType:', sanctionType);
-      console.log('partyDissolutionDate:', partyDissolutionDate);
-      console.log('updateData:', updateData);
-      console.log('reportData.id:', reportData.id);
 
       if (onUpdate && reportData.id) {
          try {
             await onUpdate(reportData.id, updateData);
             setIsEditing(false);
-            console.log('업데이트 성공');
          } catch (error) {
             console.error('업데이트 실패:', error);
          }

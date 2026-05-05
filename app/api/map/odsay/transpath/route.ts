@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
     }
     const TRANSPATH_API_URL = `${ODSAY_BASE_URL}transpath?sx=${sx}&sy=${sy}&ex=${ex}&ey=${ey}`
 
-    console.log(`[Next.js API Route]\nurl: ${TRANSPATH_API_URL}\nkey: ${MYWAY_PROXY_API_KEY}`)
 
     try {
         const response = await fetch(TRANSPATH_API_URL, {

@@ -118,12 +118,10 @@ export default function Party() {
   }, [loadLikedParties]);
 
   const handleCreate = (create: any) => {
-    console.log("파티 생성:", create);
     void loadParties();
   };
 
   const handleApply = (updatedParty: any) => {
-    console.log("파티 신청 완료:", updatedParty);
     setPartyList((prev) =>
       prev.map((party) =>
         party.id === updatedParty.id ? { ...party, ...updatedParty } : party
@@ -134,7 +132,6 @@ export default function Party() {
   };
 
   const handleWithdraw = (updatedParty: any) => {
-    console.log("파티 철회 완료:", updatedParty);
     setPartyList((prev) =>
       prev.map((party) =>
         party.id === updatedParty.id ? { ...party, ...updatedParty } : party
@@ -145,7 +142,6 @@ export default function Party() {
   };
 
   const handleEdit = (updatedParty: any) => {
-    console.log("파티 수정:", updatedParty);
     setPartyList((prev) =>
       prev.map((party) =>
         party.id === updatedParty.id ? { ...party, ...updatedParty } : party

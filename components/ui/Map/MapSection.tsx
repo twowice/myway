@@ -137,16 +137,13 @@ const MapSection = () => {
             return;
          }
 
-         console.log(`[moveMapTo] 시작: lat=${targetLat}, lng=${targetLng}, zoom=${targetZoom}`);
 
          // 1. 줌 레벨 변경
          map.setZoom(targetZoom);
-         console.log(`[moveMapTo] ✅ 줌 ${targetZoom} 설정 완료`);
 
          // 2. 중심 좌표 설정
          const targetCoord = new naver.maps.LatLng(targetLat, targetLng);
          map.setCenter(targetCoord);
-         console.log(`[moveMapTo] ✅ 중심 (${targetLat}, ${targetLng}) 설정 완료`);
 
          // 3. 패널 오프셋 적용
          setTimeout(() => {
@@ -159,7 +156,6 @@ const MapSection = () => {
             const screenCenterX = screenWidth / 2;
             const pixelShift = screenCenterX - visibleCenterX;
 
-            console.log(`[moveMapTo] ✅ panBy ${pixelShift}px 실행 (패널=${currentPanelOffset}px)`);
 
             if (map && map.panBy) {
                map.panBy(new naver.maps.Point(pixelShift, 0));
@@ -180,13 +176,11 @@ const MapSection = () => {
 
             // 선택 해제된 경우 마커 미표시
             if (selectedRegion === null) {
-               console.log('필터 해제 - 마커 미표시');
                return;
             }
 
             // ⭐️ 현재 사용자 정보 가져오기 (NextAuth 세션 사용)
             const userId = session?.user?.id;
-            console.log('[loadMarkers] 사용자 ID:', userId);
 
             //supabase에서 이벤트 가져오기
             let query = supabase.from('events').select('*');
@@ -212,35 +206,26 @@ const MapSection = () => {
             }
 
             if (events.length === 0) {
-               console.log(`ℹ️ [loadMarkers] 이벤트 없음 (지역: ${selectedRegion})`);
                return;
             }
 
-            console.log(`✅ [loadMarkers] ${events.length}개 이벤트 로드`);
-            console.log('[loadMarkers] 첫 번째 이벤트:', events[0]);
 
             // 사용자 좋아요 목록 가져오기
             let likedEventIds: Set<number> = new Set();
             if (userId) {
-               console.log('[loadMarkers] 현재 사용자 ID:', userId);
                const { data: likedEvents, error: likedError } = await supabase
                   .from('liked_events')
                   .select('event_id')
                   .eq('user_id', userId);
 
-               console.log('[loadMarkers] liked_events 쿼리 결과:', { likedEvents, error: likedError });
 
                if (likedEvents && likedEvents.length > 0) {
                   likedEventIds = new Set(likedEvents?.map(like => Number(like.event_id)) ?? []);
-                  console.log('[loadMarkers] ✅ 좋아요한 이벤트 ID들:', Array.from(likedEventIds));
                } else {
-                  console.log('[loadMarkers] ⚠️ 좋아요한 이벤트가 없거나 에러 발생');
                }
             } else {
-               console.log('[loadMarkers] ⚠️ 로그인된 사용자 없음');
             }
 
-            console.log(`✅ [loadMarkers] ${events.length}개 이벤트 로드`);
 
             // 마커 생성
             let markerCount = 0;
@@ -256,22 +241,15 @@ const MapSection = () => {
                const eventIdNum = Number(event.id);
                const isLiked = likedEventIds.has(eventIdNum);
 
-               console.log(
-                  `[마커 생성] 이벤트 ID: ${event.id} (타입: ${typeof event.id}), Number변환: ${eventIdNum}, isLiked: ${isLiked}, 좋아요목록:`,
-                  Array.from(likedEventIds),
-               );
 
                // 선택된 이벤트인 경우
                if (selectedEventId === event.id) {
                   iconUrl = '/marker/select.png';
-                  console.log(`[마커 아이콘] ${event.title} -> select.png (선택됨)`);
                }
                // 좋아요한 이벤트인 경우
                else if (isLiked) {
                   iconUrl = '/marker/like.png';
-                  console.log(`[마커 아이콘] ${event.title} -> like.png (좋아요)`);
                } else {
-                  console.log(`[마커 아이콘] ${event.title} -> normal.png (일반)`);
                }
                if(!map) return;
                const marker = new naver.maps.Marker({
@@ -287,7 +265,6 @@ const MapSection = () => {
 
                // 마커 클릭 이벤트
                naver.maps.Event.addListener(marker, 'click', () => {
-                  console.log('[마커 클릭]', event.title, event.id);
                   setSelectedEventId(event.id ?? null);
                   //todo eventpanel 열기 
                   setKeywordFilter(event.title ?? ''); // ADD BY CKH 26.01.06
@@ -298,7 +275,6 @@ const MapSection = () => {
                markerCount++;
             });
 
-            console.log(`✅ [loadMarkers] ${markerCount}개 마커 생성 완료`);
          } catch (error) {
             console.error('❌ [loadMarkers] 예외 발생:', error);
          }
@@ -308,7 +284,6 @@ const MapSection = () => {
    }, [map, isMapScriptLoaded, selectedRegion, selectedEventId, session]);
    useEffect(() => {
       if (!map || !isMapScriptLoaded) {
-         console.log('[MapSection UI] 지도 인스턴스 또는 스크립트 로드 대기 중.');
          return;
       }
 
@@ -318,11 +293,9 @@ const MapSection = () => {
       }
 
       if (isListenerAddedRef.current) {
-         console.log('[MapSection UI] 리스너 이미 추가됨. 재등록 방지.');
          return;
       }
 
-      console.log('[MapSection UI] 지도 인스턴스에 이벤트 리스너 등록 시작.');
       isListenerAddedRef.current = true;
 
       const listener = naver.maps.Event.addListener(map, 'idle', () => {
@@ -330,7 +303,6 @@ const MapSection = () => {
          const newLat = newCenter.y;
          const newLng = newCenter.x;
 
-         console.log(`[MapSection UI] 지도 이동 완료 (idle). 새로운 좌표: ${newLat} \t ${newLng}`);
 
          if (
             !currentPosition ||
@@ -339,7 +311,6 @@ const MapSection = () => {
          ) {
             fetchMapData(newLat, newLng); // ⭐️ 3. 지도 이동 조건 충족 시 fetchMapData 호출
          } else {
-            console.log('[MapSection UI] 지도 위치 변화 미미. API 호출 건너뜀.');
          }
       });
 
@@ -354,7 +325,6 @@ const MapSection = () => {
 
       // DOM 렌더링 안정화를 위해 약간의 지연 후 실행
       setTimeout(() => {
-         console.log('[MapSection] 초기 로드 위치 보정');
          const { lat, lng, zoom } = INITIAL_CONFIG;
          // 이 함수가 패널 상태를 체크해서 자동으로 중앙(패널 제외 영역)을 잡아줌
          moveMapTo(lat, lng, zoom);
@@ -408,14 +378,6 @@ const MapSection = () => {
          const newVisibleCount = Math.max(5, Math.min(maxButtons, REGION_BUTTONS.length));
 
          if (newVisibleCount !== visibleButtonCount) {
-            console.log(
-               '[MapSection] visibleButtonCount 변경:',
-               visibleButtonCount,
-               '->',
-               newVisibleCount,
-               'availableWidth:',
-               availableWidth,
-            );
             setVisibleButtonCount(newVisibleCount);
          }
       };
@@ -452,7 +414,6 @@ const MapSection = () => {
 
       // 초기 위치라면 API 호출 없이 기본값으로 설정하고 종료
       if (isInitialPosition) {
-         console.log('📍 초기 위치 감지 - 주소 변환 건너뜀');
          setLocationName('위치 정보');
          return;
       }
@@ -532,7 +493,6 @@ const MapSection = () => {
          if (selectedRegion === 'all') {
             setSelectedRegion(null);
             setRegionFilter('all'); /* EDIT BY CKH 26.01.05 */
-            console.log('❌ 전체 필터 해제 - 마커 미표시');
             const { lat, lng, zoom } = INITIAL_CONFIG;
             moveMapTo(lat, lng, zoom);
          }
@@ -540,9 +500,7 @@ const MapSection = () => {
          else {
             setSelectedRegion('all');
             setRegionFilter('all'); /* EDIT BY CKH 26.01.05 */
-            console.log('🌏 전체 지역 선택 - 모든 마커 표시');
             const { lat, lng, zoom } = INITIAL_CONFIG;
-            console.log(`📍 전체 지도로 이동: zoom=${zoom}`);
             moveMapTo(lat, lng, zoom);
          }
       }
@@ -550,7 +508,6 @@ const MapSection = () => {
       else if (selectedRegion === region) {
          setSelectedRegion(null);
          setRegionFilter('all'); /* EDIT BY CKH 26.01.05 */
-         console.log('❌ 필터 해제 - 전체 지도로 복귀, 마커 미표시');
          const { lat, lng, zoom } = INITIAL_CONFIG;
          moveMapTo(lat, lng, zoom);
       }
@@ -558,10 +515,8 @@ const MapSection = () => {
       else {
          setSelectedRegion(region);
          setRegionFilter(REGION_NAME[region] ?? 'all');
-         console.log(`🎯 지역 선택: ${region} (${REGION_NAME[region]})`);
          if (REGION_COORDINATES[region]) {
             const { lat, lng, zoom } = REGION_COORDINATES[region];
-            console.log(`📍 이동할 좌표: lat=${lat}, lng=${lng}, zoom=${zoom}`);
             moveMapTo(lat, lng, zoom);
          }
       }
@@ -571,9 +526,7 @@ const MapSection = () => {
 
    const handleResetPosition = () => {
       if (!map) return;
-      console.log('🔄 지도 위치 초기화 (전체 지도로)');
       const { lat, lng, zoom } = INITIAL_CONFIG;
-      console.log(`📍 초기화: lat=${lat}, lng=${lng}, zoom=${zoom}`);
       moveMapTo(lat, lng, zoom);
    };
 
@@ -632,7 +585,7 @@ const MapSection = () => {
          {weather && (
             <div
                onClick={handleWeatherClick}
-               className="absolute bottom-5 left-5 bg-[#F1F5FA] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.15)] px-2 py-3 flex flex-col gap-1 items-center justify-center pointer-events-auto z-20 cursor-pointer border"
+               className="absolute bottom-20 md:bottom-5 left-5 bg-[#F1F5FA] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.15)] px-2 py-3 flex flex-col gap-1 items-center justify-center pointer-events-auto z-20 cursor-pointer border"
             >
                <div className="flex items-center justify-center flex-col gap-2">
                   <div className="text-sm">{locationName}</div>

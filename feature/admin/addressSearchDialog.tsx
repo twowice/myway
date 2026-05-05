@@ -31,7 +31,6 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
       setIsSearching(true);
 
       try {
-         console.log('🔍 [프론트] 검색 시작:', searchQuery);
 
          const response = await fetch('/api/map/search/places', {
             method: 'POST',
@@ -41,19 +40,14 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
             body: JSON.stringify({ query: searchQuery }),
          });
 
-         console.log('📡 [프론트] 응답 상태:', response.status, response.statusText);
 
          if (!response.ok) {
             throw new Error('주소 검색에 실패했습니다.');
          }
 
          const data = await response.json();
-         console.log('📦 [프론트] 받은 데이터:', data);
-         console.log('📦 [프론트] places 배열 길이:', data.places?.length);
-         console.log('📦 [프론트] places 전체:', data.places);
 
          if (data.places && data.places.length > 0) {
-            console.log(`✅ [프론트] ${data.places.length}건 받음!`);
 
             // API 응답 필드명 매핑
             const results: PlaceResult[] = data.places.map((place: any, index: number) => {
@@ -66,20 +60,15 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
                };
 
                if (index < 3) {
-                  console.log(`   [${index + 1}] ${mapped.name}`);
                }
 
                return mapped;
             });
 
-            console.log('✨ [프론트] 변환 완료:', results.length, '건');
-            console.log('✨ [프론트] 변환된 결과 전체:', results);
 
             setSearchResults(results);
-            console.log('💾 [프론트] state 업데이트 완료');
             setSelectedIndex(null);
          } else {
-            console.log('⚠️ [프론트] 검색 결과 없음');
             setSearchResults([]);
             alert('검색 결과가 없습니다.');
          }
@@ -89,7 +78,6 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
          setSearchResults([]);
       } finally {
          setIsSearching(false);
-         console.log('🏁 [프론트] 검색 완료');
       }
    };
 
@@ -100,7 +88,6 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
       }
 
       const selected = searchResults[selectedIndex];
-      console.log('🎯 [프론트] 선택된 주소:', selected);
       onSelectAddress(selected.roadAddress, selected.jibunAddress);
       handleClose();
    };
@@ -112,7 +99,6 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
       onOpenChange(false);
    };
 
-   console.log('🔄 [프론트] 렌더링 - searchResults 길이:', searchResults.length);
 
    return (
       <OneFunctionPopup

@@ -36,7 +36,6 @@ import {
  *   const handlePageChange = (newPage) => {
  *     // 페이지 이동 로직 (예: 라우터 변경, API 호출 등)
  *     setPage(newPage);
- *     console.log(`페이지가 ${newPage}로 변경되었습니다.`);
  *   };
  *
  *   return (

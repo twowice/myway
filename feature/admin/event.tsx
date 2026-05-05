@@ -39,7 +39,6 @@ export default function Event() {
                table: 'events',
             },
             payload => {
-               console.log('이벤트 변경 감지:', payload);
                fetchEvents();
             },
          )
@@ -270,7 +269,6 @@ export default function Event() {
    const handleRowClick = (displayEvent: EventDisplayData) => {
       const originalEvent = events.find(e => e.id === displayEvent.id);
       if (originalEvent) {
-         console.log('📋 선택된 이벤트 (이미지 포함):', originalEvent);
          setSelectedEvent(originalEvent);
          setIsEditOpen(true);
       }

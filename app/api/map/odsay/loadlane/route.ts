@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const mapObject = searchParams.get('mapObject');
-    console.log("[Sever] mapObject:", mapObject)
 
     if (!mapObject) {
         return NextResponse.json({ error: 'Missing mapObject parameter.' }, { status: 400 });

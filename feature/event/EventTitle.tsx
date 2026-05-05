@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 /* ===========================
     Event Title
@@ -28,8 +29,7 @@ export function EventTitle({ count }: EventTitleProps) {
   return (
     <div
       className="
-        flex flex-col gap-1
-        md:flex-row md:items-end md:gap-2
+        flex items-center gap-2
       "
     >
       {/* 제목 */}
@@ -54,28 +54,30 @@ export function EventTitle({ count }: EventTitleProps) {
         {count}
       </span>
 
-      {/* + / - 버튼 */}
+      {/* 축소 확대 버튼 */}
       <button
         onClick={handleToggleView}
         aria-label={isDetailPage ? '패널로 축소' : '페이지로 확장'}
+        title={isDetailPage ? '패널로 보기' : '전체 페이지로 보기'}
         className="
-          mt-1 md:mt-0
-          md:ml-2
-
+          cursor-pointer 
+          mt-0 md:mt-1
+          shrink-0
           flex items-center justify-center
-          w-[28px] h-[28px]
-          md:w-[36px] md:h-[36px]
-
-          rounded-full
+          w-6 h-6 md:w-8 md:h-8
+          rounded-md
           border border-[#E5E7EB]
-          text-[16px] md:text-[20px]
-          font-bold
-
+          text-[#64748B]
+          hover:text-[var(--primary)]
           hover:bg-[#F4F6FA]
           transition
         "
       >
-        {isDetailPage ? '−' : '+'}
+        {isDetailPage ? (
+          <Minimize2 className="w-4 h-4 md:w-5 md:h-5"/>
+        ) : (
+          <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
+        )}
       </button>
     </div>
   );

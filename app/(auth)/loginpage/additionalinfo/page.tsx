@@ -63,7 +63,7 @@ export default function AdditionalInfoPage() {
     setLoading(true)
 
     try {
-      console.log('Submitting with userId:', session?.user.id)  // 디버깅용
+// 디버깅용
 
       const response = await fetch('/api/user/updateprofile', {
         method: 'POST',

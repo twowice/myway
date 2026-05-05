@@ -266,7 +266,6 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                 addOpinion: addOpinion || undefined,
             };
 
-            console.log("신고 데이터", reportData);
             await submitReport(reportData);
 
             setIsReportOpen(false);
