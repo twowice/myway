@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
    try {
       const { query } = await request.json();
-      console.log('🔍 [주소검색] 검색 쿼리:', query);
 
       if (!query) {
          return NextResponse.json({ error: '검색어를 입력해주세요.' }, { status: 400 });
@@ -19,7 +18,6 @@ export async function POST(request: NextRequest) {
       const itemsPerPage = 5;
       const numPages = 4; // 고정: 무조건 4페이지 호출
 
-      console.log(`📡 [페이지네이션] ${numPages}페이지 요청 시작! (조기 중단 없음)`);
 
       const allItems: any[] = [];
 
@@ -28,7 +26,6 @@ export async function POST(request: NextRequest) {
          const start = page * itemsPerPage + 1;
          const searchUrl = `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=${itemsPerPage}&start=${start}`;
 
-         console.log(`📄 [페이지 ${page + 1}/${numPages}] 요청 - start=${start}, display=${itemsPerPage}`);
 
          try {
             const response = await fetch(searchUrl, {
@@ -48,18 +45,9 @@ export async function POST(request: NextRequest) {
 
             const data = await response.json();
 
-            console.log(`📥 [페이지 ${page + 1}] API 응답 분석:`, {
-               total: data.total,
-               display: data.display,
-               start: data.start,
-               itemsReceived: data.items?.length || 0,
-            });
 
             if (data.items && data.items.length > 0) {
                allItems.push(...data.items);
-               console.log(`✅ [페이지 ${page + 1}] ${data.items.length}건 추가 → 누적: ${allItems.length}건`);
-            } else {
-               console.log(`⚠️ [페이지 ${page + 1}] items가 비어있음`);
             }
          } catch (fetchError) {
             console.error(`💥 [페이지 ${page + 1}] fetch 예외:`, fetchError);
@@ -68,7 +56,6 @@ export async function POST(request: NextRequest) {
          }
       }
 
-      console.log(`📊 [최종 수집] 총 ${allItems.length}건`);
 
       // 결과 변환
       const places = allItems.map((item: any, index: number) => {
@@ -81,18 +68,12 @@ export async function POST(request: NextRequest) {
             category: item.category || '',
          };
 
-         if (index < 3) {
-            console.log(`   [${index + 1}] ${place.name}`);
-         }
-
          return place;
       });
 
-      console.log(`✨ [반환] ${places.length}건을 클라이언트로 전송`);
 
       // JSON 크기 확인
       const jsonString = JSON.stringify({ places });
-      console.log(`📦 [JSON] 크기: ${jsonString.length} bytes, places 개수: ${places.length}`);
 
       return NextResponse.json({ places });
    } catch (error) {

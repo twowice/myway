@@ -209,7 +209,6 @@ export const RouteSearchBody = ({}: {}) => {
       }
       const routeData = await getTransPath(startPlace, endPlace);
 
-      console.log("길찾기 API 결과:", routeData);
 
       setPaths(routeData);
       setRoutePoints(places);
@@ -359,7 +358,6 @@ export const RouteSearchBody = ({}: {}) => {
     if (!normalized) return;
 
     const data = (await getLoadlane(normalized)) as OdsayLoadLane;
-    console.log("경로 그리기 API 결과:", data);
     drawResultRef.current = drawOdsayStyledPolylinesWithTransfer(map, data);
 
     fallbackPolylinesRef.current.push(...drawFallbackSegments(map, subPaths));

@@ -57,7 +57,6 @@ function MoreContentInner({
           table: "notices",
         },
         (payload) => {
-          console.log("공지사항 변경 감지:", payload);
           // 변경사항이 있으면 목록 다시 가져오기
           fetchNotices();
         },

@@ -29,7 +29,6 @@ export default function NoticeDetail({ params }: { params: Promise<{ id: string 
                filter: `id=eq.${id}`,
             },
             payload => {
-               console.log('변경 감지!', payload);
                if (payload.eventType === 'DELETE') {
                   router.push('/morepage?tab=notice');
                } else if (payload.eventType === 'UPDATE') {

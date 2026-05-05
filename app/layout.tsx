@@ -71,7 +71,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <ToastProvider>
             <MapScriptLoader />
             <Header />
-            <main className="lg:ms-20 ms-16 lg:me-4 me-2 min-h-screen">{children}</main>
+            {/* 반응형 수정: 모바일 하단 탭바 전환 시 왼쪽 사이드바 여백을 제거하고, 탭바 높이만큼 아래 여백을 확보합니다. */}
+            <main className="min-h-[calc(100dvh-4rem)] md:min-h-screen md:ms-14 lg:ms-16 me-0 md:me-2 lg:me-4 pb-16 md:pb-0">{children}</main>
           </ToastProvider>
         </AppProviders>
       </AppDocument>
@@ -90,14 +91,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {shouldShowMap && <MapScriptLoader />}
           <Header />
 
-          <main className="grow flex min-h-screen relative overflow-hidden ms-16 lg:ms-20">
+          {/* 반응형 수정: 모바일에서는 왼쪽 여백을 없애고 지도 높이를 하단 탭바 위까지만 사용합니다. */}
+          <main className="grow flex h-[calc(100dvh-4rem)] md:h-auto md:min-h-screen relative overflow-hidden ms-0 md:ms-14 lg:ms-16 mb-16 md:mb-0">
             <div className="relative flex-1 min-w-0">
               {shouldShowMap && <MapCanvas />}
 
               {shouldShowMap && (
                 <div
                   className={cn(
-                    openpanel === null ? 'ms-0' : 'ms-100 lg:ms-150 md:ms-150',
+                    // 반응형 수정: 모바일 패널은 전체 화면으로 덮기 때문에 지도를 옆으로 밀지 않습니다.
+                    openpanel === null ? 'ms-0' : 'ms-0 md:ms-150',
                     'absolute inset-0 z-10 w-full h-full pointer-events-none'
                   )}
                 >

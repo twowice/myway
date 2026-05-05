@@ -13,11 +13,6 @@ export default function Location() {
     }))
   );
 
-  console.log(
-    "[Location] - 현재 장소 개수 및 장소 데이터:",
-    places.length,
-    places
-  );
 
   return (
     <LocationPanel>

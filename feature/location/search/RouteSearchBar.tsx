@@ -89,7 +89,6 @@ export const RouteSearchBar = ({
     setShowSuggestions(false);
     setIsPlaceSelected(true);
     setIsUserEditing(false);
-    console.log("[RouteSearchBar] place : ", place);
     addOrUpdatePlace({
       order,
       name: place.name,

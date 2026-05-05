@@ -9,13 +9,11 @@ export default function MapScriptLoader() {
    const setIsMapScriptLoaded = useMapStore(state => state.setIsMapScriptLoaded);
 
    const handleScriptReady = () => {
-      console.log('[MapScriptLoader] 네이버 지도 스크립트 로드 완료.');
       setIsMapScriptLoaded(true);
    };
 
    useEffect(() => {
       if (window.naver && window.naver.maps && !isMapScriptLoaded) {
-         console.log('[MapScriptLoader] 네이버 지도 스크립트가 이미 로드되어 있습니다.');
          setIsMapScriptLoaded(true);
       }
    }, [isMapScriptLoaded, setIsMapScriptLoaded]);

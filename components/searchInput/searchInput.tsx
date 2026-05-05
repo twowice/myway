@@ -6,7 +6,6 @@
 /*  
     *** 예시 사용법 ***
     const onSearch = (keyword: string) => {
-      console.log("검색 중...", keyword);
     };
     <SearchInput onSearch={onSearch} delay={300}/>
 */
