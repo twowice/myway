@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
                 const errorJson = JSON.parse(errorText);
                 errorMessage = errorJson.errorMessage || errorJson.message || errorJson.errorCode || errorMessage;
             } catch (parseError) {
+                console.error(`[Next.js API Route] parseError: ${parseError}`);
             }
             return NextResponse.json(
                 { error: `Odsay API 프록시 서버 API 오류: ${errorMessage}` },

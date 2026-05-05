@@ -68,9 +68,6 @@ export async function POST(request: NextRequest) {
             category: item.category || '',
          };
 
-         if (index < 3) {
-         }
-
          return place;
       });
 

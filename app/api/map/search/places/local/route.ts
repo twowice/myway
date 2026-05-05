@@ -50,7 +50,9 @@ export async function GET(request: Request) {
          try {
             const errorJson = JSON.parse(errorText);
             errorMessage = errorJson.errorMessage || errorJson.message || errorJson.errorCode || errorMessage;
-         } catch (parseError) {}
+         } catch (parseError) {
+            console.error(`[Next.js API Route] parseError: ${parseError}`);
+         }
          return NextResponse.json(
             { error: `네이버 Search API 오류: ${errorMessage}` },
             { status: naverApiResponse.status },

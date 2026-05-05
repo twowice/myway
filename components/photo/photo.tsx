@@ -56,6 +56,7 @@ export const PhotoInputContainer = ({
           const responseStatus = await uploadImage(file);
           handleUploadError(responseStatus);
         } catch (error) {
+          console.error("[PhotoInput] 에러가 발생했습니다:", error);
         }
       } else {
         alert("오류로 인해 이미지 파일 추가에 실패했습니다.");

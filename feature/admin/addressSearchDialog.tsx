@@ -59,9 +59,6 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
                   y: place.y || '',
                };
 
-               if (index < 3) {
-               }
-
                return mapped;
             });
 
