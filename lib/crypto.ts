@@ -26,20 +26,28 @@ export function encryptText(value: string | null | undefined) {
 export function decryptText(value: string | null | undefined) {
   if (!value) return null
 
-  const payload = JSON.parse(value)
+  try {
+    const payload = JSON.parse(value)
+    if (typeof payload !== 'object' || payload === null || !payload.iv || !payload.tag || !payload.data) {
+      return value
+    }
 
-  const decipher = crypto.createDecipheriv(
-    'aes-256-gcm',
-    key,
-    Buffer.from(payload.iv, 'base64')
-  )
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      key,
+      Buffer.from(payload.iv, 'base64')
+    )
 
-  decipher.setAuthTag(Buffer.from(payload.tag, 'base64'))
+    decipher.setAuthTag(Buffer.from(payload.tag, 'base64'))
 
-  const decrypted = Buffer.concat([
-    decipher.update(Buffer.from(payload.data, 'base64')),
-    decipher.final(),
-  ])
+    const decrypted = Buffer.concat([
+      decipher.update(Buffer.from(payload.data, 'base64')),
+      decipher.final(),
+    ])
 
-  return decrypted.toString('utf8')
+    return decrypted.toString('utf8')
+  } catch (error) {
+    // JSON 파싱 에러(평문) 또는 복호화 실패 시 원본 반환
+    return value
+  }
 }
