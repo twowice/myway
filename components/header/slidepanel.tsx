@@ -1,7 +1,6 @@
 // src/components/header/slidepanel.tsx
 'use client';
 
-import { supabase } from '@/lib/clientSupabase';
 import { TextSkeleton } from '@/components/ui/text-skeleton';
 import clsx from 'clsx';
 import { useSession } from 'next-auth/react';
@@ -45,22 +44,7 @@ export default function SlidePanel({ isopen, onclose, title, children }: slidepa
             return;
          }
 
-         // ⭐ Option 2: users 테이블에서 이름 가져오기 (세션에 없을 때)
-
-         const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('name')
-            .eq('id', session.user.id)
-            .single();
-
-
-         if (userError) {
-            console.error('⚠️ users 테이블 조회 실패:', userError);
-            setUserName(session.user.email?.split('@')[0] || '사용자');
-            return;
-         }
-
-         const displayName = userData?.name || session.user.email?.split('@')[0] || '사용자';
+         const displayName = session.user.name || session.user.email?.split('@')[0] || '사용자';
 
          setUserName(displayName);
       } catch (error) {
