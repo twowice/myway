@@ -33,7 +33,7 @@ export default function AdditionalInfoPage() {
   const [loading, setLoading] = useState(false)
   const [hasEmailFromProvider, setHasEmailFromProvider] = useState(false)
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toLocaleDateString('en-CA')
 
   // 소셜 로그인 정보를 기본값으로 설정
   useEffect(() => {
