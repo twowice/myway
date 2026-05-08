@@ -33,6 +33,8 @@ export default function AdditionalInfoPage() {
   const [loading, setLoading] = useState(false)
   const [hasEmailFromProvider, setHasEmailFromProvider] = useState(false)
 
+  const today = new Date().toLocaleDateString('en-CA')
+
   // 소셜 로그인 정보를 기본값으로 설정
   useEffect(() => {
     if (session?.user) {
@@ -192,6 +194,7 @@ export default function AdditionalInfoPage() {
             <input
               type="date"
               value={formData.birthDate}
+              max={today}
               onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
               className="w-full p-2 border rounded"
               required

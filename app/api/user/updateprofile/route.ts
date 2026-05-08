@@ -1,6 +1,7 @@
 // app/api/user/updateprofile/route.ts
 import { NextResponse } from 'next/server'
 import { getSupabaseAdminClient } from '@/lib/supabase'  // ← 이걸 import!
+import { encryptText } from '@/lib/crypto'
 
 const supabase = getSupabaseAdminClient()  // ← Admin 클라이언트 사용!
 
@@ -16,11 +17,11 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from('users')
       .update({
-        name,
-        email,
+        name: encryptText(name),
+        email: encryptText(email),
         gender,
-        phone: phone.replace(/-/g, ''),
-        birth_date: birthDate,
+        phone: encryptText(phone.replace(/-/g, '')),
+        birth_date: encryptText(birthDate),
         is_profile_complete: true,
       })
       .eq('id', userId)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { auth } from "@/lib/auth";
+import { decryptText } from '@/lib/crypto'
 
 type PartyReportPayload = {
   partyId?: string | number;
@@ -85,9 +86,8 @@ export async function POST(request: NextRequest) {
       .eq("id", session.user.id)
       .maybeSingle();
 
-    const partyChairmanName = ownerData?.name?.trim() || "알 수 없음";
-    const reporterName =
-      (session.user.name?.trim() || reporterData?.name?.trim()) ?? "알 수 없음";
+    const partyChairmanName = decryptText(ownerData?.name)?.trim() || "알 수 없음";
+    const reporterName = (session.user.name?.trim() || decryptText(reporterData?.name)?.trim()) ?? "알 수 없음";
 
     const { error: insertError } = await supabase
       .from("party_reports")

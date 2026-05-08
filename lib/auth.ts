@@ -2,6 +2,7 @@
 import NextAuth from "next-auth"
 import KakaoProvider from "next-auth/providers/kakao"
 import { createClient } from '@supabase/supabase-js'
+import { decryptText } from '@/lib/crypto'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (existingUser) {
           user.id = existingUser.id
-          user.name = existingUser.name || user.name
+          user.name = decryptText(existingUser.name) || user.name
           user.image = existingUser.image_url || user.image
           return true
         }
@@ -76,8 +77,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (dbUser) {
           token.id = dbUser.id
-          token.name = dbUser.name
-          token.email = dbUser.email
+          token.name = decryptText(dbUser.name)
+          token.email = decryptText(dbUser.email)
           token.picture = dbUser.image_url
           token.isProfileComplete = dbUser.is_profile_complete
           token.role = dbUser.role
@@ -116,5 +117,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24시간
+  },
+  jwt: {
+    maxAge: 24 * 60 * 60, // 24시간
   },
 })
