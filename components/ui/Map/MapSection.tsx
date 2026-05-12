@@ -130,6 +130,7 @@ const MapSection = () => {
    const isListenerAddedRef = useRef(false);
    const setRegionFilter = useEventFilterStore(state => state.setRegion); /* ADD BY CKH 26.01.05 */
    const setKeywordFilter = useEventFilterStore(state => state.setKeyword); /* ADD BY CKH 26.01.06 */
+   const setSelectedCardId = useEventFilterStore((state) => state.setSelectedEventId); /* ADD BY CKH 26.05.13 */
    const router = useRouter(); /* ADD BY CKH 26.01.06 */
 
    const moveMapTo = useCallback(
@@ -197,10 +198,11 @@ const MapSection = () => {
 
       setSelectedRegion(null);
       setSelectedEventId(null);
+      setSelectedCardId(null);
       setRegionFilter('all');
+      setKeywordFilter('');
       setShowMoreRegions(false);
    };
-
    /* 현재 위치 마커 ADD BY CKH */
    const currentLocationMarkerRef = useRef<naver.maps.Marker | null>(null);
 

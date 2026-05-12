@@ -82,9 +82,10 @@ export default function Page() {
 
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-    const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
+    const selectedCardId = useEventFilterStore((state) => state.selectedEventId);
+    const setSelectedCardId = useEventFilterStore((state) => state.setSelectedEventId);
     const router = useRouter();
-    const handleCardClick = (id: number) => { setSelectedCardId(prev => (prev === id ? null : id)) };
+    const handleCardClick = (id: number) => { setSelectedCardId(selectedCardId === id ? null : id) };
     const setFocusedEvent = useEventFilterStore((state) => state.setFocusedEvent);
 
     useEffect(() => {
