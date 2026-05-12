@@ -29,7 +29,10 @@ export default function MapCanvas() {
             zoom: INITIAL_ZOOM,
             minZoom: 6,
             maxZoom: 18,
-            scaleControl: false,
+            scaleControl: true,
+            scaleControlOptions: {
+               position: window.naver.maps.Position.RIGHT_BOTTOM,
+            },
             mapDataControl: false,
             logoControlOptions: {
                position: window.naver.maps.Position.BOTTOM_LEFT,

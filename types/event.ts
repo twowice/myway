@@ -7,6 +7,8 @@ export type EventItem = {
   overview: string;
   imageUrl: string;
   event_images: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type EventApiItem = {
@@ -18,6 +20,8 @@ export type EventApiItem = {
   overview?: string | null;
   main_image?: string | null;
   event_images: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type EventPagination = {
