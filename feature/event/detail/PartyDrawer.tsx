@@ -534,7 +534,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                 className="
                     fixed bottom-20 right-6 z-999 flex h-14 w-14 cursor-pointer items-center
                     justify-center rounded-full bg-[var(--primary)] text-white shadow-lg
-                    transition hover:opacity-90 md:bottom-8 md:right-8
+                    transition hover:opacity-90 lg:bottom-8 md:right-8
                 "
             >
                 <Icon24 name="talk" viewBox="0 0 36 34" className="bg-[#white]" />
