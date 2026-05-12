@@ -190,6 +190,11 @@ const MapSection = () => {
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
 
+      if (currentLocationMarkerRef.current) {
+         currentLocationMarkerRef.current.setMap(null);
+         currentLocationMarkerRef.current = null;
+      }
+
       setSelectedRegion(null);
       setSelectedEventId(null);
       setRegionFilter('all');
