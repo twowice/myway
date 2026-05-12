@@ -300,7 +300,7 @@ const MapSection = () => {
                   icon: {
                      url: iconUrl,
                      scaledSize: new naver.maps.Size(18, 26),
-                     anchor: new naver.maps.Point(16, 26),
+                     anchor: new naver.maps.Point(9, 26),
                   },
                });
 
