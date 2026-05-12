@@ -14,6 +14,8 @@ import { fetchEventsPage } from '@/lib/event/event';
 import { fetchLikedEventIds } from '@/lib/mypage/event';
 import { useEventFilterStore } from '@/stores/eventFilterStore';
 import { panelstore } from '@/stores/panelstore';
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button';
 
 const LIMIT = 4;
 
@@ -79,6 +81,11 @@ export default function Page() {
 
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
+    const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
+    const router = useRouter();
+    const handleCardClick = (id: number) => { setSelectedCardId(prev => (prev === id ? null : id)) };
+    const setFocusedEvent = useEventFilterStore((state) => state.setFocusedEvent);
+
     useEffect(() => {
         if (!loadMoreRef.current) return;
         if (!hasNextPage) return;
@@ -128,7 +135,13 @@ export default function Page() {
                         `}
                     >
                         {events.map((item) => (
-                            <Link key={item.id} href={`/eventpage/${item.id}`} className="block cursor-pointer">
+                            <div 
+                                key={item.id}
+                                className={`relative cursor-pointer rounded-[10px] transition 
+                                    ${selectedCardId === item.id ? 'ring-3 ring-primary ring-offset-2' : ''
+                                }`}
+                                onClick={() => handleCardClick(item.id)}
+                            >
                                 <EventCard
                                     id={item.id}
                                     region={item.region}
@@ -138,7 +151,40 @@ export default function Page() {
                                     imageUrl={item.imageUrl}
                                     initialLiked={likedEventIdSet.has(item.id)}
                                 />
-                            </Link>
+
+                                {selectedCardId === item.id && (
+                                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[10px] bg-black/25 backdrop-blur-[2px]">
+                                        <div className='flex gap-2'>
+                                            <Button
+                                                variant="outline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    // 지도 마커 삽입
+                                                    if(item.latitude == null || item.longitude == null) return;
+
+                                                    setFocusedEvent({
+                                                        id: item.id,
+                                                        title: item.title,
+                                                        latitude: item.latitude,
+                                                        longitude: item.longitude,
+                                                    });
+                                                }}
+                                            >
+                                                위치
+                                            </Button>
+
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    router.push(`/eventpage/${item.id}`);
+                                                }}
+                                            >
+                                                상세
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </div>
                 )}

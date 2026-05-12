@@ -10,11 +10,12 @@ import { panelstore } from '@/stores/panelstore';
 import { WeatherIcon } from '@/feature/map/weatherIcon';
 import { Button } from '../button';
 import { supabase } from '@/lib/clientSupabase';
-import { BiTargetLock } from 'react-icons/bi';
 import { HiDotsVertical } from 'react-icons/hi';
 import { useEventFilterStore } from '@/stores/eventFilterStore';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { MapPinOff } from 'lucide-react';
+import { BiTargetLock } from 'react-icons/bi';
 
 const REGION_NAME = {
    all: null,
@@ -114,6 +115,7 @@ const MapSection = () => {
    const lastPanelOpenRef = useRef<boolean>(!!openpanel);
    const isMapInitializedRef = useRef(false);
    const markersRef = useRef<naver.maps.Marker[]>([]);
+   const clustererRef = useRef<any>(null);
    const filterContainerRef = useRef<HTMLDivElement>(null);
    const moreButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -165,11 +167,49 @@ const MapSection = () => {
       [map],
    );
 
+   /* focusedEvent 감지 ADD BY CKH */
+   const focusedEvent = useEventFilterStore(state => state.focusedEvent);
+   const clearFocusedEvent = useEventFilterStore(state => state.clearFocusedEvent);
+
+   useEffect(() => {
+      if(!map || !isMapScriptLoaded || !focusedEvent) return;
+
+      setSelectedRegion(`all`);
+      setSelectedEventId(focusedEvent.id);
+
+      moveMapTo(focusedEvent.latitude, focusedEvent.longitude, 15);
+
+      clearFocusedEvent();
+   }, [map, isMapScriptLoaded, focusedEvent, moveMapTo, clearFocusedEvent]);
+
+   /* 마커 초기화 ADD BY CKH */
+   const handleClearMarkers = () => {
+      clustererRef.current?.setMap(null);
+      clustererRef.current = null;
+
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
+
+      setSelectedRegion(null);
+      setSelectedEventId(null);
+      setRegionFilter('all');
+      setShowMoreRegions(false);
+   };
+
+   /* 현재 위치 마커 ADD BY CKH */
+   const currentLocationMarkerRef = useRef<naver.maps.Marker | null>(null);
+
+
+
    useEffect(() => {
       if (!map || !isMapScriptLoaded) return;
 
       async function loadMarkers() {
          try {
+            // 클러스터 제거
+            clustererRef.current?.setMap(null);
+            clustererRef.current = null;
+            
             // 기존 마커 모두 제거
             markersRef.current.forEach(marker => marker.setMap(null));
             markersRef.current = [];
@@ -251,12 +291,11 @@ const MapSection = () => {
                if(!map) return;
                const marker = new naver.maps.Marker({
                   position: new naver.maps.LatLng(event.latitude, event.longitude),
-                  map,
                   title: event.title || '이벤트',
                   icon: {
                      url: iconUrl,
-                     scaledSize: new naver.maps.Size(12, 16),
-                     anchor: new naver.maps.Point(6, 16),
+                     scaledSize: new naver.maps.Size(18, 26),
+                     anchor: new naver.maps.Point(16, 26),
                   },
                });
 
@@ -272,6 +311,42 @@ const MapSection = () => {
                markerCount++;
             });
 
+            // 클러스터 마커 생성
+            const { default: MarkerClustering } = await import('@/lib/map/MarkerClustering');
+            clustererRef.current = new MarkerClustering({
+               map,
+               markers: markersRef.current,
+               minClusterSize: 2,
+               maxZoom: 13,
+               gridSize: 80,
+               disableClickZoom: false,
+               icons: [
+                  {
+                     content:
+                        '<div class="event-cluster-marker event-cluster-marker-sm"><span></span></div>',
+                     size: new naver.maps.Size(38, 38),
+                     anchor: new naver.maps.Point(19, 19),
+                  },
+                  {
+                     content:
+                        '<div class="event-cluster-marker event-cluster-marker-md"><span></span></div>',
+                     size: new naver.maps.Size(46, 46),
+                     anchor: new naver.maps.Point(23, 23),
+                  },
+                  {
+                     content:
+                        '<div class="event-cluster-marker event-cluster-marker-lg"><span></span></div>',
+                     size: new naver.maps.Size(54, 54),
+                     anchor: new naver.maps.Point(27, 27),
+                  },
+               ],
+               stylingFunction: (clusterMarker: naver.maps.Marker, count: number) => {
+                  const element = clusterMarker.getElement();
+                  const countElement = element?.querySelector('span');
+                  if (countElement) countElement.textContent = String(count);
+               },
+            });
+
          } catch (error) {
             console.error('❌ [loadMarkers] 예외 발생:', error);
          }
@@ -279,6 +354,7 @@ const MapSection = () => {
 
       loadMarkers();
    }, [map, isMapScriptLoaded, selectedRegion, selectedEventId, session]);
+
    useEffect(() => {
       if (!map || !isMapScriptLoaded) {
          return;
@@ -520,10 +596,53 @@ const MapSection = () => {
       setShowMoreRegions(false);
    };
 
-   const handleResetPosition = () => {
+   const handleCurrentLocation = () => {
       if (!map) return;
-      const { lat, lng, zoom } = INITIAL_CONFIG;
-      moveMapTo(lat, lng, zoom);
+      
+      if (!navigator.geolocation) {
+         alert(`현재 위치를 사용할 수 없습니다.`);
+         return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+         (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            moveMapTo(lat, lng, 15);
+            setCurrentPosition({ lat, lng });
+
+            currentLocationMarkerRef.current?.setMap(null);
+
+            currentLocationMarkerRef.current = new naver.maps.Marker({
+               position: new naver.maps.LatLng(lat, lng),
+               map,
+               icon: {
+                  content: `
+                  <div style="
+                     width: 18px;
+                     height: 18px;
+                     border-radius: 9999px;
+                     background: #007de4;
+                     border: 3px solid white;
+                     box-shadow: 0 0 0 4px rgba(0,125,228,.2);
+                  "></div>
+               `,
+               size: new naver.maps.Size(18, 18),
+               anchor: new naver.maps.Point(9, 9),
+               }
+            })
+         },
+         (error) => {
+            console.error(`현재 위치 가져오기 실패:`, error);
+            alert('현재 위치 권한을 확인해주세요.');
+         },
+         {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+         }
+      )
    };
 
    const visibleButtons = REGION_BUTTONS.slice(0, visibleButtonCount);
@@ -545,6 +664,17 @@ const MapSection = () => {
                   </Button>
                ))}
             </div>
+
+            {/* 초기화 버튼 */}
+            <Button
+               variant="outline"
+               className='rounded-full bg-white shrink-0'
+               onClick={handleClearMarkers}
+               title="마커 숨기기"
+            >
+               <MapPinOff size={18} />
+            </Button>
+
             {/* 더보기 버튼 */}
             {hiddenButtons.length > 0 && (
                <div className="relative shrink-0 z-50">
@@ -612,13 +742,15 @@ const MapSection = () => {
          )}
 
          {/* 위치 초기화 버튼 */}
-         {/* <Button
-            className="fixed bottom-5 right-5 pointer-events-auto cursor-pointer rounded-2xl w-10 h-10 bg-white z-50 shadow-md"
-            variant={'outline'}
-            onClick={handleResetPosition}
+         <Button
+            className="fixed bottom-8 right-3 pointer-events-auto cursor-pointer rounded-2xl w-10 h-10 bg-white z-50 shadow-md"
+            variant="outline"
+            onClick={handleCurrentLocation}
+            title="지도 초기 위치"
          >
             <BiTargetLock />
-         </Button> */}
+         </Button>
+
          {showWeeklyModal && weeklyWeather && (
             <WeeklyWeatherModal
                weeklyWeather={weeklyWeather}

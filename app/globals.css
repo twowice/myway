@@ -196,6 +196,69 @@ main {
    height: 100%;
 }
 
+.event-cluster-marker {
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: 9999px;
+
+   box-shadow:
+      0 4px 12px rgba(4, 21, 47, 0.24),
+      0 0 0 4px rgba(0, 125, 228, 0.14);
+   color: white;
+   font-weight: 800;
+   line-height: 1;
+   transform: translateZ(0);
+   transition:
+      transform 160ms ease,
+      box-shadow 160ms ease;
+}
+
+.event-cluster-marker:hover {
+   transform: scale(1.06);
+   box-shadow:
+      0 6px 16px rgba(4, 21, 47, 0.28),
+      0 0 0 6px rgba(0, 125, 228, 0.18);
+}
+
+.event-cluster-marker span {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   width: 70%;
+   height: 70%;
+   border-radius: inherit;
+   background: rgba(0, 125, 228, 0.92);
+   color: #fff;
+   font-size: 13px;
+   letter-spacing: 0;
+}
+
+.event-cluster-marker-sm {
+   width: 38px;
+   height: 38px;
+}
+
+.event-cluster-marker-md {
+   width: 46px;
+   height: 46px;
+}
+
+.event-cluster-marker-lg {
+   width: 54px;
+   height: 54px;
+}
+
+.event-cluster-marker-md span {
+   font-size: 14px;
+}
+
+.event-cluster-marker-lg span {
+   font-size: 15px;
+}
+
+
 @layer utilities {
    .input-no-focus-ring:focus,
    .input-no-focus-ring:focus-visible,

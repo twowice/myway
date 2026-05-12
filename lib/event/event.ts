@@ -22,6 +22,8 @@ function mapEventItem(item: EventApiResponse['data'][number]): EventItem {
     imageUrl: item.main_image ?? '/error/no-image.svg',
     event_images: item.event_images,
     overview: item.overview ?? '',
+    latitude: item.latitude ?? null,
+    longitude: item.longitude ?? null,
   };
 }
 
