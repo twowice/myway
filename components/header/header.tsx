@@ -48,7 +48,7 @@ export default function Header() {
   return (
     <>
       {/* 사이드바 */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-50 md:flex lg:w-16 bg-secondary border-r border-gray-200 shadow-2xl">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-16 bg-secondary border-r border-gray-200 shadow-2xl">
         <div className="flex flex-col h-full">
           {/* 로고 */}
           <div
@@ -156,7 +156,7 @@ export default function Header() {
       </aside>
 
       {/* 모바일 전용 하단 탭바입니다. */}
-      <nav className="fixed bottom-0 left-0 right-0 z-999 flex h-16 items-center border-t border-gray-200 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.08)] md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-999 flex h-16 items-center border-t border-gray-200 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.08)] lg:hidden">
         {mainmenu.map((item) => {
           const isactive = openpanel === item.panelkey;
 

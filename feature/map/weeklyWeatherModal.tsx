@@ -46,7 +46,7 @@ const WeeklyWeatherModal = ({ weeklyWeather, locationName, onClose }: Props) => 
    return (
       <div
          onClick={handleModalClick}
-         className="fixed bottom-[140px] ml-5 w-100 max-w-[500px] max-h-[700px] overflow-auto rounded-2xl bg-[#F1F5FA] shadow-[0_4px_20px_rgba(0,0,0,0.15)] cursor-auto pointer-events-auto"
+         className="fixed bottom-[195px] lg:bottom-[145px] ml-5 w-100 max-w-[500px] max-h-[700px] overflow-auto rounded-2xl bg-[#F1F5FA] shadow-[0_4px_20px_rgba(0,0,0,0.15)] cursor-auto pointer-events-auto"
          style={{ zIndex: 30 }}
       >
          <div className="flex items-center justify-between p-4">

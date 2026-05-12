@@ -92,7 +92,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Header />
 
           {/* 반응형 수정: 모바일에서는 왼쪽 여백을 없애고 지도 높이를 하단 탭바 위까지만 사용합니다. */}
-          <main className="grow flex h-[calc(100dvh-4rem)] md:h-auto md:min-h-screen relative overflow-hidden ms-0 md:ms-14 lg:ms-16 mb-16 md:mb-0">
+          <main className="grow flex h-[calc(100dvh-4rem)] md:h-auto md:min-h-screen relative overflow-hidden ms-0 lg:ms-16 mb-16 lg:mb-0">
             <div className="relative flex-1 min-w-0">
               {shouldShowMap && <MapCanvas />}
 
@@ -100,7 +100,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div
                   className={cn(
                     // 반응형 수정: 모바일 패널은 전체 화면으로 덮기 때문에 지도를 옆으로 밀지 않습니다.
-                    openpanel === null ? 'ms-0' : 'ms-0 md:ms-150',
+                    openpanel === null ? 'ms-0' : 'ms-0 lg:ms-150',
                     'absolute inset-0 z-10 w-full h-full pointer-events-none'
                   )}
                 >

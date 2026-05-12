@@ -22,6 +22,7 @@ const LIMIT = 4;
 export default function Page() {
     const { status } = useSession();
     const openpanel = panelstore((state) => state.openpanel);
+    const setopenpanel = panelstore((state) => state.setopenpanel);
     const isPanel = openpanel !== null;
 
     const keyword = useEventFilterStore((state) => state.keyword);
@@ -135,11 +136,11 @@ export default function Page() {
                         `}
                     >
                         {events.map((item) => (
-                            <div 
+                            <div
                                 key={item.id}
                                 className={`relative cursor-pointer rounded-[10px] transition 
                                     ${selectedCardId === item.id ? 'ring-3 ring-primary ring-offset-2' : ''
-                                }`}
+                                    }`}
                                 onClick={() => handleCardClick(item.id)}
                             >
                                 <EventCard
@@ -160,7 +161,7 @@ export default function Page() {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     // 지도 마커 삽입
-                                                    if(item.latitude == null || item.longitude == null) return;
+                                                    if (item.latitude == null || item.longitude == null) return;
 
                                                     setFocusedEvent({
                                                         id: item.id,
@@ -168,6 +169,9 @@ export default function Page() {
                                                         latitude: item.latitude,
                                                         longitude: item.longitude,
                                                     });
+
+                                                    setopenpanel(null);
+                                                    setSelectedCardId(null);
                                                 }}
                                             >
                                                 위치

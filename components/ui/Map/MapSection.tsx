@@ -172,7 +172,7 @@ const MapSection = () => {
    const clearFocusedEvent = useEventFilterStore(state => state.clearFocusedEvent);
 
    useEffect(() => {
-      if(!map || !isMapScriptLoaded || !focusedEvent) return;
+      if (!map || !isMapScriptLoaded || !focusedEvent) return;
 
       setSelectedRegion(`all`);
       setSelectedEventId(focusedEvent.id);
@@ -214,7 +214,7 @@ const MapSection = () => {
             // 클러스터 제거
             clustererRef.current?.setMap(null);
             clustererRef.current = null;
-            
+
             // 기존 마커 모두 제거
             markersRef.current.forEach(marker => marker.setMap(null));
             markersRef.current = [];
@@ -293,7 +293,7 @@ const MapSection = () => {
                else if (isLiked) {
                   iconUrl = '/marker/like.png';
                }
-               if(!map) return;
+               if (!map) return;
                const marker = new naver.maps.Marker({
                   position: new naver.maps.LatLng(event.latitude, event.longitude),
                   title: event.title || '이벤트',
@@ -450,9 +450,23 @@ const MapSection = () => {
          const buttonWidth = 76;
 
          const maxButtons = Math.floor(availableWidth / buttonWidth);
+         const visibleMaxButtons = Math.min(maxButtons, REGION_BUTTONS.length);
 
-         //최소 5개
-         const newVisibleCount = Math.max(5, Math.min(maxButtons, REGION_BUTTONS.length));
+         const pairVisibleCount = visibleMaxButtons - (visibleMaxButtons % 2);
+
+         const width = window.innerWidth;
+         let maxAllowedCount = REGION_BUTTONS.length;
+
+         if (width < 1084) {
+            maxAllowedCount = 2;
+         } else if (width < 1354) {
+            maxAllowedCount = 5;
+         }
+
+         const newVisibleCount = Math.max(
+            2,
+            Math.min(pairVisibleCount, maxAllowedCount)
+         );
 
          if (newVisibleCount !== visibleButtonCount) {
             setVisibleButtonCount(newVisibleCount);
@@ -603,7 +617,7 @@ const MapSection = () => {
 
    const handleCurrentLocation = () => {
       if (!map) return;
-      
+
       if (!navigator.geolocation) {
          alert(`현재 위치를 사용할 수 없습니다.`);
          return;
@@ -633,8 +647,8 @@ const MapSection = () => {
                      box-shadow: 0 0 0 4px rgba(0,125,228,.2);
                   "></div>
                `,
-               size: new naver.maps.Size(18, 18),
-               anchor: new naver.maps.Point(9, 9),
+                  size: new naver.maps.Size(18, 18),
+                  anchor: new naver.maps.Point(9, 9),
                }
             })
          },
@@ -670,16 +684,6 @@ const MapSection = () => {
                ))}
             </div>
 
-            {/* 초기화 버튼 */}
-            <Button
-               variant="outline"
-               className='rounded-full bg-white shrink-0'
-               onClick={handleClearMarkers}
-               title="마커 숨기기"
-            >
-               <MapPinOff size={18} />
-            </Button>
-
             {/* 더보기 버튼 */}
             {hiddenButtons.length > 0 && (
                <div className="relative shrink-0 z-50">
@@ -711,12 +715,23 @@ const MapSection = () => {
                   )}
                </div>
             )}
+
+            {/* 초기화 버튼 */}
+            <Button
+               variant="outline"
+               className='rounded-full bg-white shrink-0'
+               onClick={handleClearMarkers}
+               title="마커 숨기기"
+            >
+               <MapPinOff size={18} />
+            </Button>
          </div>
+
          {/* 날씨정보 */}
          {weather && (
             <div
                onClick={handleWeatherClick}
-               className="absolute bottom-20 md:bottom-5 left-5 bg-[#F1F5FA] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.15)] px-2 py-3 flex flex-col gap-1 items-center justify-center pointer-events-auto z-20 cursor-pointer border"
+               className="absolute bottom-20 lg:bottom-8 left-5 bg-[#F1F5FA] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.15)] px-2 py-3 flex flex-col gap-1 items-center justify-center pointer-events-auto z-20 cursor-pointer border"
             >
                <div className="flex items-center justify-center flex-col gap-2">
                   <div className="text-sm">{locationName}</div>
@@ -748,7 +763,7 @@ const MapSection = () => {
 
          {/* 위치 GPS 버튼 */}
          <Button
-            className="fixed bottom-20 right-3 md:bottom-8 pointer-events-auto cursor-pointer rounded-2xl w-10 h-10 bg-white z-50 shadow-md"
+            className="fixed bottom-20 right-3 lg:bottom-8 pointer-events-auto cursor-pointer rounded-2xl w-10 h-10 bg-white z-50 shadow-md"
             variant="outline"
             onClick={handleCurrentLocation}
             title="현재 위치로 이동"

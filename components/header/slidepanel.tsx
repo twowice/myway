@@ -62,7 +62,7 @@ export default function SlidePanel({ isopen, onclose, title, children }: slidepa
             data-panel-root="true"
             data-panel-open={isopen ? 'true' : 'false'}
             className={clsx(
-               'fixed inset-y-0 left-0 z-40 w-full bg-white shadow-2xl md:left-14 md:max-w-150 lg:left-16',
+               'fixed inset-y-0 left-0 z-40 w-full bg-white shadow-2xl lg:left-16 lg:max-w-150',
                'transition-all duration-300 ease-out',
                isopen ? 'translate-x-0' : '-translate-x-full pointer-events-none',
             )}
