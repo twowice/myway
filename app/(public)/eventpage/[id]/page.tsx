@@ -13,9 +13,14 @@ import { parseHomepageUrl } from '@/feature/event/url';
 import { fetchEventDetail, mapEventPartyItem } from '@/lib/event/event';
 import { fetchLikedParties, fetchParties, togglePartyLike } from '@/lib/party/party';
 import { PartyDetailPopup } from '@/feature/party/partyDetailPopup';
+import { useRouter } from 'next/navigation';
+import { ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { EventDetail, EventPartyListItem } from '@/types/event';
 
 export default function Page() {
+  const router = useRouter();
+
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -164,6 +169,18 @@ export default function Page() {
 
   return (
     <div className="w-full max-w-[960px] mx-auto flex flex-col space-y-4 md:space-y-6 lg:space-y-[22px] pb-[80px] pt-[70px] px-[16px] sm:px-[24px] lg:px-[32px]">
+      <div className="mb-4 flex justify-end">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ChevronLeft size={18} />
+          뒤로가기
+        </Button>
+      </div>
+
+
       {/* 타이틀 */}
       <EventDetailTitle
         id={id}
