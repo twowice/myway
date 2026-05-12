@@ -156,7 +156,7 @@ export default function Header() {
       </aside>
 
       {/* 모바일 전용 하단 탭바입니다. */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center border-t border-gray-200 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.08)] md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-999 flex h-16 items-center border-t border-gray-200 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.08)] md:hidden">
         {mainmenu.map((item) => {
           const isactive = openpanel === item.panelkey;
 

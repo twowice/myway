@@ -532,7 +532,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
                     setOpen(true);
                 }}
                 className="
-                    fixed bottom-6 right-6 z-50 flex h-14 w-14 cursor-pointer items-center
+                    fixed bottom-20 right-6 z-999 flex h-14 w-14 cursor-pointer items-center
                     justify-center rounded-full bg-[var(--primary)] text-white shadow-lg
                     transition hover:opacity-90 md:bottom-8 md:right-8
                 "
