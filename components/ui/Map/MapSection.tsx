@@ -751,7 +751,7 @@ const MapSection = () => {
             className="fixed bottom-8 right-3 pointer-events-auto cursor-pointer rounded-2xl w-10 h-10 bg-white z-50 shadow-md"
             variant="outline"
             onClick={handleCurrentLocation}
-            title="지도 초기 위치"
+            title="현재 위치로 이동"
          >
             <BiTargetLock />
          </Button>
