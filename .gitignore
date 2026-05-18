@@ -132,7 +132,6 @@ dist
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
-<<<<<<< HEAD
 !.yarn/versions
 
 # testing
@@ -164,11 +163,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-=======
-!.yarn/sdks
-!.yarn/versions
 
-# Vite logs files
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
->>>>>>> 55751b2e04d1a31a43776c083d525ea2a091b919
+#ai
+/AGENTS.md
