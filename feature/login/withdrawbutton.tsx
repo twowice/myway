@@ -3,8 +3,11 @@
 
 import { withdrawUser } from '@/feature/login/withdraw'
 import { signOut } from 'next-auth/react'
+import { useToast } from '@/contexts/ToastContext';
 
 export default function WithdrawButton() {
+  const { showToast } = useToast();
+
   const handleWithdraw = async () => {
     if (!confirm('정말 탈퇴하시겠습니까?')) {
       return
@@ -14,7 +17,7 @@ export default function WithdrawButton() {
       await withdrawUser()
       await signOut({ callbackUrl: '/' })
     } catch (error) {
-      alert('탈퇴 처리 중 오류가 발생했습니다.')
+      showToast('탈퇴 처리 중 오류가 발생했습니다.')
     }
   }
 

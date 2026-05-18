@@ -24,6 +24,7 @@ import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { RiResetLeftFill } from 'react-icons/ri';
+import { useToast } from '@/contexts/ToastContext';
 
 type MenuBarProps = {
    editor: Editor | null;
@@ -227,6 +228,8 @@ interface AddNoticeProps {
 }
 
 export function AddNotice({ onAddNotice }: AddNoticeProps) {
+   const { showToast } = useToast();
+   
    const [isEmpty, setIsEmpty] = useState(true);
    const [category, setCategory] = useState('normal');
    const [isTopFixed, setIsTopFixed] = useState(false);
@@ -261,12 +264,12 @@ export function AddNotice({ onAddNotice }: AddNoticeProps) {
 
    const handleAdd = async () => {
       if (!title.trim()) {
-         alert('제목을 입력해주세요.');
+         showToast("제목을 입력해주세요.");
          return;
       }
 
       if (!editor || editor.isEmpty) {
-         alert('내용을 입력해주세요.');
+         showToast("내용을 입력해주세요.");
          return;
       }
 
@@ -285,29 +288,10 @@ export function AddNotice({ onAddNotice }: AddNoticeProps) {
          setIsTopFixed(false);
          editor?.commands.clearContent();
 
-         alert('공지사항이 등록되었습니다.');
+         showToast("공지사항이 등록되었습니다.");
       } catch (error) {
          console.error('등록 실패:', error);
       }
-
-      // // API
-      // try {
-      //    const response = await fetch('/api/notices', {
-      //       method: 'POST',
-      //       headers: { 'Content-Type': 'application/json' },
-      //       body: JSON.stringify(noticeData),
-      //    });
-      //    if (response.ok) {
-      //       alert('공지사항이 등록되었습니다.');
-      //       setTitle('');
-      //       setCategory('normal');
-      //       setIsTopFixed(false);
-      //       editor?.commands.clearContent();
-      //    }
-      // } catch (error) {
-      //    console.error('등록 실패:', error);
-      //    alert('등록에 실패했습니다.');
-      // }
    };
 
    return (

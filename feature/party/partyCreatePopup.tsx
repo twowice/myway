@@ -8,6 +8,7 @@ import { createParty } from "@/lib/party/party";
 import { useEffect, useState } from "react";
 import { EventSearchBar } from "../event/EventSearchBar";
 import { PlaceSearchBar } from "../location/search/PlaceSearchBar";
+import { useToast } from '@/contexts/ToastContext';
 
 export type PartyCreate = {
   partyName: string;
@@ -38,6 +39,8 @@ export const PartyCreatePopup = ({
   initialData,
   allowOutsideInteraction = false,
 }: PartyCreatePopupProps) => {
+  const { showToast } = useToast();
+
   const [create, setCreate] = useState<PartyCreate>({
     partyName: "",
     max_members: "",
@@ -119,31 +122,31 @@ export const PartyCreatePopup = ({
     }
 
     if (!create.partyName.trim()) {
-      alert("파티명을 입력해주세요.");
+      showToast("파티명을 입력해주세요.");
       return;
     }
     if (!create.eventName?.trim() || !create.eventId || create.eventId <= 0) {
-      alert("이벤트명을 입력해주세요.");
+      showToast("이벤트명을 입력해주세요.");
       return;
     }
     if (!create.max_members || parseInt(create.max_members) < 1) {
-      alert("최대 인원을 입력해주세요.");
+      showToast("최대 인원을 입력해주세요.");
       return;
     }
     if (!create.location?.trim()) {
-      alert("장소를 입력해주세요.");
+      showToast("장소를 입력해주세요.");
       return;
     }
     if (!create.date) {
-      alert("날짜를 입력해주세요.");
+      showToast("날짜를 입력해주세요.");
       return;
     }
     if (!create.time) {
-      alert("시간을 입력해주세요.");
+      showToast("시간을 입력해주세요.");
       return;
     }
     if (!create.description?.trim()) {
-      alert("파티 소개를 입력해주세요.");
+      showToast("파티 소개를 입력해주세요.");
       return;
     }
     if (!isFormValid) return;
@@ -152,7 +155,7 @@ export const PartyCreatePopup = ({
       await createParty(createWithTag);
     } catch (error) {
       console.error("파티 생성 실패:", error);
-      alert(
+      showToast(
         error instanceof Error
           ? error.message
           : "파티 생성에 실패했어요. 잠시 후 다시 시도해주세요."

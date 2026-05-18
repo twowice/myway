@@ -64,19 +64,19 @@ export function PartyRow({
    const handleSubmitReport = async () => {
       if (isSubmitting) return;
       if (!partyId) {
-         alert('파티 정보를 찾을 수 없어요.');
+         showToast('파티 정보를 찾을 수 없어요.');
          return;
       }
       if (!reportCategory) {
-         alert('카테고리를 선택해주세요.');
+         showToast('카테고리를 선택해주세요.');
          return;
       }
       if (!reportContent.trim()) {
-         alert('신고 내용을 입력해주세요.');
+         showToast('신고 내용을 입력해주세요.');
          return;
       }
       if (!reportDate) {
-         alert('발생 일시를 입력해주세요.');
+         showToast('발생 일시를 입력해주세요.');
          return;
       }
 
@@ -104,7 +104,7 @@ export function PartyRow({
          setIsReportOpen(false);
       } catch (error) {
          console.error('파티 신고 실패:', error);
-         alert(error instanceof Error ? error.message : '파티 신고에 실패했어요.');
+         showToast(error instanceof Error ? error.message : '파티 신고에 실패했어요.');
       } finally {
          setIsSubmitting(false);
       }

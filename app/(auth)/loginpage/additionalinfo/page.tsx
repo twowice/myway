@@ -5,8 +5,11 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { LoadingBounce } from '@/components/status/LoadingBounce'
+import { useToast } from '@/contexts/ToastContext';
 
 export default function AdditionalInfoPage() {
+  const { showToast } = useToast();
+
   // 휴대전화 포맷 변경
   const onlyNumbers = (value: string) => value.replace(/\D/g, '')
   const formatPhoneNumber = (value: string) => {
@@ -92,11 +95,11 @@ export default function AdditionalInfoPage() {
         window.location.href = '/'
       } else {
         console.error('서버 에러:', responseData)
-        alert(`정보 저장에 실패했습니다: ${responseData.error}`)
+        showToast(`정보 저장에 실패했습니다: ${responseData.error}`);
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('오류가 발생했습니다.')
+      showToast('오류가 발생했습니다.');
     } finally {
       setLoading(false)
     }

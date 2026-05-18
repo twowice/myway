@@ -11,8 +11,11 @@ import { NoticeData, NoticeDisplayData } from '@/types/userReport';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/clientSupabase';
 import { EditNotice } from './editNoticeDialog';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function Notice() {
+   const { showToast } = useToast();
+
    const [notices, setNotices] = useState<NoticeData[]>([]);
    const [loading, setLoading] = useState(true);
    const [currentPage, setCurrentPage] = useState(1);
@@ -41,7 +44,7 @@ export default function Notice() {
          setNotices(data || []);
       } catch (error) {
          console.error('공지사항 조회 실패:', error);
-         alert('공지사항 목록을 불러오는데 실패하였습니다.');
+         showToast('공지사항 목록을 불러오는데 실패하였습니다.');
       } finally {
          setLoading(false);
       }
@@ -154,10 +157,10 @@ export default function Notice() {
 
          setNotices(prev => [newNotice, ...prev]);
          setCurrentPage(1);
-         alert('공지사항이 등록되었습니다.');
+         showToast('공지사항이 등록되었습니다.');
       } catch (error) {
          console.error('공지사항 등록 실패:', error);
-         alert('공지사항 등록에 실패했습니다.');
+         showToast('공지사항 등록에 실패했습니다.');
          throw error;
       }
    };
@@ -190,10 +193,10 @@ export default function Notice() {
             .single();
 
          setNotices(prev => prev.map(notice => (notice.id === originalNotice.id ? updatedNotice : notice)));
-         alert('공지사항이 수정되었습니다.');
+         showToast('공지사항이 수정되었습니다.');
       } catch (error) {
          console.error('공지사항 수정 실패:', error);
-         alert('공지사항 수정에 실패했습니다.');
+         showToast('공지사항 수정에 실패했습니다.');
          throw error;
       }
    };
@@ -211,10 +214,10 @@ export default function Notice() {
          if (currentPage > newTotalPages && newTotalPages > 0) {
             setCurrentPage(newTotalPages);
          }
-         alert('공지사항이 삭제되었습니다.');
+         showToast('공지사항이 삭제되었습니다.');
       } catch (error) {
          console.error('공지사항 삭제 실패:', error);
-         alert('공지사항 삭제에 실패했습니다.');
+         showToast('공지사항 삭제에 실패했습니다.');
          throw error;
       }
    };

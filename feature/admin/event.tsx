@@ -11,8 +11,11 @@ import { EventData, EventDisplayData, EventImage } from '@/types/userReport';
 import { Input } from '@/components/ui/input';
 import { EditEvent } from './editEventDialog';
 import { supabase } from '@/lib/clientSupabase';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function Event() {
+   const { showToast } = useToast();
+
    const [events, setEvents] = useState<EventData[]>([]);
    const [loading, setLoading] = useState(true);
    const [currentPage, setCurrentPage] = useState(1);
@@ -70,7 +73,7 @@ export default function Event() {
          setEvents(data || []);
       } catch (error) {
          console.error('이벤트 조회 실패:', error);
-         alert('이벤트 목록을 불러오는데 실패하였습니다.');
+         showToast('이벤트 목록을 불러오는데 실패하였습니다.');
       } finally {
          setLoading(false);
       }
@@ -258,10 +261,10 @@ export default function Event() {
             setEvents(prev => [{ ...newEvent, event_images: [] }, ...prev]);
          }
          setCurrentPage(1);
-         alert('이벤트가 등록되었습니다.');
+         showToast('이벤트가 등록되었습니다.');
       } catch (error) {
          console.error('이벤트 등록 실패:', error);
-         alert('이벤트 등록에 실패했습니다.');
+         showToast('이벤트 등록에 실패했습니다.');
          throw error;
       }
    };
@@ -330,10 +333,10 @@ export default function Event() {
          }
 
          fetchEvents();
-         alert('이벤트가 수정되었습니다.');
+         showToast('이벤트가 수정되었습니다.');
       } catch (error) {
          console.error('이벤트 수정 실패:', error);
-         alert('이벤트 수정에 실패했습니다.');
+         showToast('이벤트 수정에 실패했습니다.');
          throw error;
       }
    };
@@ -374,10 +377,10 @@ export default function Event() {
             setCurrentPage(newTotalPages);
          }
 
-         alert('이벤트가 삭제되었습니다.');
+         showToast('이벤트가 삭제되었습니다.');
       } catch (error) {
          console.error('이벤트 삭제 실패:', error);
-         alert('이벤트 삭제에 실패했습니다.');
+         showToast('이벤트 삭제에 실패했습니다.');
       }
    };
 

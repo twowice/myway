@@ -16,6 +16,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { MapPinOff } from 'lucide-react';
 import { BiTargetLock } from 'react-icons/bi';
+import { useToast } from '@/contexts/ToastContext';
 
 const REGION_NAME = {
    all: null,
@@ -90,6 +91,8 @@ const REGION_BUTTONS = [
 ];
 
 const MapSection = () => {
+   const { showToast } = useToast();
+
    const map = useMapStore(state => state.map);
    const isMapScriptLoaded = useMapStore(state => state.isMapScriptLoaded);
    const isInitialFetchDone = useRef(false);
@@ -621,7 +624,7 @@ const MapSection = () => {
       if (!map) return;
 
       if (!navigator.geolocation) {
-         alert(`현재 위치를 사용할 수 없습니다.`);
+         showToast(`현재 위치를 사용할 수 없습니다.`);
          return;
       }
 
@@ -656,7 +659,7 @@ const MapSection = () => {
          },
          (error) => {
             console.error(`현재 위치 가져오기 실패:`, error);
-            alert('현재 위치 권한을 확인해주세요.');
+            showToast('현재 위치 권한을 확인해주세요.');
          },
          {
             enableHighAccuracy: true,

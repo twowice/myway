@@ -3,6 +3,7 @@ import { TwoFunctionPopup } from '@/components/popup/twofunction';
 import { Button } from '@/components/ui/button/button';
 import { PartyReportData, UserReportData } from '@/types/userReport';
 import { useState } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 
 interface UserReportDialogProps {
    reportData: UserReportData | PartyReportData;
@@ -13,6 +14,8 @@ interface UserReportDialogProps {
 }
 
 export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }: UserReportDialogProps) {
+   const { showToast } = useToast();
+
    const reportCategoryLabels: Record<string, string> = {
       cult_activity: '사이비 포교 활동',
       unauthorized_commercial: '미허가 영리활동',
@@ -122,7 +125,7 @@ export function UserReportDialog({ reportData, onUpdate, type = 'user-report' }:
 
    const handleApply = async () => {
       if (!sanctionType) {
-         alert('제재 유형을 선택해주세요.');
+         showToast('제재 유형을 선택해주세요.');
          return;
       }
 
