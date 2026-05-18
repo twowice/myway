@@ -2,6 +2,7 @@ import { OneFunctionPopup } from '@/components/popup/onefunction';
 import { Button } from '@/components/ui/button';
 import { SearchBar } from '@/components/ui/searchBar';
 import { useState } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 
 interface AddressSearchDialogProps {
    isOpen: boolean;
@@ -18,6 +19,8 @@ interface PlaceResult {
 }
 
 export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: AddressSearchDialogProps) {
+   const { showToast } = useToast();
+
    const [searchQuery, setSearchQuery] = useState('');
    const [searchResults, setSearchResults] = useState<PlaceResult[]>([]);
    const [isSearching, setIsSearching] = useState(false);
@@ -25,7 +28,7 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
 
    const handleSearch = async () => {
       if (!searchQuery.trim()) {
-         alert('검색어를 입력해주세요.');
+         showToast('검색어를 입력해주세요.');
          return;
       }
       setIsSearching(true);
@@ -67,11 +70,11 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
             setSelectedIndex(null);
          } else {
             setSearchResults([]);
-            alert('검색 결과가 없습니다.');
+            showToast('검색 결과가 없습니다.');
          }
       } catch (error) {
          console.error('❌ [프론트] 검색 실패:', error);
-         alert('주소 검색 중 오류가 발생했습니다.');
+         showToast('주소 검색 중 오류가 발생했습니다.');
          setSearchResults([]);
       } finally {
          setIsSearching(false);
@@ -80,7 +83,7 @@ export function AddressSearchDialog({ isOpen, onOpenChange, onSelectAddress }: A
 
    const handleSelectAddress = () => {
       if (selectedIndex === null) {
-         alert('주소를 선택해주세요.');
+         showToast('주소를 선택해주세요.');
          return;
       }
 

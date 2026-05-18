@@ -9,6 +9,7 @@ import { RadioComponent } from "@/components/basic/radio";
 import { TwoFunctionPopup } from "@/components/popup/twofunction";
 import { Icon24 } from "@/components/icons/icon24";
 import { getSocket } from "@/lib/socket";
+import { useToast } from '@/contexts/ToastContext';
 
 interface PartyDrawerProps {
     eventId: string; // 이벤트 아이디
@@ -63,6 +64,8 @@ const REPORT_CATEGORIES = [
 }));
 
 export function PartyDrawer({ name }: PartyDrawerProps) {
+    const { showToast } = useToast();
+
     const { data: session } = useSession(); // 로그인 세션
     const isLoggedIn = !!session?.user?.id; // 유저 아이디가 있으면 로그인 상태
 
@@ -189,7 +192,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
             if (!res.ok) throw new Error("Report API Request Fail");
 
-            alert("신고가 접수되었습니다.");
+            showToast("신고가 접수되었습니다.");
         } catch (error) {
             console.error("Report Data Loading Fail:", error);
         }
@@ -198,14 +201,14 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
     // 메시지 전송
     const handleSend = () => {
         if (!socket.connected) {
-            alert("서버와 연결되지 않았습니다.");
+            showToast("서버와 연결되지 않았습니다.");
             return;
         }
 
         if (!input.trim() || !session?.user?.id || !session?.user?.name) return;
 
         if (input.length > 100) {
-            alert("메시지는 100자 이내로 작성해주세요.");
+            showToast("메시지는 100자 이내로 작성해주세요.");
             return;
         }
 
@@ -229,27 +232,27 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
         try {
             if (!reportCategory) {
-                alert("카테고리를 선택해주세요.");
+                showToast("카테고리를 선택해주세요.");
                 return;
             }
 
             if (!reportContent.trim()) {
-                alert("사유를 입력해주세요.");
+                showToast("사유를 입력해주세요.");
                 return;
             }
 
             if (!session?.user?.id) {
-                alert("로그인이 필요합니다.");
+                showToast("로그인이 필요합니다.");
                 return;
             }
 
             if (reportContent.length > 100) {
-                alert("내용을 100자 이내로 작성해주세요.");
+                showToast("내용을 100자 이내로 작성해주세요.");
                 return;
             }
 
             if (addOpinion.length > 100) {
-                alert("추가 의견을 100자 이내로 작성해주세요.");
+                showToast("추가 의견을 100자 이내로 작성해주세요.");
                 return;
             }
 
@@ -302,7 +305,7 @@ export function PartyDrawer({ name }: PartyDrawerProps) {
 
         const handleRoomFull = (payload: RoomFullPayload) => {
             const { roomId, limit } = payload;
-            alert(`'${roomId}' 방은 이미 ${limit}명으로 가득 찼습니다!`);
+            showToast(`'${roomId}' 방은 이미 ${limit}명으로 가득 찼습니다!`);
         };
 
 

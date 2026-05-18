@@ -23,6 +23,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { RiResetLeftFill } from 'react-icons/ri';
 import { NoticeData } from '@/types/userReport';
 import { TwoFunctionPopup } from '@/components/popup/twofunction';
+import { useToast } from '@/contexts/ToastContext';
 
 type MenuBarProps = {
    editor: Editor | null;
@@ -230,6 +231,8 @@ interface EditNoticeProps {
 }
 
 export function EditNotice({ notice, isOpen, onClose, onEditNotice, onDeleteNotice }: EditNoticeProps) {
+   const { showToast } = useToast();
+
    const [isEmpty, setIsEmpty] = useState(true);
    const [category, setCategory] = useState('normal');
    const [isTopFixed, setIsTopFixed] = useState(false);
@@ -277,12 +280,12 @@ export function EditNotice({ notice, isOpen, onClose, onEditNotice, onDeleteNoti
 
    const handleEdit = async () => {
       if (!title.trim()) {
-         alert('제목을 입력해주세요.');
+         showToast('제목을 입력해주세요.');
          return;
       }
 
       if (!editor || editor.isEmpty) {
-         alert('내용을 입력해주세요.');
+         showToast('내용을 입력해주세요.');
          return;
       }
 
@@ -305,29 +308,10 @@ export function EditNotice({ notice, isOpen, onClose, onEditNotice, onDeleteNoti
 
          onClose();
 
-         alert('공지사항이 등록되었습니다.');
+         showToast('공지사항이 등록되었습니다.');
       } catch (error) {
          console.error('등록 실패:', error);
       }
-
-      // // API
-      // try {
-      //    const response = await fetch('/api/notices', {
-      //       method: 'POST',
-      //       headers: { 'Content-Type': 'application/json' },
-      //       body: JSON.stringify(noticeData),
-      //    });
-      //    if (response.ok) {
-      //       alert('공지사항이 등록되었습니다.');
-      //       setTitle('');
-      //       setCategory('normal');
-      //       setIsTopFixed(false);
-      //       editor?.commands.clearContent();
-      //    }
-      // } catch (error) {
-      //    console.error('등록 실패:', error);
-      //    alert('등록에 실패했습니다.');
-      // }
    };
 
    const handleDelete = async () => {
@@ -341,7 +325,7 @@ export function EditNotice({ notice, isOpen, onClose, onEditNotice, onDeleteNoti
       try {
          await onDeleteNotice(notice.id);
          onClose();
-         alert('공지사항이 삭제되었습니다.');
+         showToast('공지사항이 삭제되었습니다.');
       } catch (error) {
          console.error('공지사항 삭제 실패:', error);
       }

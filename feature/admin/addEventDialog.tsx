@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/button/button';
 import { useState } from 'react';
 import { AddressSearchDialog } from './addressSearchDialog';
 import { supabase } from '@/lib/clientSupabase';
+import { useToast } from '@/contexts/ToastContext';
 
 interface AddEventProps {
    onAddEvent: (formData: any) => Promise<void>;
 }
 
 export function AddEvent({ onAddEvent }: AddEventProps) {
+   const { showToast } = useToast();
+
    const [eventName, setEventName] = useState('');
    const [eventImages, setEventImages] = useState<string[]>([]);
    const [eventIntro, setEventIntro] = useState('');
@@ -62,16 +65,16 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
 
    const handleAdd = async () => {
       if (!eventName.trim()) {
-         alert('이벤트 명을 입력해주세요.');
+         showToast('이벤트 명을 입력해주세요.');
          return;
       }
       if (!startDate || !endDate) {
-         alert('이벤트 기간을 입력해주세요.');
+         showToast('이벤트 기간을 입력해주세요.');
          return;
       }
 
       if (uploadingImage) {
-         alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+         showToast('이미지 업로드 중입니다. 잠시만 기다려주세요.');
          return;
       }
 
@@ -148,7 +151,7 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
          return 200;
       } catch (error) {
          console.error('❌ 이미지 처리 에러:', error);
-         alert('이미지 업로드 중 오류가 발생했습니다.');
+         showToast("이미지 업로드 중 오류가 발생했습니다.");
          return 400;
       } finally {
          setUploadingImage(false);
@@ -166,14 +169,6 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
          return newHosts;
       });
    };
-
-   // const handleHostDelete = (index: number) => {
-   //    if (hosts.length <= 1) {
-   //       alert('주최사는 최소 1개 이상 입력해야합니다.');
-   //       return;
-   //    }
-   //    setHosts(prev => prev.filter((_, i) => i !== index));
-   // };
 
    const handleAddressSearch = () => {
       setIsAddressSearchOpen(true);

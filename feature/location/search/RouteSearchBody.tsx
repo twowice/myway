@@ -193,7 +193,7 @@ export const RouteSearchBody = ({}: {}) => {
 
   const search = async () => {
     if (places.length < 2) {
-      alert("출발지와 목적지를 모두 선택해주세요.");
+      showToast("출발지와 목적지를 모두 선택해주세요.");
       return;
     }
 
@@ -204,7 +204,7 @@ export const RouteSearchBody = ({}: {}) => {
       const endPlace = places.find((p) => p.order === places.length);
 
       if (!startPlace || !endPlace) {
-        alert("출발지 또는 목적지 정보가 부족합니다.");
+        showToast("출발지 또는 목적지 정보가 부족합니다.");
         return;
       }
       const routeData = await getTransPath(startPlace, endPlace);
@@ -249,7 +249,7 @@ export const RouteSearchBody = ({}: {}) => {
       }
     } catch (error: any) {
       console.error("길찾기 중 오류 발생:", error.message);
-      alert(`길찾기 실패: ${error.message}`);
+      showToast(`길찾기 실패: ${error.message}`);
       setRoutePoints([]);
     } finally {
       setIsDuringSearching(false);
@@ -338,7 +338,7 @@ export const RouteSearchBody = ({}: {}) => {
     if (!map || !isMapScriptLoaded) return;
 
     if (!mapObj) {
-      alert(
+      showToast(
         "현재 선택하신 대중교통(KTX, ITX, SRT, 시외 버스 등)은 도보 및 지하철&시내버스 경로를 제외한 지도 경로 정보를 제공하지 않습니다.\n추후 업데이트를 통해 해당 내용은 제공될 예정입니다."
       );
       fallbackPolylinesRef.current.push(...drawFallbackSegments(map, subPaths));

@@ -10,8 +10,11 @@ import { UserReportDialog } from './UserReportDialog';
 import { UserReportData } from '@/types/userReport';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/clientSupabase';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function UserReport() {
+   const { showToast } = useToast();
+
    const [reports, setReports] = useState<UserReportData[]>([]);
    const [loading, setLoading] = useState(true);
    const [currentPage, setCurrentPage] = useState(1);
@@ -64,7 +67,7 @@ export default function UserReport() {
          setReports(normalized);
       } catch (error) {
          console.error('신고 조회 실패:', error);
-         alert('신고 목록을 불러오는데 실패하였습니다.');
+         showToast('신고 목록을 불러오는데 실패하였습니다.');
       } finally {
          setLoading(false);
       }
@@ -141,10 +144,10 @@ export default function UserReport() {
          if (error) throw error;
 
          setReports(prev => prev.map(report => (report.id === reportId ? { ...report, ...updateData } : report)));
-         alert('제재 정보가 업데이트되었습니다.');
+         showToast('제재 정보가 업데이트되었습니다.');
       } catch (error) {
          console.error('신고 업데이트 실패:', error);
-         alert('업데이트에 실패했습니다.');
+         showToast('업데이트에 실패했습니다.');
          throw error;
       }
    };

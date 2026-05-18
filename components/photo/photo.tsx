@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useToast } from '@/contexts/ToastContext';
 
 /**
  * @component
@@ -31,6 +32,8 @@ export const PhotoInputContainer = ({
   uploadImage: (file: File) => Promise<number>;
   autoScroll?: boolean;
 }): React.ReactElement => {
+  const { showToast } = useToast();
+
   const [images, setImages] = useState<string[] | null>(initImages);
 
   const PhotoInput = () => {
@@ -39,11 +42,11 @@ export const PhotoInputContainer = ({
       const file = event.target.files?.[0];
       if (file) {
         if (file.size > 5 * 1024 * 1024) {
-          alert("파일 크기가 너무 큽니다 (최대 5MB).");
+          showToast("파일 크기가 너무 큽니다 (최대 5MB).");
           return;
         }
         if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
-          alert("JPEG, PNG, GIF 이미지 파일만 업로드할 수 있습니다.");
+          showToast("JPEG, PNG, GIF 이미지 파일만 업로드할 수 있습니다.");
           return;
         }
 
@@ -59,7 +62,7 @@ export const PhotoInputContainer = ({
           console.error("[PhotoInput] 에러가 발생했습니다:", error);
         }
       } else {
-        alert("오류로 인해 이미지 파일 추가에 실패했습니다.");
+        showToast("오류로 인해 이미지 파일 추가에 실패했습니다.");
         console.error("[PhotoInput Error] image file is not exist : ", file);
       }
     };
@@ -165,6 +168,8 @@ export const PhotoEditable = ({
   onChange?: (file: File, previewUrl: string) => void;
   className?: string;
 }): React.ReactElement => {
+  const { showToast } = useToast();
+
   const [previewUrl, setPreviewUrl] = useState(imageUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -190,11 +195,11 @@ export const PhotoEditable = ({
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("파일 크기가 너무 큽니다 (최대 5MB).");
+      showToast("파일 크기가 너무 큽니다 (최대 5MB).");
       return;
     }
     if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
-      alert("JPEG, PNG, GIF 이미지 파일만 업로드할 수 있습니다.");
+      showToast("JPEG, PNG, GIF 이미지 파일만 업로드할 수 있습니다.");
       return;
     }
 

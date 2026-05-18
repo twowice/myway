@@ -16,11 +16,12 @@ export default function Toast({ message, className = "" }: ToastProps) {
     return (
         <div
             className={[
-                "flex flex-col items-center justify-center gap-4",
-                "px-4 py-6 rounded-[16px]",
-                "bg-[#F1F5FA]",
-                "text-[24px] font-regular text-center",
-                "w-[600px] h-[65px]"
+                "flex min-h-12 w-[calc(100vw-32px)] max-w-[420px] items-center justify-center",
+                "rounded-[12px] border border-[#DCE3EB] bg-white px-4 py-3",
+                "text-center text-[15px] font-medium leading-relaxed text-[#04152F]",
+                "shadow-[0_8px_24px_rgba(4,21,47,0.14)]",
+                "break-keep",
+                className
             ].join(" ")}
         >
             {message}

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button/button';
 import { useEffect, useState } from 'react';
 import { AddressSearchDialog } from './addressSearchDialog';
 import { supabase } from '@/lib/clientSupabase';
+import { useToast } from '@/contexts/ToastContext';
 
 interface EditEventProps {
    event: any | null;
@@ -17,6 +18,8 @@ interface EditEventProps {
 }
 
 export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }: EditEventProps) {
+   const { showToast } = useToast();
+
    const [eventName, setEventName] = useState('');
    const [eventImages, setEventImages] = useState<string[]>([]);
    const [eventIntro, setEventIntro] = useState('');
@@ -155,7 +158,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
          return 200;
       } catch (error) {
          console.error('❌ 이미지 처리 에러:', error);
-         alert('이미지 업로드 중 오류가 발생했습니다.');
+         showToast('이미지 업로드 중 오류가 발생했습니다.');
          return 400;
       } finally {
          setUploadingImage(false);
@@ -164,16 +167,16 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
 
    const handleEdit = async () => {
       if (!eventName.trim()) {
-         alert('이벤트 명을 입력해주세요.');
+         showToast('이벤트 명을 입력해주세요.');
          return;
       }
       if (!startDate || !endDate) {
-         alert('이벤트 기간을 입력해주세요.');
+         showToast('이벤트 기간을 입력해주세요.');
          return;
       }
 
       if (uploadingImage) {
-         alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+         showToast('이미지 업로드 중입니다. 잠시만 기다려주세요.');
          return;
       }
 
@@ -209,23 +212,11 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }
       }
    };
 
-   // const handleHostAdd = () => {
-   //    setHosts(prev => [...prev, '']);
-   // };
-
    const handleHostChange = (index: number, value: string) => {
       const newHosts = [...hosts];
       newHosts[index] = value;
       setHosts(newHosts);
    };
-
-   // const handleHostDelete = (index: number) => {
-   //    if (hosts.length <= 1) {
-   //       alert('주최사는 최소 1개 이상 입력해야합니다.');
-   //       return;
-   //    }
-   //    setHosts(prev => prev.filter((_, i) => i !== index));
-   // };
 
    const handleAddressSearch = () => {
       setIsAddressSearchOpen(true);
