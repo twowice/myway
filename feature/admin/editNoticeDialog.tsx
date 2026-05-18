@@ -308,7 +308,7 @@ export function EditNotice({ notice, isOpen, onClose, onEditNotice, onDeleteNoti
 
          onClose();
 
-         showToast('공지사항이 등록되었습니다.');
+         showToast('공지사항이 수정되었습니다.');
       } catch (error) {
          console.error('등록 실패:', error);
       }
