@@ -151,7 +151,7 @@ export function AddEvent({ onAddEvent }: AddEventProps) {
          return 200;
       } catch (error) {
          console.error('❌ 이미지 처리 에러:', error);
-         showToast("이미지 업로드 중 오류가 발생했습니다.");
+         showToast('이미지 업로드 중 오류가 발생했습니다.');
          return 400;
       } finally {
          setUploadingImage(false);
