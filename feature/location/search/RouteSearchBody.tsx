@@ -37,11 +37,16 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
 import { TwoFunctionPopup } from "@/components/popup/twofunction";
+import { Info } from "lucide-react";
 import {
   historyToPlaces,
   sharedRouteToPlaces,
 } from "@/utills/route/historyToPlaces";
 import { placesToHistoryPayload } from "@/utills/route/placesToHistoryPayload";
+
+const ROUTE_SEARCH_UNAVAILABLE_MESSAGE =
+  "ODsay 무료 플랜 종료로 현재 대중교통 길찾기를 이용할 수 없습니다.";
+const IS_ROUTE_SEARCH_UNAVAILABLE = true;
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -71,7 +76,6 @@ export const RouteSearchBody = ({}: {}) => {
     places,
     setAllPlaces,
     setRoutePoints,
-    isDuringSearching,
     setIsDuringSearching,
     setIsAfterSearching,
     isAfterSearching,
@@ -79,7 +83,6 @@ export const RouteSearchBody = ({}: {}) => {
     setPaths,
   } = useSearchStore(
     useShallow((state: SearchState) => ({
-      isDuringSearching: state.isDuringSearching,
       setIsDuringSearching: state.setIsDuringSearching,
       places: state.places,
       setAllPlaces: state.setAllPlaces,
@@ -192,6 +195,11 @@ export const RouteSearchBody = ({}: {}) => {
   }, []);
 
   const search = async () => {
+    if (IS_ROUTE_SEARCH_UNAVAILABLE) {
+      showToast(ROUTE_SEARCH_UNAVAILABLE_MESSAGE);
+      return;
+    }
+
     if (places.length < 2) {
       showToast("출발지와 목적지를 모두 선택해주세요.");
       return;
@@ -391,14 +399,22 @@ export const RouteSearchBody = ({}: {}) => {
         <div className="flex flex-row justify-between">
           <h1 className="text-[24px] font-semibold">길찾기</h1>
           <Button
-            disabled={isDuringSearching || places.length < 2}
+            disabled={IS_ROUTE_SEARCH_UNAVAILABLE || places.length < 2}
             onClick={search}
+            title={ROUTE_SEARCH_UNAVAILABLE_MESSAGE}
           >
-            길찾기 {isDuringSearching ? "중..." : ""}
+            길찾기
           </Button>
         </div>
         <RouteSearchBar order={1} total={2} />
         <RouteSearchBar order={2} total={2} />
+        <div
+          role="status"
+          className="flex items-start gap-2 rounded-md bg-secondary px-3 py-2 text-xs leading-5 text-secondary-foreground/75"
+        >
+          <Info className="mt-0.5 size-4 shrink-0 text-primary" />
+          <span>{ROUTE_SEARCH_UNAVAILABLE_MESSAGE}</span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">
