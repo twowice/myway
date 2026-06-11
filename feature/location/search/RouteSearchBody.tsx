@@ -76,6 +76,7 @@ export const RouteSearchBody = ({}: {}) => {
     places,
     setAllPlaces,
     setRoutePoints,
+    isDuringSearching,
     setIsDuringSearching,
     setIsAfterSearching,
     isAfterSearching,
@@ -83,6 +84,7 @@ export const RouteSearchBody = ({}: {}) => {
     setPaths,
   } = useSearchStore(
     useShallow((state: SearchState) => ({
+      isDuringSearching: state.isDuringSearching,
       setIsDuringSearching: state.setIsDuringSearching,
       places: state.places,
       setAllPlaces: state.setAllPlaces,
@@ -399,22 +401,32 @@ export const RouteSearchBody = ({}: {}) => {
         <div className="flex flex-row justify-between">
           <h1 className="text-[24px] font-semibold">길찾기</h1>
           <Button
-            disabled={IS_ROUTE_SEARCH_UNAVAILABLE || places.length < 2}
+            disabled={
+              IS_ROUTE_SEARCH_UNAVAILABLE ||
+              isDuringSearching ||
+              places.length < 2
+            }
             onClick={search}
-            title={ROUTE_SEARCH_UNAVAILABLE_MESSAGE}
+            title={
+              IS_ROUTE_SEARCH_UNAVAILABLE
+                ? ROUTE_SEARCH_UNAVAILABLE_MESSAGE
+                : undefined
+            }
           >
-            길찾기
+            길찾기 {isDuringSearching ? "중..." : ""}
           </Button>
         </div>
         <RouteSearchBar order={1} total={2} />
         <RouteSearchBar order={2} total={2} />
-        <div
-          role="status"
-          className="flex items-start gap-2 rounded-md bg-secondary px-3 py-2 text-xs leading-5 text-secondary-foreground/75"
-        >
-          <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>{ROUTE_SEARCH_UNAVAILABLE_MESSAGE}</span>
-        </div>
+        {IS_ROUTE_SEARCH_UNAVAILABLE && (
+          <div
+            role="status"
+            className="flex items-start gap-2 rounded-md bg-secondary px-3 py-2 text-xs leading-5 text-secondary-foreground/75"
+          >
+            <Info className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>{ROUTE_SEARCH_UNAVAILABLE_MESSAGE}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
